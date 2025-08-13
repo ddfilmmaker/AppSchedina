@@ -13,6 +13,7 @@ import Matchday from "@/pages/matchday";
 import Leaderboard from "@/pages/leaderboard";
 import CreateLeague from "@/pages/create-league";
 import JoinLeague from "@/pages/join-league";
+import CreateMatchday from "@/pages/create-matchday";
 import SpecialTournaments from "@/pages/special-tournaments";
 import NotFound from "@/pages/not-found";
 
@@ -65,6 +66,7 @@ function AppContent() {
           <Route path="/leaderboard/:leagueId" component={Leaderboard} />
           <Route path="/create-league" component={CreateLeague} />
           <Route path="/join-league" component={JoinLeague} />
+          <Route path="/league/:leagueId/create-matchday" component={CreateMatchday} />
           <Route path="/special-tournaments" component={SpecialTournaments} />
           <Route component={NotFound} />
         </Switch>

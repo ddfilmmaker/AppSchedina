@@ -77,7 +77,7 @@ export class MemStorage implements IStorage {
         id: "preseason-2024",
         name: "Pronostici Pre-Stagione",
         type: "preseason",
-        deadline: new Date("2024-08-20T12:00:00Z"),
+        deadline: new Date("2025-08-20T12:00:00Z"),
         isActive: true,
         points: 10,
         description: "Vincitore Serie A (+10), Ultimo posto (+5), Capocannoniere (+5)"
@@ -86,7 +86,7 @@ export class MemStorage implements IStorage {
         id: "supercoppa-2024",
         name: "Supercoppa Italiana",
         type: "supercoppa",
-        deadline: new Date("2024-01-15T12:00:00Z"),
+        deadline: new Date("2025-01-15T12:00:00Z"),
         isActive: false,
         points: 5,
         description: "Finalisti (+5) e Vincitore (+5)"
@@ -95,7 +95,7 @@ export class MemStorage implements IStorage {
         id: "coppa-italia-2024",
         name: "Coppa Italia",
         type: "coppa_italia",
-        deadline: new Date("2024-05-15T12:00:00Z"),
+        deadline: new Date("2025-05-15T12:00:00Z"),
         isActive: true,
         points: 5,
         description: "Vincitore della Finale (+5)"

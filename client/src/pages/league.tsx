@@ -112,10 +112,12 @@ export default function League() {
         </Link>
         
         {isAdmin && (
-          <Button className="w-full h-auto py-4 flex flex-col items-center space-y-2" data-testid="button-create-matchday">
-            <Plus className="w-6 h-6" />
-            <span className="text-sm">Nuova Giornata</span>
-          </Button>
+          <Link href={`/league/${leagueId}/create-matchday`}>
+            <Button className="w-full h-auto py-4 flex flex-col items-center space-y-2" data-testid="button-create-matchday">
+              <Plus className="w-6 h-6" />
+              <span className="text-sm">Nuova Giornata</span>
+            </Button>
+          </Link>
         )}
       </div>
 
@@ -156,9 +158,11 @@ export default function League() {
               <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500 mb-4">Nessuna giornata creata ancora</p>
               {isAdmin && (
-                <Button data-testid="button-create-first-matchday">
-                  Crea la prima giornata
-                </Button>
+                <Link href={`/league/${leagueId}/create-matchday`}>
+                  <Button data-testid="button-create-first-matchday">
+                    Crea la prima giornata
+                  </Button>
+                </Link>
               )}
             </CardContent>
           </Card>
