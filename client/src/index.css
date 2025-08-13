@@ -1,0 +1,138 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(210 25% 7.8431%);
+  --card: hsl(180 6.6667% 97.0588%);
+  --card-foreground: hsl(210 25% 7.8431%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(210 25% 7.8431%);
+  --primary: hsl(174.4828 65.9574% 19.0196%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(355.3922 63.6364% 48.2353%);
+  --secondary-foreground: hsl(0 0% 100%);
+  --muted: hsl(240 1.9608% 90%);
+  --muted-foreground: hsl(210 25% 7.8431%);
+  --accent: hsl(51.0638 100% 50%);
+  --accent-foreground: hsl(174.4828 65.9574% 19.0196%);
+  --success: hsl(158.9474 52.7027% 39.0196%);
+  --warning: hsl(38.1818 91.3043% 50.3922%);
+  --error: hsl(0 84.2105% 60.3922%);
+  --destructive: hsl(356.3033 90.5579% 54.3137%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(201.4286 30.4348% 90.9804%);
+  --input: hsl(200 23.0769% 97.4510%);
+  --ring: hsl(174.4828 65.9574% 19.0196%);
+  --chart-1: hsl(203.8863 88.2845% 53.1373%);
+  --chart-2: hsl(159.7826 100% 36.0784%);
+  --chart-3: hsl(42.0290 92.8251% 56.2745%);
+  --chart-4: hsl(147.1429 78.5047% 41.9608%);
+  --chart-5: hsl(341.4894 75.2000% 50.9804%);
+  --sidebar: hsl(180 6.6667% 97.0588%);
+  --sidebar-foreground: hsl(210 25% 7.8431%);
+  --sidebar-primary: hsl(174.4828 65.9574% 19.0196%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(211.5789 51.3514% 92.7451%);
+  --sidebar-accent-foreground: hsl(174.4828 65.9574% 19.0196%);
+  --sidebar-border: hsl(205.0000 25.0000% 90.5882%);
+  --sidebar-ring: hsl(174.4828 65.9574% 19.0196%);
+  --font-sans: 'Inter', 'Open Sans', sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: hsl(0 0% 0%);
+  --foreground: hsl(200 6.6667% 91.1765%);
+  --card: hsl(228 9.8039% 10%);
+  --card-foreground: hsl(0 0% 85.0980%);
+  --popover: hsl(0 0% 0%);
+  --popover-foreground: hsl(200 6.6667% 91.1765%);
+  --primary: hsl(174.4828 65.9574% 19.0196%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(355.3922 63.6364% 48.2353%);
+  --secondary-foreground: hsl(0 0% 100%);
+  --muted: hsl(0 0% 9.4118%);
+  --muted-foreground: hsl(210 3.3898% 46.2745%);
+  --accent: hsl(51.0638 100% 50%);
+  --accent-foreground: hsl(174.4828 65.9574% 19.0196%);
+  --success: hsl(158.9474 52.7027% 39.0196%);
+  --warning: hsl(38.1818 91.3043% 50.3922%);
+  --error: hsl(0 84.2105% 60.3922%);
+  --destructive: hsl(356.3033 90.5579% 54.3137%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(210 5.2632% 14.9020%);
+  --input: hsl(207.6923 27.6596% 18.4314%);
+  --ring: hsl(174.4828 65.9574% 19.0196%);
+  --sidebar: hsl(228 9.8039% 10%);
+  --sidebar-foreground: hsl(0 0% 85.0980%);
+  --sidebar-primary: hsl(174.4828 65.9574% 19.0196%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(205.7143 70% 7.8431%);
+  --sidebar-accent-foreground: hsl(174.4828 65.9574% 19.0196%);
+  --sidebar-border: hsl(205.7143 15.7895% 26.0784%);
+  --sidebar-ring: hsl(174.4828 65.9574% 19.0196%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+/* Custom utility classes for the Italian betting app */
+.text-primary-custom {
+  color: #0F4C3A;
+}
+
+.bg-primary-custom {
+  background-color: #0F4C3A;
+}
+
+.text-secondary-custom {
+  color: #CE2B37;
+}
+
+.bg-secondary-custom {
+  background-color: #CE2B37;
+}
+
+.text-accent-custom {
+  color: #FFD700;
+}
+
+.bg-accent-custom {
+  background-color: #FFD700;
+}
+
+.text-success-custom {
+  color: #10B981;
+}
+
+.bg-success-custom {
+  background-color: #10B981;
+}
+
+.text-warning-custom {
+  color: #F59E0B;
+}
+
+.bg-warning-custom {
+  background-color: #F59E0B;
+}
+
+.text-error-custom {
+  color: #EF4444;
+}
+
+.bg-error-custom {
+  background-color: #EF4444;
+}
