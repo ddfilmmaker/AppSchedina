@@ -97,9 +97,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     try {
-      const data = insertLeagueSchema.parse(req.body);
+      const { name } = insertLeagueSchema.parse(req.body);
       const league = await storage.createLeague({
-        ...data,
+        name,
         adminId: req.session.userId
       });
       res.json(league);

@@ -23,7 +23,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   
   // Leagues
-  createLeague(league: InsertLeague): Promise<League>;
+  createLeague(league: InsertLeague & { adminId: string }): Promise<League>;
   getLeague(id: string): Promise<League | undefined>;
   getLeagueByCode(code: string): Promise<League | undefined>;
   getUserLeagues(userId: string): Promise<(League & { memberCount: number; userPosition: number; userPoints: number })[]>;
@@ -129,12 +129,13 @@ export class MemStorage implements IStorage {
     return user;
   }
 
-  async createLeague(insertLeague: InsertLeague): Promise<League> {
+  async createLeague(insertLeague: InsertLeague & { adminId: string }): Promise<League> {
     const id = randomUUID();
     const code = this.generateCode();
     const league: League = {
-      ...insertLeague,
       id,
+      name: insertLeague.name,
+      adminId: insertLeague.adminId,
       code,
       createdAt: new Date(),
     };

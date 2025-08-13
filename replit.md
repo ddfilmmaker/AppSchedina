@@ -8,6 +8,14 @@ Schedina is a full-stack web application for creating and managing sports predic
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes (August 2025)
+
+✅ **Authentication System Simplified**: Removed complex authentication flows - users now only need nicknames and passwords to create accounts
+✅ **League Creation Fixed**: Resolved TypeScript compilation errors and schema validation issues
+✅ **API Response Handling**: Fixed frontend handling of server responses across all pages
+✅ **Session Management**: Implemented proper cookie-based authentication with persistence
+✅ **Error Resolution**: Fixed all TypeScript errors and runtime issues - app now runs without errors
+
 ## System Architecture
 
 ### Frontend Architecture

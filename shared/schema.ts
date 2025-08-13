@@ -82,6 +82,7 @@ export const insertUserSchema = createInsertSchema(users).omit({
 export const insertLeagueSchema = createInsertSchema(leagues).omit({
   id: true,
   code: true,
+  adminId: true,
   createdAt: true,
 });
 
