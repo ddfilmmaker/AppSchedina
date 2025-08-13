@@ -44,15 +44,17 @@ export default function League() {
     );
   }
 
-  const { league, members, matchdays } = data;
-  const isAdmin = user?.user?.id === league.adminId;
+  const { league, members, matchdays } = data || {};
+  const isAdmin = user?.user?.id === league?.adminId;
 
   const copyLeagueCode = () => {
-    navigator.clipboard.writeText(league.code);
-    toast({
-      title: "Codice copiato",
-      description: "Il codice della lega è stato copiato negli appunti",
-    });
+    if (league?.code) {
+      navigator.clipboard.writeText(league.code);
+      toast({
+        title: "Codice copiato",
+        description: "Il codice della lega è stato copiato negli appunti",
+      });
+    }
   };
 
   return (
@@ -64,7 +66,7 @@ export default function League() {
           </Button>
         </Link>
         <h1 className="text-xl font-bold text-gray-900" data-testid={`text-league-name`}>
-          {league.name}
+          {league?.name || 'Lega'}
         </h1>
       </div>
 

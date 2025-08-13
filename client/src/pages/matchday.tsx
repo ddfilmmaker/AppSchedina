@@ -41,30 +41,30 @@ export default function Matchday() {
     );
   }
 
-  const { matchday, matches, userPicks } = data;
+  const { matchday, matches, userPicks } = data || {};
   const now = new Date();
-  const deadline = new Date(matchday.deadline);
+  const deadline = new Date(matchday?.deadline || new Date());
   const isExpired = now > deadline;
 
   // Create a map of user picks for easy lookup
   const pickMap = new Map();
-  userPicks.forEach((pick: any) => {
+  userPicks?.forEach((pick: any) => {
     pickMap.set(pick.matchId, pick);
   });
 
-  const completedPicks = matches.filter((match: any) => pickMap.has(match.id)).length;
-  const progress = matches.length > 0 ? (completedPicks / matches.length) * 100 : 0;
+  const completedPicks = matches?.filter((match: any) => pickMap.has(match.id)).length || 0;
+  const progress = (matches?.length || 0) > 0 ? (completedPicks / (matches?.length || 1)) * 100 : 0;
 
   return (
     <div className="max-w-md mx-auto px-4 py-6 space-y-6">
       <div className="flex items-center mb-6">
-        <Link href={`/league/${matchday.leagueId}`}>
+        <Link href={`/league/${matchday?.leagueId || ''}`}>
           <Button variant="ghost" size="icon" className="mr-3" data-testid="button-back">
             <ArrowLeft className="w-6 h-6" />
           </Button>
         </Link>
         <h1 className="text-xl font-bold text-gray-900" data-testid="text-matchday-name">
-          {matchday.name}
+          {matchday?.name || 'Giornata'}
         </h1>
       </div>
 

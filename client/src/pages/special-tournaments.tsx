@@ -98,11 +98,11 @@ export default function SpecialTournaments() {
     );
   }
 
-  const { tournaments, userBets } = data;
+  const { tournaments, userBets } = data || {};
 
   // Create a map of user bets for easy lookup
   const betMap = new Map();
-  userBets.forEach((bet: SpecialBet) => {
+  userBets?.forEach((bet: SpecialBet) => {
     betMap.set(bet.tournamentId, bet);
   });
 

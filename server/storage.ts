@@ -123,6 +123,7 @@ export class MemStorage implements IStorage {
       ...insertUser,
       id,
       createdAt: new Date(),
+      isAdmin: insertUser.isAdmin ?? false,
     };
     this.users.set(id, user);
     return user;
@@ -214,6 +215,7 @@ export class MemStorage implements IStorage {
       ...insertMatchday,
       id,
       createdAt: new Date(),
+      isCompleted: insertMatchday.isCompleted ?? false,
     };
     this.matchdays.set(id, matchday);
     return matchday;
@@ -235,6 +237,7 @@ export class MemStorage implements IStorage {
       ...insertMatch,
       id,
       createdAt: new Date(),
+      result: insertMatch.result ?? null,
     };
     this.matches.set(id, match);
     return match;

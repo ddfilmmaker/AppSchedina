@@ -24,7 +24,7 @@ export default function Home() {
     );
   }
 
-  const totalPoints = leagues?.reduce((sum: number, league: any) => sum + league.userPoints, 0) || 0;
+  const totalPoints = leagues?.leagues?.reduce((sum: number, league: any) => sum + league.userPoints, 0) || 0;
   const totalCorrectPicks = Math.floor(totalPoints * 0.8); // Approximation
 
   return (
@@ -76,13 +76,13 @@ export default function Home() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-gray-900">Le Mie Leghe</h3>
           <span className="text-sm text-gray-500" data-testid="text-leagues-count">
-            {leagues?.length || 0} leghe
+            {leagues?.leagues?.length || 0} leghe
           </span>
         </div>
 
-        {leagues && leagues.length > 0 ? (
+        {leagues?.leagues && leagues.leagues.length > 0 ? (
           <div className="space-y-3">
-            {leagues.map((league: any) => (
+            {leagues.leagues.map((league: any) => (
               <Link key={league.id} href={`/league/${league.id}`}>
                 <Card className="cursor-pointer hover:shadow-md transition-shadow" data-testid={`card-league-${league.id}`}>
                   <CardContent className="p-4">
