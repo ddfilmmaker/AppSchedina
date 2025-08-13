@@ -99,8 +99,8 @@ export default function SpecialTournaments() {
   }
 
   // Handle different possible API response structures
-  const tournaments = Array.isArray(data) ? data : (data?.tournaments || []);
-  const userBets = data?.userBets || [];
+  const tournaments = Array.isArray(data) ? data : ((data as any)?.tournaments || []);
+  const userBets = (data as any)?.userBets || [];
 
   // Create a map of user bets for easy lookup
   const betMap = new Map();
