@@ -20,62 +20,18 @@ import Header from "@/components/header";
 import BottomNavigation from "@/components/bottom-navigation";
 
 function AppContent() {
-  const { data: user, isLoading, error } = useQuery({
-    queryKey: ["/api/auth/me"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
-    retry: false
-  });
-
-  useEffect(() => {
-    // If user is null (401 error) and we're not on the auth page, redirect
-    if (!isLoading && user === null && window.location.pathname !== "/auth") {
-      window.location.href = "/auth";
-    }
-  }, [user, isLoading]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <Switch>
-        <Route path="/auth" component={Auth} />
-        <Route component={Auth} />
-      </Switch>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header user={user} />
-      <main className="flex-1 pb-16">
-        <Switch>
-          <Route path="/" component={Home} />
-          <Route path="/leagues/:id" component={League} />
-          <Route path="/matchdays/:id" component={Matchday} />
-          <Route path="/leagues/:id/leaderboard" component={Leaderboard} />
-          <Route path="/create-league" component={CreateLeague} />
-          <Route path="/join-league" component={JoinLeague} />
-          <Route path="/special-tournaments" component={SpecialTournaments} />
-          <Route component={NotFound} />
-        </Switch>
-      </main>
-      <BottomNavigation />
-    </div>
-  );
-}
-
-function AppContent() {
-  const { data: user, isLoading } = useQuery({
+  const { data: authData, isLoading } = useQuery({
     queryKey: ["/api/auth/me"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
   });
+
+  useEffect(() => {
+    // If user is null (401 error) and we're not on the auth page, redirect
+    if (!isLoading && authData === null && window.location.pathname !== "/auth") {
+      window.location.href = "/auth";
+    }
+  }, [authData, isLoading]);
 
   if (isLoading) {
     return (
@@ -90,13 +46,16 @@ function AppContent() {
     );
   }
 
-  if (!user) {
+  if (!authData) {
     return <Auth />;
   }
 
+  // Extract user from auth data (API returns { user: { id, nickname, isAdmin } })
+  const user = (authData as any)?.user || authData;
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header user={user.user} />
+      <Header user={user} />
       
       <main className="pb-20">
         <Switch>

@@ -16,7 +16,13 @@ export default function League() {
     enabled: !!leagueId,
   });
 
-  const { data: user } = useQuery({ queryKey: ["/api/auth/me"] });
+  const { data: authData } = useQuery({ queryKey: ["/api/auth/me"] });
+  const user = (authData as any)?.user;
+
+  // Ensure data has the expected structure
+  const league = (data as any)?.league;
+  const members = (data as any)?.members || [];
+  const matchdays = (data as any)?.matchdays || [];
 
   if (isLoading) {
     return (
@@ -44,8 +50,7 @@ export default function League() {
     );
   }
 
-  const { league, members, matchdays } = data || {};
-  const isAdmin = user?.user?.id === league?.adminId;
+  const isAdmin = user?.id === league?.adminId;
 
   const copyLeagueCode = () => {
     if (league?.code) {

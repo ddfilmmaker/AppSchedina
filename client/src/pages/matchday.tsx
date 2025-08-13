@@ -41,7 +41,10 @@ export default function Matchday() {
     );
   }
 
-  const { matchday, matches, userPicks } = data || {};
+  // Ensure data has the expected structure
+  const matchday = (data as any)?.matchday;
+  const matches = (data as any)?.matches || [];
+  const userPicks = (data as any)?.userPicks || [];
   const now = new Date();
   const deadline = new Date(matchday?.deadline || new Date());
   const isExpired = now > deadline;

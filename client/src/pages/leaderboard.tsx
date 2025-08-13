@@ -45,7 +45,10 @@ export default function Leaderboard() {
     );
   }
 
-  const { league } = leagueData || {};
+  const league = (leagueData as any)?.league;
+
+  // Ensure leaderboardData is always an array
+  const leaderboardArray = Array.isArray(leaderboardData) ? leaderboardData : [];
 
   return (
     <div className="max-w-md mx-auto px-4 py-6 space-y-6">
@@ -69,17 +72,17 @@ export default function Leaderboard() {
       </Card>
 
       {/* Podium */}
-      {leaderboardData?.leaderboard?.length >= 3 && (
+      {leaderboardArray?.length >= 3 && (
         <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg border border-yellow-200 p-6">
           <div className="grid grid-cols-3 gap-4 items-end">
             {/* 2nd Place */}
-            {leaderboardData?.leaderboard?.[1] && (
+            {leaderboardArray?.[1] && (
               <div className="text-center" data-testid="podium-2nd">
                 <div className="w-16 h-16 bg-gray-300 rounded-full mx-auto mb-2 flex items-center justify-center">
                   <span className="text-lg font-bold text-gray-700">2°</span>
                 </div>
-                <div className="font-semibold text-gray-900">{leaderboardData?.leaderboard?.[1]?.user?.nickname}</div>
-                <div className="text-sm text-gray-600">{leaderboardData?.leaderboard?.[1]?.points} punti</div>
+                <div className="font-semibold text-gray-900">{leaderboardArray?.[1]?.user?.nickname}</div>
+                <div className="text-sm text-gray-600">{leaderboardArray?.[1]?.points} punti</div>
               </div>
             )}
             
@@ -88,18 +91,18 @@ export default function Leaderboard() {
               <div className="w-20 h-20 bg-accent rounded-full mx-auto mb-2 flex items-center justify-center">
                 <span className="text-xl font-bold text-yellow-800">1°</span>
               </div>
-              <div className="font-bold text-gray-900">{leaderboardData?.leaderboard?.[0]?.user?.nickname}</div>
-              <div className="text-sm text-gray-600">{leaderboardData?.leaderboard?.[0]?.points} punti</div>
+              <div className="font-bold text-gray-900">{leaderboardArray?.[0]?.user?.nickname}</div>
+              <div className="text-sm text-gray-600">{leaderboardArray?.[0]?.points} punti</div>
             </div>
             
             {/* 3rd Place */}
-            {leaderboardData?.leaderboard?.[2] && (
+            {leaderboardArray?.[2] && (
               <div className="text-center" data-testid="podium-3rd">
                 <div className="w-14 h-14 bg-amber-600 rounded-full mx-auto mb-2 flex items-center justify-center">
                   <span className="text-sm font-bold text-white">3°</span>
                 </div>
-                <div className="font-semibold text-gray-900">{leaderboardData?.leaderboard?.[2]?.user?.nickname}</div>
-                <div className="text-sm text-gray-600">{leaderboardData?.leaderboard?.[2]?.points} punti</div>
+                <div className="font-semibold text-gray-900">{leaderboardArray?.[2]?.user?.nickname}</div>
+                <div className="text-sm text-gray-600">{leaderboardArray?.[2]?.points} punti</div>
               </div>
             )}
           </div>
@@ -113,7 +116,7 @@ export default function Leaderboard() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y divide-gray-200">
-            {leaderboardData?.leaderboard?.map((player: any, index: number) => (
+            {leaderboardArray?.map((player: any, index: number) => (
               <div 
                 key={player.user.id} 
                 className={`px-4 py-3 flex items-center justify-between ${
@@ -151,7 +154,7 @@ export default function Leaderboard() {
         </CardContent>
       </Card>
 
-      {(!leaderboardData?.leaderboard || leaderboardData.leaderboard.length === 0) && (
+      {(!leaderboardArray || leaderboardArray.length === 0) && (
         <Card>
           <CardContent className="p-6 text-center">
             <Trophy className="w-12 h-12 text-gray-400 mx-auto mb-4" />
