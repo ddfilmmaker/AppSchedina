@@ -34,7 +34,7 @@ export interface IStorage {
   isUserInLeague(leagueId: string, userId: string): Promise<boolean>;
   
   // Matchdays
-  createMatchday(matchday: InsertMatchday): Promise<Matchday>;
+  createMatchday(matchday: InsertMatchday, leagueId: string): Promise<Matchday>;
   getLeagueMatchdays(leagueId: string): Promise<Matchday[]>;
   getMatchday(id: string): Promise<Matchday | undefined>;
   
@@ -85,9 +85,9 @@ export class MemStorage implements IStorage {
       {
         id: "supercoppa-2024",
         name: "Supercoppa Italiana",
-        type: "supercoppa",
+        type: "supercoppa", 
         deadline: new Date("2025-01-15T12:00:00Z"),
-        isActive: false,
+        isActive: true,
         points: 5,
         description: "Finalisti (+5) e Vincitore (+5)"
       },
@@ -210,11 +210,12 @@ export class MemStorage implements IStorage {
       .some(member => member.leagueId === leagueId && member.userId === userId);
   }
 
-  async createMatchday(insertMatchday: InsertMatchday): Promise<Matchday> {
+  async createMatchday(insertMatchday: InsertMatchday, leagueId: string): Promise<Matchday> {
     const id = randomUUID();
     const matchday: Matchday = {
       ...insertMatchday,
       id,
+      leagueId,
       createdAt: new Date(),
       isCompleted: insertMatchday.isCompleted ?? false,
     };

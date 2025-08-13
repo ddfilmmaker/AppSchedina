@@ -88,7 +88,10 @@ export const insertLeagueSchema = createInsertSchema(leagues).omit({
 
 export const insertMatchdaySchema = createInsertSchema(matchdays).omit({
   id: true,
+  leagueId: true,
   createdAt: true,
+}).extend({
+  deadline: z.string().datetime().transform(val => new Date(val)),
 });
 
 export const insertMatchSchema = createInsertSchema(matches).omit({

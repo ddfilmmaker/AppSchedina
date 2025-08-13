@@ -198,14 +198,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     try {
+      console.log("Request body:", req.body);
+      console.log("League ID:", req.params.leagueId);
       const data = insertMatchdaySchema.parse(req.body);
-      const matchday = await storage.createMatchday({
-        ...data,
-        leagueId: req.params.leagueId
-      });
+      console.log("Parsed data:", data);
+      const matchday = await storage.createMatchday(data, req.params.leagueId);
+      console.log("Created matchday:", matchday);
       res.json(matchday);
     } catch (error) {
-      res.status(400).json({ error: "Dati non validi" });
+      console.error("Matchday creation error:", error);
+      if (error instanceof Error && 'issues' in error) {
+        console.error("Validation issues:", error.issues);
+      }
+      res.status(400).json({ error: "Dati non validi", details: error instanceof Error ? error.message : "Unknown error" });
     }
   });
 
