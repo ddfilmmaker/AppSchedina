@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
 
 interface HeaderProps {
   user: {
@@ -19,13 +19,13 @@ interface HeaderProps {
 }
 
 export default function Header({ user }: HeaderProps) {
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
   
   const handleLogout = async () => {
     try {
       await logout();
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      navigate("/auth");
+      setLocation("/auth");
     } catch (error) {
       console.error("Logout failed:", error);
     }
