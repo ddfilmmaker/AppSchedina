@@ -69,6 +69,21 @@ export class MemStorage implements IStorage {
 
   constructor() {
     this.initializeSpecialTournaments();
+    this.initializeSampleUsers();
+  }
+
+  private async initializeSampleUsers() {
+    // Add some sample users for testing
+    const bcrypt = await import("bcryptjs");
+    
+    const testUser = {
+      id: "test-user-1",
+      nickname: "test",
+      password: await bcrypt.hash("test", 10),
+      isAdmin: true
+    };
+    
+    this.users.set(testUser.id, testUser);
   }
 
   private initializeSpecialTournaments() {

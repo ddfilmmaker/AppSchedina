@@ -23,11 +23,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.post("/api/auth/register", async (req, res) => {
     try {
+      console.log("Registration attempt:", req.body);
       const { nickname, password } = insertUserSchema.parse(req.body);
       
       // Check if user exists
       const existingUser = await storage.getUserByNickname(nickname);
       if (existingUser) {
+        console.log("User already exists:", nickname);
         return res.status(400).json({ error: "Il nickname è già in uso" });
       }
       
@@ -40,30 +42,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isAdmin: false
       });
       
+      console.log("User created:", user.id);
       req.session.userId = user.id;
       res.json({ user: { id: user.id, nickname: user.nickname, isAdmin: user.isAdmin } });
     } catch (error) {
+      console.error("Registration error:", error);
       res.status(400).json({ error: "Dati non validi" });
     }
   });
 
   app.post("/api/auth/login", async (req, res) => {
     try {
+      console.log("Login attempt:", req.body);
       const { nickname, password } = loginSchema.parse(req.body);
       
       const user = await storage.getUserByNickname(nickname);
+      console.log("User found:", user ? "yes" : "no");
+      
       if (!user) {
         return res.status(401).json({ error: "Credenziali non valide" });
       }
       
       const validPassword = await bcrypt.compare(password, user.password);
+      console.log("Password valid:", validPassword);
+      
       if (!validPassword) {
         return res.status(401).json({ error: "Credenziali non valide" });
       }
       
       req.session.userId = user.id;
+      console.log("Session created for user:", user.id);
       res.json({ user: { id: user.id, nickname: user.nickname, isAdmin: user.isAdmin } });
     } catch (error) {
+      console.error("Login error:", error);
       res.status(400).json({ error: "Dati non validi" });
     }
   });
@@ -78,11 +89,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/auth/me", async (req, res) => {
+    console.log("Auth check - Session ID:", req.session.userId);
+    console.log("Session data:", req.session);
+    
     if (!req.session.userId) {
       return res.status(401).json({ error: "Non autenticato" });
     }
     
     const user = await storage.getUser(req.session.userId);
+    console.log("User found for session:", user ? "yes" : "no");
+    
     if (!user) {
       return res.status(401).json({ error: "Utente non trovato" });
     }
