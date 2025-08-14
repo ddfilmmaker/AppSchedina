@@ -30,8 +30,12 @@ export default function Header({ user }: HeaderProps) {
   const handleLogout = async () => {
     try {
       await logout();
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      setLocation("/auth");
+      // Clear all cached data to ensure fresh state
+      queryClient.clear();
+      // Small delay to ensure logout is processed
+      setTimeout(() => {
+        setLocation("/auth");
+      }, 100);
     } catch (error) {
       console.error("Logout failed:", error);
     }

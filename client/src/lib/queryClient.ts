@@ -1,14 +1,15 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { QueryClient, QueryFunction, QueryCache } from "@tanstack/react-query";
+import { toast } from "@/components/ui/toast";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
-    
+
     // For 401 errors, don't show the full error message
     if (res.status === 401) {
       throw new Error("Authentication required");
     }
-    
+
     throw new Error(`${res.status}: ${text}`);
   }
 }
@@ -48,6 +49,23 @@ export const getQueryFn: <T>(options: {
   };
 
 export const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error) => {
+      if (error instanceof Error) {
+        // Check if it's an authentication error
+        if (error.message.includes('401') || error.message.includes('Non autenticato')) {
+          // Clear all queries to reset the app state
+          queryClient.clear();
+        }
+
+        toast({
+          title: "Errore",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    },
+  }),
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
@@ -57,7 +75,13 @@ export const queryClient = new QueryClient({
       retry: false,
     },
     mutations: {
-      retry: false,
+      retry: (failureCount, error: any) => {
+        // Don't retry on auth errors
+        if (error?.message?.includes('401') || error?.message?.includes('Non autenticato')) {
+          return false;
+        }
+        return failureCount < 3;
+      },
     },
   },
 });

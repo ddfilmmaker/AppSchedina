@@ -36,17 +36,13 @@ function AppContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-accent font-bold text-sm">S</span>
-          </div>
-          <div className="text-lg font-semibold text-gray-900">Caricamento...</div>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>
     );
   }
 
+  // If user is not authenticated, always show Auth page regardless of route
   if (!authData) {
     return <Auth />;
   }
@@ -57,7 +53,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header user={user} />
-      
+
       <main className="pb-20">
         <Switch>
           <Route path="/" component={Home} />
