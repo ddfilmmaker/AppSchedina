@@ -86,7 +86,6 @@ export default function MatchCard({ match, userPick, isLocked }: MatchCardProps)
           data-testid={`pick-1-${match.id}`}
         >
           <div className="text-lg">1</div>
-          <div className="text-xs">{match.homeTeam}</div>
         </Button>
         
         <Button
@@ -101,7 +100,6 @@ export default function MatchCard({ match, userPick, isLocked }: MatchCardProps)
           data-testid={`pick-X-${match.id}`}
         >
           <div className="text-lg">X</div>
-          <div className="text-xs">Pareggio</div>
         </Button>
         
         <Button
@@ -116,7 +114,6 @@ export default function MatchCard({ match, userPick, isLocked }: MatchCardProps)
           data-testid={`pick-2-${match.id}`}
         >
           <div className="text-lg">2</div>
-          <div className="text-xs">{match.awayTeam}</div>
         </Button>
       </div>
       
