@@ -9,7 +9,10 @@ import { useEffect } from "react";
 import Home from "@/pages/home";
 import Auth from "@/pages/auth";
 import League from "@/pages/league";
+import Leagues from "@/pages/leagues";
 import Matchday from "@/pages/matchday";
+import Matchdays from "@/pages/matchdays";
+import Profile from "@/pages/profile";
 import Leaderboard from "@/pages/leaderboard";
 import CreateLeague from "@/pages/create-league";
 import JoinLeague from "@/pages/join-league";
@@ -65,6 +68,9 @@ function AppContent() {
       <main className="pb-20">
         <Switch>
           <Route path="/" component={Home} />
+          <Route path="/leagues" component={Leagues} />
+          <Route path="/matchdays" component={Matchdays} />
+          <Route path="/profile" component={Profile} />
           <Route path="/league/:id" component={League} />
           <Route path="/matchday/:id" component={Matchday} />
           <Route path="/leaderboard/:leagueId" component={Leaderboard} />

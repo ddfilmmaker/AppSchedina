@@ -27,35 +27,41 @@ export default function BottomNavigation() {
             </button>
           </Link>
           
-          <button 
-            className={`flex flex-col items-center py-2 px-1 ${
-              isActive("/leagues") ? "text-primary" : "text-gray-400"
-            }`}
-            data-testid="nav-leagues"
-          >
-            <Users className="w-6 h-6 mb-1" />
-            <span className="text-xs">Leghe</span>
-          </button>
+          <Link href="/leagues">
+            <button 
+              className={`flex flex-col items-center py-2 px-1 ${
+                isActive("/leagues") ? "text-primary" : "text-gray-400"
+              }`}
+              data-testid="nav-leagues"
+            >
+              <Users className="w-6 h-6 mb-1" />
+              <span className="text-xs">Leghe</span>
+            </button>
+          </Link>
           
-          <button 
-            className={`flex flex-col items-center py-2 px-1 ${
-              isActive("/matchdays") ? "text-primary" : "text-gray-400"
-            }`}
-            data-testid="nav-matchdays"
-          >
-            <Calendar className="w-6 h-6 mb-1" />
-            <span className="text-xs">Pronostici</span>
-          </button>
+          <Link href="/matchdays">
+            <button 
+              className={`flex flex-col items-center py-2 px-1 ${
+                isActive("/matchdays") ? "text-primary" : "text-gray-400"
+              }`}
+              data-testid="nav-matchdays"
+            >
+              <Calendar className="w-6 h-6 mb-1" />
+              <span className="text-xs">Pronostici</span>
+            </button>
+          </Link>
           
-          <button 
-            className={`flex flex-col items-center py-2 px-1 ${
-              isActive("/profile") ? "text-primary" : "text-gray-400"
-            }`}
-            data-testid="nav-profile"
-          >
-            <User className="w-6 h-6 mb-1" />
-            <span className="text-xs">Profilo</span>
-          </button>
+          <Link href="/profile">
+            <button 
+              className={`flex flex-col items-center py-2 px-1 ${
+                isActive("/profile") ? "text-primary" : "text-gray-400"
+              }`}
+              data-testid="nav-profile"
+            >
+              <User className="w-6 h-6 mb-1" />
+              <span className="text-xs">Profilo</span>
+            </button>
+          </Link>
         </div>
       </div>
     </nav>
