@@ -68,12 +68,3 @@ export async function createMatch(matchdayId: string, homeTeam: string, awayTeam
   });
   return response.json();
 }
-
-export async function createMatch(matchdayId: string, homeTeam: string, awayTeam: string, kickoff: Date): Promise<Match> {
-  const response = await apiRequest("POST", `/api/matchdays/${matchdayId}/matches`, {
-    homeTeam,
-    awayTeam,
-    kickoff: kickoff.toISOString()
-  });
-  return response.json();
-}
