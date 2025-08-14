@@ -63,7 +63,7 @@ export default function Home() {
             <span className="text-sm font-medium">Crea Lega</span>
           </Button>
         </Link>
-        
+
         <Link href="/join-league">
           <Button 
             variant="outline"
@@ -144,48 +144,6 @@ export default function Home() {
             </CardContent>
           </Card>
         )}
-      </div>
-
-      {/* Special Tournaments Section */}
-      <div>
-        <h3 className="text-lg font-bold text-gray-900 mb-4">Tornei Speciali</h3>
-        <Link href="/special-tournaments">
-          <div className="space-y-3">
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-4 cursor-pointer hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-semibold text-amber-900">Pronostici Pre-Stagione</h4>
-                <span className="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full">
-                  Aperto
-                </span>
-              </div>
-              <p className="text-sm text-amber-700 mb-3">
-                Vincitore Serie A, Ultimo posto, Capocannoniere
-              </p>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-amber-600">Scadenza: 20 Agosto 2024</span>
-                <span className="text-amber-800 text-sm font-medium">
-                  Partecipa →
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4 cursor-pointer hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-semibold text-green-900">Coppa Italia</h4>
-                <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                  In corso
-                </span>
-              </div>
-              <p className="text-sm text-green-700 mb-3">Vincitore della Finale</p>
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-green-600">Scadenza: 15 Maggio 2024</span>
-                <span className="text-green-800 text-sm font-medium">
-                  Partecipa →
-                </span>
-              </div>
-            </div>
-          </div>
-        </Link>
       </div>
 
       {/* Recent Activity */}

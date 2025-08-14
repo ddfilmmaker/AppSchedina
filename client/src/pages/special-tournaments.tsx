@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { ArrowLeft, Trophy, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { ArrowLeft, Trophy, Clock, CheckCircle, AlertCircle, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,8 +47,8 @@ export default function SpecialTournaments() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["/api/special-tournaments"],
+  const { data: leaguesData, isLoading } = useQuery({
+    queryKey: ["/api/leagues"],
   });
 
   const submitBetMutation = useMutation({
@@ -80,42 +80,13 @@ export default function SpecialTournaments() {
           <div className="space-y-4">
             <div className="h-32 bg-gray-200 rounded-lg"></div>
             <div className="h-32 bg-gray-200 rounded-lg"></div>
-            <div className="h-32 bg-gray-200 rounded-lg"></div>
           </div>
         </div>
       </div>
     );
   }
 
-  if (!data) {
-    return (
-      <div className="max-w-md mx-auto px-4 py-6 text-center">
-        <p className="text-red-500">Errore nel caricamento dei tornei</p>
-        <Link href="/">
-          <Button className="mt-4">Torna alla Home</Button>
-        </Link>
-      </div>
-    );
-  }
-
-  // Handle different possible API response structures
-  const tournaments = Array.isArray(data) ? data : ((data as any)?.tournaments || []);
-  const userBets = (data as any)?.userBets || [];
-
-  // Create a map of user bets for easy lookup
-  const betMap = new Map();
-  userBets?.forEach((bet: SpecialBet) => {
-    betMap.set(bet.tournamentId, bet);
-  });
-
-  const getTournamentStatus = (tournament: SpecialTournament) => {
-    const now = new Date();
-    const deadline = new Date(tournament.deadline);
-    
-    if (!tournament.isActive) return "Chiuso";
-    if (now > deadline) return "Scaduto";
-    return "Aperto";
-  };
+  const leagues = Array.isArray(leaguesData) ? leaguesData : (leaguesData || []);;
 
   const getTournamentBadgeColor = (status: string) => {
     switch (status) {
@@ -293,12 +264,53 @@ export default function SpecialTournaments() {
       </div>
 
       <div className="space-y-4">
-        {tournaments.map((tournament: SpecialTournament) => {
-          const status = getTournamentStatus(tournament);
-          const existingBet = betMap.get(tournament.id);
-          const cardColors = getTournamentCardColor(tournament);
-          const textColor = getTournamentTextColor(tournament);
-          const badgeColor = getTournamentBadgeColor(status);
+        {leagues.length > 0 ? (
+          leagues.map((league: any) => (
+            <Link key={league.id} href={`/league/${league.id}`}>
+              <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-semibold text-gray-900">{league.name}</h4>
+                    <Badge variant="outline">
+                      <Star className="w-3 h-3 mr-1" />
+                      Tornei Speciali
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Visualizza i tornei speciali di questa lega
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500">
+                      Codice: {league.code}
+                    </span>
+                    <span className="text-primary text-sm font-medium">
+                      Vai alla lega →
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))
+        ) : (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <Trophy className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500 mb-4">Devi essere membro di una lega per accedere ai tornei speciali</p>
+              <div className="space-y-2">
+                <Link href="/create-league">
+                  <Button className="w-full">
+                    Crea una nuova lega
+                  </Button>
+                </Link>
+                <Link href="/join-league">
+                  <Button variant="outline" className="w-full">
+                    Unisciti a una lega
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )});
 
           return (
             <div
@@ -404,14 +416,7 @@ export default function SpecialTournaments() {
         })}
       </div>
 
-      {tournaments.length === 0 && (
-        <Card>
-          <CardContent className="p-6 text-center">
-            <Trophy className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">Nessun torneo speciale disponibile</p>
-          </CardContent>
-        </Card>
-      )}
+      
     </div>
   );
 }

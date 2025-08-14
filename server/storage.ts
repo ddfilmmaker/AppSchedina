@@ -1,5 +1,5 @@
-import { 
-  type User, 
+import {
+  type User,
   type InsertUser,
   type League,
   type InsertLeague,
@@ -21,38 +21,41 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByNickname(nickname: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  
+
   // Leagues
   createLeague(league: InsertLeague & { adminId: string }): Promise<League>;
   getLeague(id: string): Promise<League | undefined>;
   getLeagueByCode(code: string): Promise<League | undefined>;
   getUserLeagues(userId: string): Promise<(League & { memberCount: number; userPosition: number; userPoints: number })[]>;
-  
+
   // League Members
   joinLeague(leagueId: string, userId: string): Promise<LeagueMember>;
   getLeagueMembers(leagueId: string): Promise<(LeagueMember & { user: User })[]>;
   isUserInLeague(leagueId: string, userId: string): Promise<boolean>;
-  
+
   // Matchdays
   createMatchday(matchday: InsertMatchday, leagueId: string): Promise<Matchday>;
   getLeagueMatchdays(leagueId: string): Promise<Matchday[]>;
   getMatchday(id: string): Promise<Matchday | undefined>;
-  
+
   // Matches
   createMatch(match: InsertMatch): Promise<Match>;
   getMatchdayMatches(matchdayId: string): Promise<Match[]>;
   updateMatchResult(matchId: string, result: string): Promise<Match | undefined>;
-  
+
   // Picks
   submitPick(pick: InsertPick): Promise<Pick>;
   getUserPicks(userId: string, matchdayId: string): Promise<Pick[]>;
   getAllPicksForMatchday(matchdayId: string): Promise<(Pick & { user: User })[]>;
-  
+
   // Special Tournaments
   getSpecialTournaments(): Promise<SpecialTournament[]>;
+  getLeagueSpecialTournaments(leagueId: string): Promise<SpecialTournament[]>;
+  createSpecialTournament(tournament: Omit<SpecialTournament, 'id'>, leagueId: string): Promise<SpecialTournament>;
   submitSpecialBet(bet: InsertSpecialBet): Promise<SpecialBet>;
   getUserSpecialBets(userId: string): Promise<(SpecialBet & { tournament: SpecialTournament })[]>;
-  
+  getLeagueUserSpecialBets(userId: string, leagueId: string): Promise<(SpecialBet & { tournament: SpecialTournament })[]>;
+
   // Leaderboard
   getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number }[]>;
 }
@@ -68,57 +71,26 @@ export class MemStorage implements IStorage {
   private specialBets: Map<string, SpecialBet> = new Map();
 
   constructor() {
-    this.initializeSpecialTournaments();
+    // Removed initialization of global special tournaments as they are now league-specific.
+    // this.initializeSpecialTournaments();
     this.initializeSampleUsers();
   }
 
   private async initializeSampleUsers() {
     // Add some sample users for testing
     const bcrypt = await import("bcryptjs");
-    
+
     const testUser = {
       id: "test-user-1",
       nickname: "test",
       password: await bcrypt.hash("test", 10),
       isAdmin: true
     };
-    
+
     this.users.set(testUser.id, testUser);
   }
 
-  private initializeSpecialTournaments() {
-    const tournaments: SpecialTournament[] = [
-      {
-        id: "preseason-2024",
-        name: "Pronostici Pre-Stagione",
-        type: "preseason",
-        deadline: new Date("2025-08-20T12:00:00Z"),
-        isActive: true,
-        points: 10,
-        description: "Vincitore Serie A (+10), Ultimo posto (+5), Capocannoniere (+5)"
-      },
-      {
-        id: "supercoppa-2024",
-        name: "Supercoppa Italiana",
-        type: "supercoppa", 
-        deadline: new Date("2025-01-15T12:00:00Z"),
-        isActive: true,
-        points: 5,
-        description: "Finalisti (+5) e Vincitore (+5)"
-      },
-      {
-        id: "coppa-italia-2024",
-        name: "Coppa Italia",
-        type: "coppa_italia",
-        deadline: new Date("2025-05-15T12:00:00Z"),
-        isActive: true,
-        points: 5,
-        description: "Vincitore della Finale (+5)"
-      }
-    ];
-
-    tournaments.forEach(t => this.specialTournaments.set(t.id, t));
-  }
+  // Removed initializeSpecialTournaments as it's no longer needed globally
 
   private generateCode(): string {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -148,17 +120,19 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const code = this.generateCode();
     const league: League = {
+      ...insertLeague,
       id,
-      name: insertLeague.name,
-      adminId: insertLeague.adminId,
       code,
       createdAt: new Date(),
     };
     this.leagues.set(id, league);
-    
+
     // Auto-join the creator
     await this.joinLeague(id, insertLeague.adminId);
-    
+
+    // Create default special tournaments for the league
+    await this.createDefaultSpecialTournaments(id);
+
     return league;
   }
 
@@ -173,20 +147,20 @@ export class MemStorage implements IStorage {
   async getUserLeagues(userId: string): Promise<(League & { memberCount: number; userPosition: number; userPoints: number })[]> {
     const userMemberships = Array.from(this.leagueMembers.values())
       .filter(member => member.userId === userId);
-    
+
     const result = [];
-    
+
     for (const membership of userMemberships) {
       const league = this.leagues.get(membership.leagueId);
       if (!league) continue;
-      
+
       const memberCount = Array.from(this.leagueMembers.values())
         .filter(m => m.leagueId === membership.leagueId).length;
-      
+
       const leaderboard = await this.getLeagueLeaderboard(membership.leagueId);
       const userEntry = leaderboard.find(entry => entry.user.id === userId);
       const userPosition = leaderboard.findIndex(entry => entry.user.id === userId) + 1;
-      
+
       result.push({
         ...league,
         memberCount,
@@ -194,7 +168,7 @@ export class MemStorage implements IStorage {
         userPoints: userEntry?.points || 0
       });
     }
-    
+
     return result;
   }
 
@@ -213,7 +187,7 @@ export class MemStorage implements IStorage {
   async getLeagueMembers(leagueId: string): Promise<(LeagueMember & { user: User })[]> {
     const members = Array.from(this.leagueMembers.values())
       .filter(member => member.leagueId === leagueId);
-    
+
     return members.map(member => ({
       ...member,
       user: this.users.get(member.userId)!
@@ -269,7 +243,7 @@ export class MemStorage implements IStorage {
   async updateMatchResult(matchId: string, result: string): Promise<Match | undefined> {
     const match = this.matches.get(matchId);
     if (!match) return undefined;
-    
+
     const updatedMatch = { ...match, result };
     this.matches.set(matchId, updatedMatch);
     return updatedMatch;
@@ -279,7 +253,7 @@ export class MemStorage implements IStorage {
     // Check if pick already exists for this user/match
     const existingPick = Array.from(this.picks.values())
       .find(pick => pick.matchId === insertPick.matchId && pick.userId === insertPick.userId);
-    
+
     if (existingPick) {
       // Update existing pick
       const updatedPick: Pick = {
@@ -306,7 +280,7 @@ export class MemStorage implements IStorage {
   async getUserPicks(userId: string, matchdayId: string): Promise<Pick[]> {
     const matchdayMatches = await this.getMatchdayMatches(matchdayId);
     const matchIds = matchdayMatches.map(m => m.id);
-    
+
     return Array.from(this.picks.values())
       .filter(pick => pick.userId === userId && matchIds.includes(pick.matchId));
   }
@@ -314,10 +288,10 @@ export class MemStorage implements IStorage {
   async getAllPicksForMatchday(matchdayId: string): Promise<(Pick & { user: User })[]> {
     const matchdayMatches = await this.getMatchdayMatches(matchdayId);
     const matchIds = matchdayMatches.map(m => m.id);
-    
+
     const picks = Array.from(this.picks.values())
       .filter(pick => matchIds.includes(pick.matchId));
-    
+
     return picks.map(pick => ({
       ...pick,
       user: this.users.get(pick.userId)!
@@ -328,16 +302,33 @@ export class MemStorage implements IStorage {
     return Array.from(this.specialTournaments.values());
   }
 
-  async submitSpecialBet(insertBet: InsertSpecialBet): Promise<SpecialBet> {
+  async getLeagueSpecialTournaments(leagueId: string): Promise<SpecialTournament[]> {
+    return Array.from(this.specialTournaments.values())
+      .filter(tournament => tournament.leagueId === leagueId);
+  }
+
+  async createSpecialTournament(tournament: Omit<SpecialTournament, 'id'>, leagueId: string): Promise<SpecialTournament> {
+    const id = randomUUID();
+    const newTournament: SpecialTournament = {
+      ...tournament,
+      id,
+      leagueId,
+    };
+
+    this.specialTournaments.set(id, newTournament);
+    return newTournament;
+  }
+
+  async submitSpecialBet(bet: InsertSpecialBet): Promise<SpecialBet> {
     // Check if bet already exists for this user/tournament
     const existingBet = Array.from(this.specialBets.values())
-      .find(bet => bet.tournamentId === insertBet.tournamentId && bet.userId === insertBet.userId);
-    
+      .find(bet => bet.tournamentId === bet.tournamentId && bet.userId === bet.userId);
+
     if (existingBet) {
       // Update existing bet
       const updatedBet: SpecialBet = {
         ...existingBet,
-        prediction: insertBet.prediction,
+        prediction: bet.prediction,
         lastModified: new Date(),
       };
       this.specialBets.set(existingBet.id, updatedBet);
@@ -345,62 +336,110 @@ export class MemStorage implements IStorage {
     } else {
       // Create new bet
       const id = randomUUID();
-      const bet: SpecialBet = {
-        ...insertBet,
+      const newBet: SpecialBet = {
+        ...bet,
         id,
         submittedAt: new Date(),
         lastModified: new Date(),
       };
-      this.specialBets.set(id, bet);
-      return bet;
+      this.specialBets.set(id, newBet);
+      return newBet;
     }
   }
 
   async getUserSpecialBets(userId: string): Promise<(SpecialBet & { tournament: SpecialTournament })[]> {
     const bets = Array.from(this.specialBets.values())
       .filter(bet => bet.userId === userId);
-    
+
     return bets.map(bet => ({
       ...bet,
       tournament: this.specialTournaments.get(bet.tournamentId)!
     })).filter(b => b.tournament);
   }
 
+  async getLeagueUserSpecialBets(userId: string, leagueId: string): Promise<(SpecialBet & { tournament: SpecialTournament })[]> {
+    const bets = Array.from(this.specialBets.values())
+      .filter(bet => bet.userId === userId);
+
+    return bets.map(bet => ({
+      ...bet,
+      tournament: this.specialTournaments.get(bet.tournamentId)!
+    })).filter(b => b.tournament && b.tournament.leagueId === leagueId);
+  }
+
   async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number }[]> {
     const members = await this.getLeagueMembers(leagueId);
     const matchdays = await this.getLeagueMatchdays(leagueId);
-    
+
     const leaderboard = members.map(member => {
       let points = 0;
       let correctPicks = 0;
-      
+
       for (const matchday of matchdays) {
         if (!matchday.isCompleted) continue;
-        
+
         const matches = Array.from(this.matches.values())
           .filter(match => match.matchdayId === matchday.id);
-        
+
         for (const match of matches) {
           if (!match.result) continue;
-          
+
           const pick = Array.from(this.picks.values())
             .find(p => p.matchId === match.id && p.userId === member.userId);
-          
+
           if (pick && pick.pick === match.result) {
             points += 1;
             correctPicks += 1;
           }
         }
       }
-      
+
       return {
         user: member.user,
         points,
         correctPicks
       };
     });
-    
+
     return leaderboard.sort((a, b) => b.points - a.points);
+  }
+
+  private async createDefaultSpecialTournaments(leagueId: string): Promise<void> {
+    const currentYear = new Date().getFullYear();
+    const nextYear = currentYear + 1;
+
+    // Preseason tournament
+    const preseasonDeadline = new Date(`${nextYear}-08-20T23:59:59.000Z`);
+    await this.createSpecialTournament({
+      name: "Pronostici Pre-Stagione",
+      type: "preseason",
+      deadline: preseasonDeadline,
+      isActive: true,
+      points: 20,
+      description: "Pronostica il vincitore, l'ultimo posto e il capocannoniere della Serie A"
+    }, leagueId);
+
+    // Supercoppa tournament
+    const supercoppaDeadline = new Date(`${nextYear}-01-05T20:00:00.000Z`);
+    await this.createSpecialTournament({
+      name: "Supercoppa Italiana",
+      type: "supercoppa",
+      deadline: supercoppaDeadline,
+      isActive: true,
+      points: 5,
+      description: "Pronostica la vincitrice della Supercoppa Italiana"
+    }, leagueId);
+
+    // Coppa Italia tournament
+    const coppaDeadline = new Date(`${nextYear}-05-10T20:00:00.000Z`);
+    await this.createSpecialTournament({
+      name: "Coppa Italia",
+      type: "coppa_italia",
+      deadline: coppaDeadline,
+      isActive: true,
+      points: 10,
+      description: "Pronostica la vincitrice della Coppa Italia"
+    }, leagueId);
   }
 }
 

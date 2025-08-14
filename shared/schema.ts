@@ -56,6 +56,7 @@ export const picks = pgTable("picks", {
 
 export const specialTournaments = pgTable("special_tournaments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  leagueId: varchar("league_id").references(() => leagues.id).notNull(),
   name: text("name").notNull(),
   type: text("type").notNull(), // "preseason", "supercoppa", "coppa_italia"
   deadline: timestamp("deadline").notNull(),
@@ -112,6 +113,13 @@ export const insertSpecialBetSchema = createInsertSchema(specialBets).omit({
   id: true,
   submittedAt: true,
   lastModified: true,
+});
+
+export const insertSpecialTournamentSchema = createInsertSchema(specialTournaments).omit({
+  id: true,
+  leagueId: true,
+}).extend({
+  deadline: z.string().datetime().transform(val => new Date(val)),
 });
 
 // Types

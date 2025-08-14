@@ -9,7 +9,8 @@ import {
   insertMatchdaySchema,
   insertMatchSchema,
   pickUpdateSchema,
-  insertSpecialBetSchema
+  insertSpecialBetSchema,
+  insertSpecialTournamentSchema
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 
@@ -336,15 +337,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Special tournament routes
-  app.get("/api/special-tournaments", async (req, res) => {
+  app.get("/api/leagues/:leagueId/special-tournaments", async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ error: "Non autenticato" });
     }
     
-    const tournaments = await storage.getSpecialTournaments();
-    const userBets = await storage.getUserSpecialBets(req.session.userId);
+    const league = await storage.getLeague(req.params.leagueId);
+    if (!league) {
+      return res.status(404).json({ error: "Lega non trovata" });
+    }
+    
+    const isMember = await storage.isUserInLeague(league.id, req.session.userId);
+    if (!isMember) {
+      return res.status(403).json({ error: "Non sei membro di questa lega" });
+    }
+    
+    const tournaments = await storage.getLeagueSpecialTournaments(req.params.leagueId);
+    const userBets = await storage.getLeagueUserSpecialBets(req.session.userId, req.params.leagueId);
     
     res.json({ tournaments, userBets });
+  });
+
+  app.post("/api/leagues/:leagueId/special-tournaments", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+    
+    const league = await storage.getLeague(req.params.leagueId);
+    if (!league) {
+      return res.status(404).json({ error: "Lega non trovata" });
+    }
+    
+    if (league.adminId !== req.session.userId) {
+      return res.status(403).json({ error: "Solo l'admin può creare tornei speciali" });
+    }
+    
+    try {
+      const data = insertSpecialTournamentSchema.parse(req.body);
+      const tournament = await storage.createSpecialTournament(data, req.params.leagueId);
+      res.json(tournament);
+    } catch (error) {
+      res.status(400).json({ error: "Dati non validi" });
+    }
   });
 
   app.post("/api/special-bets", async (req, res) => {
