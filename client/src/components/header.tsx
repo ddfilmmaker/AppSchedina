@@ -20,24 +20,25 @@ interface HeaderProps {
 
 export default function Header({ user }: HeaderProps) {
   const [, setLocation] = useLocation();
-  
+
   const handleNotifications = () => {
     // For now, we'll just log to console - you can extend this later
     console.log("Notifications clicked");
     // Future: could open a notifications dropdown or navigate to notifications page
   };
-  
+
   const handleLogout = async () => {
     try {
       await logout();
       // Clear all cached data to ensure fresh state
       queryClient.clear();
-      // Small delay to ensure logout is processed
-      setTimeout(() => {
-        setLocation("/auth");
-      }, 100);
+      // Force a hard redirect to ensure clean state
+      window.location.href = "/auth";
     } catch (error) {
       console.error("Logout failed:", error);
+      // Even if logout fails, clear local state and redirect
+      queryClient.clear();
+      window.location.href = "/auth";
     }
   };
 
@@ -50,11 +51,11 @@ export default function Header({ user }: HeaderProps) {
           </div>
           <h1 className="text-white font-bold text-lg">Schedina</h1>
         </div>
-        
+
         <div className="flex items-center space-x-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="text-white relative"
             onClick={handleNotifications}
             data-testid="button-notifications"
@@ -64,11 +65,11 @@ export default function Header({ user }: HeaderProps) {
               3
             </span>
           </Button>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 className="text-white font-medium text-sm"
                 data-testid="button-user-menu"
               >

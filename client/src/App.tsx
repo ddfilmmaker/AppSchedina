@@ -29,8 +29,12 @@ function AppContent() {
 
   useEffect(() => {
     // If user is null (401 error) and we're not on the auth page, redirect
-    if (!isLoading && authData === null && window.location.pathname !== "/auth") {
-      window.location.href = "/auth";
+    if (!isLoading && authData === null) {
+      const currentPath = window.location.pathname;
+      if (currentPath !== "/auth") {
+        console.log("User not authenticated, redirecting to auth");
+        window.location.href = "/auth";
+      }
     }
   }, [authData, isLoading]);
 
@@ -44,6 +48,10 @@ function AppContent() {
 
   // If user is not authenticated, always show Auth page regardless of route
   if (!authData) {
+    // Make sure the URL shows /auth
+    if (window.location.pathname !== "/auth") {
+      window.history.replaceState(null, "", "/auth");
+    }
     return <Auth />;
   }
 
