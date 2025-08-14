@@ -310,9 +310,11 @@ export default function SpecialTournaments() {
               </div>
             </CardContent>
           </Card>
-        )});
-
-          return (
+        )}
+      </div>
+    </div>
+  );
+}
             <div
               key={tournament.id}
               className={`bg-gradient-to-r ${cardColors} border rounded-lg p-4`}
