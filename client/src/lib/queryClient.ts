@@ -1,5 +1,5 @@
 import { QueryClient, QueryFunction, QueryCache } from "@tanstack/react-query";
-import { toast } from "@/components/ui/toast";
+import { toast } from "@/hooks/use-toast";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
