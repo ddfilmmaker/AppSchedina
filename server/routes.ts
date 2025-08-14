@@ -268,14 +268,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     try {
+      console.log("Match creation request body:", req.body);
+      console.log("Matchday ID:", req.params.matchdayId);
       const data = insertMatchSchema.parse(req.body);
+      console.log("Parsed match data:", data);
       const match = await storage.createMatch({
         ...data,
         matchdayId: req.params.matchdayId
       });
+      console.log("Created match:", match);
       res.json(match);
     } catch (error) {
-      res.status(400).json({ error: "Dati non validi" });
+      console.error("Match creation error:", error);
+      if (error instanceof Error && 'issues' in error) {
+        console.error("Validation issues:", error.issues);
+      }
+      res.status(400).json({ error: "Dati non validi", details: error instanceof Error ? error.message : "Unknown error" });
     }
   });
 
