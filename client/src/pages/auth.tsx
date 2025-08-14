@@ -21,6 +21,8 @@ export default function Auth() {
     mutationFn: () => login(loginData.nickname, loginData.password),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      // Redirect to home page after successful login
+      window.location.href = "/";
     },
     onError: (error: any) => {
       toast({
@@ -35,6 +37,8 @@ export default function Auth() {
     mutationFn: () => register(registerData.nickname, registerData.password),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      // Redirect to home page after successful registration
+      window.location.href = "/";
     },
     onError: (error: any) => {
       toast({
