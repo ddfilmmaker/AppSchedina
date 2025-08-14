@@ -21,6 +21,12 @@ interface HeaderProps {
 export default function Header({ user }: HeaderProps) {
   const [, setLocation] = useLocation();
   
+  const handleNotifications = () => {
+    // For now, we'll just log to console - you can extend this later
+    console.log("Notifications clicked");
+    // Future: could open a notifications dropdown or navigate to notifications page
+  };
+  
   const handleLogout = async () => {
     try {
       await logout();
@@ -46,6 +52,7 @@ export default function Header({ user }: HeaderProps) {
             variant="ghost" 
             size="icon" 
             className="text-white relative"
+            onClick={handleNotifications}
             data-testid="button-notifications"
           >
             <Bell className="w-6 h-6" />
