@@ -87,8 +87,10 @@ export default function LeagueSpecialTournaments() {
 
   const { mutate: submitBet, isPending } = useMutation({
     mutationFn: async (tournamentId: string) => {
-      const prediction = predictions[tournamentId];
-      if (!prediction) return;
+      const prediction = predictions[tournamentId]?.trim();
+      if (!prediction) {
+        throw new Error("Inserisci un pronostico");
+      }
 
       const currentBet = userBetMap.get(tournamentId);
 
@@ -116,7 +118,8 @@ export default function LeagueSpecialTournaments() {
   });
 
   const handleSubmitBet = (tournamentId: string) => {
-    if (predictions[tournamentId] && predictions[tournamentId].trim()) {
+    const prediction = predictions[tournamentId]?.trim();
+    if (prediction) {
       submitBet(tournamentId);
     }
   };
@@ -186,10 +189,7 @@ export default function LeagueSpecialTournaments() {
 
                         <Button
                           onClick={() => handleSubmitBet(tournament.id)}
-                          disabled={
-                            isPending || 
-                            (!predictions[tournament.id]?.trim() && !userBet?.prediction)
-                          }
+                          disabled={isPending || !predictions[tournament.id]?.trim()}
                           className="bg-white text-gray-900 hover:bg-white/90 font-semibold"
                         >
                           {isPending ? "Salvando..." : userBet ? "Aggiorna Pronostico" : "Salva Pronostico"}
