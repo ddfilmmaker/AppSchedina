@@ -46,10 +46,42 @@ export default function Header({ user }: HeaderProps) {
     <header className="bg-primary shadow-lg sticky top-0 z-50" data-testid="header">
       <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
-            <span className="text-primary font-bold text-sm">S</span>
+          <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center relative shadow-md border-2 border-yellow-600" style={{
+            background: 'radial-gradient(circle at 30% 30%, #fbbf24, #f59e0b)',
+          }}>
+            {/* Mini football pattern */}
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 32 32">
+              <path
+                d="M8 6 Q16 10 24 6"
+                stroke="#92400e"
+                strokeWidth="1"
+                fill="none"
+              />
+              <path
+                d="M6 10 Q10 16 6 22"
+                stroke="#92400e"
+                strokeWidth="1"
+                fill="none"
+              />
+              <path
+                d="M26 10 Q22 16 26 22"
+                stroke="#92400e"
+                strokeWidth="1"
+                fill="none"
+              />
+              <path
+                d="M8 26 Q16 22 24 26"
+                stroke="#92400e"
+                strokeWidth="1"
+                fill="none"
+              />
+            </svg>
+            {/* Mini 1-X-2 text */}
+            <div className="relative z-10 text-yellow-900 font-black text-xs leading-none">
+              <div className="text-center">1X2</div>
+            </div>
           </div>
-          <h1 className="text-white font-bold text-lg">Schedina</h1>
+          <h1 className="text-white font-bold text-lg">La Schedina</h1>
         </div>
 
         <div className="flex items-center space-x-2">

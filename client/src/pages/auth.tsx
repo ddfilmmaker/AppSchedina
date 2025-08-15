@@ -53,10 +53,56 @@ export default function Auth() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-accent font-bold text-2xl">S</span>
+          <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4 relative shadow-lg border-4 border-yellow-600" style={{
+            background: 'radial-gradient(circle at 30% 30%, #fbbf24, #f59e0b, #d97706)',
+          }}>
+            {/* Football pattern lines */}
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 80 80">
+              <path
+                d="M20 15 Q40 25 60 15"
+                stroke="#92400e"
+                strokeWidth="2.5"
+                fill="none"
+              />
+              <path
+                d="M15 25 Q25 40 15 55"
+                stroke="#92400e"
+                strokeWidth="2.5"
+                fill="none"
+              />
+              <path
+                d="M65 25 Q55 40 65 55"
+                stroke="#92400e"
+                strokeWidth="2.5"
+                fill="none"
+              />
+              <path
+                d="M20 65 Q40 55 60 65"
+                stroke="#92400e"
+                strokeWidth="2.5"
+                fill="none"
+              />
+              <path
+                d="M30 20 Q40 30 50 20"
+                stroke="#92400e"
+                strokeWidth="2"
+                fill="none"
+              />
+              <path
+                d="M30 60 Q40 50 50 60"
+                stroke="#92400e"
+                strokeWidth="2"
+                fill="none"
+              />
+            </svg>
+            {/* 1-X-2 text */}
+            <div className="relative z-10 text-yellow-900 font-black text-xs tracking-wider">
+              <div className="transform -rotate-12">1</div>
+              <div className="transform rotate-12 -mt-1">X</div>
+              <div className="transform -rotate-12 -mt-1">2</div>
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Schedina</h1>
+          <h1 className="text-3xl font-bold text-gray-900">La Schedina</h1>
           <p className="text-gray-600 mt-2">Gioca con gli amici</p>
         </div>
 
