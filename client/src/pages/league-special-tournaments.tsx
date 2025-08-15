@@ -248,7 +248,6 @@ export default function LeagueSpecialTournaments() {
           </Card>
         </Link>
       </div>
-      </div>
     </div>
   );
 }
