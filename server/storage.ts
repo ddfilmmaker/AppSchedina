@@ -436,12 +436,11 @@ export class MemStorage implements IStorage {
       let correctPicks = 0;
 
       for (const matchday of matchdays) {
-        if (!matchday.isCompleted) continue;
-
         const matches = Array.from(this.matches.values())
           .filter(match => match.matchdayId === matchday.id);
 
         for (const match of matches) {
+          // Count points for any match that has a result, regardless of matchday completion
           if (!match.result) continue;
 
           const pick = Array.from(this.picks.values())
