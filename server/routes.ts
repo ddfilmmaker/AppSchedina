@@ -436,6 +436,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/special-tournaments/:tournamentId/bet", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    try {
+      const { prediction } = req.body;
+      if (!prediction || typeof prediction !== 'string') {
+        return res.status(400).json({ error: "Previsione non valida" });
+      }
+
+      const bet = await storage.submitSpecialBet({
+        tournamentId: req.params.tournamentId,
+        prediction,
+        userId: req.session.userId
+      });
+      res.json(bet);
+    } catch (error) {
+      console.error("Special bet submission error:", error);
+      res.status(400).json({ error: "Dati non validi" });
+    }
+  });
+
+  app.put("/api/special-tournaments/:tournamentId/bet", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    try {
+      const { prediction } = req.body;
+      if (!prediction || typeof prediction !== 'string') {
+        return res.status(400).json({ error: "Previsione non valida" });
+      }
+
+      const bet = await storage.updateSpecialBet({
+        tournamentId: req.params.tournamentId,
+        prediction,
+        userId: req.session.userId
+      });
+      res.json(bet);
+    } catch (error) {
+      console.error("Special bet update error:", error);
+      res.status(400).json({ error: "Dati non validi" });
+    }
+  });
+
   app.post("/api/special-bets", async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ error: "Non autenticato" });

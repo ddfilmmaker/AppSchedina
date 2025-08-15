@@ -370,7 +370,7 @@ export class MemStorage implements IStorage {
   async submitSpecialBet(bet: InsertSpecialBet): Promise<SpecialBet> {
     // Check if bet already exists for this user/tournament
     const existingBet = Array.from(this.specialBets.values())
-      .find(bet => bet.tournamentId === bet.tournamentId && bet.userId === bet.userId);
+      .find(b => b.tournamentId === bet.tournamentId && b.userId === bet.userId);
 
     if (existingBet) {
       // Update existing bet
