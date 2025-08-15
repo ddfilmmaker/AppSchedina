@@ -270,26 +270,26 @@ export class MemStorage implements IStorage {
 
     // Get all matches in this matchday
     const matchdayMatches = await this.getMatchdayMatches(matchdayId);
-    
+
     // Calculate matchday totals for each user
     const matchday = await this.getMatchday(matchdayId);
     if (!matchday) return { picks: matchPicks, matchdayTotals: [] };
-    
+
     const members = await this.getLeagueMembers(matchday.leagueId);
     const matchdayTotals = members.map(member => {
       let points = 0;
-      
+
       for (const match of matchdayMatches) {
         if (!match.result) continue;
-        
+
         const pick = Array.from(this.picks.values())
           .find(p => p.matchId === match.id && p.userId === member.userId);
-        
+
         if (pick && pick.pick === match.result) {
           points += 1;
         }
       }
-      
+
       return { userId: member.userId, points };
     });
 
@@ -425,6 +425,7 @@ export class MemStorage implements IStorage {
     })).filter(b => b.user && b.tournament);
   }
 
+  async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number }[]>;
   async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number }[]> {
     const members = await this.getLeagueMembers(leagueId);
     const matchdays = await this.getLeagueMatchdays(leagueId);

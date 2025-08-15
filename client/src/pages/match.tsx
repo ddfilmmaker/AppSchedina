@@ -88,53 +88,55 @@ export default function Match() {
 
       {/* Participants Section - Only show after lock */}
       {isLocked && (
-        <div className="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto">
-          {/* Left Column - Participants and Picks */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 sticky top-0 bg-white py-1">
-              Pronostici dei partecipanti
-            </h3>
-            {participants.map((participant: any) => {
-              const pick = pickMap.get(participant.id);
-              return (
-                <div key={participant.id} className="flex items-center justify-between py-2 border-b border-gray-100">
-                  <span className="text-sm font-medium text-gray-800 truncate">
-                    {participant.nickname}
-                  </span>
-                  <span className={`px-2 py-1 rounded text-xs font-bold ${
-                    pick === "1" ? "bg-blue-100 text-blue-800" :
-                    pick === "X" ? "bg-gray-100 text-gray-800" :
-                    pick === "2" ? "bg-red-100 text-red-800" :
-                    "bg-gray-50 text-gray-400"
-                  }`}>
-                    {pick || "-"}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Right Column - Points */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 sticky top-0 bg-white py-1">
-              Punti
-            </h3>
-            {participants.map((participant: any) => {
-              const points = getMatchPoints(participant.id);
-              return (
-                <div key={participant.id} className="flex items-center justify-center py-2 border-b border-gray-100 h-[41px]">
-                  <span className={`text-sm font-bold ${
-                    points === "1" ? "text-green-600" :
-                    points === "0" ? "text-red-500" :
-                    "text-gray-400"
-                  }`}>
-                    {points}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="grid grid-cols-2 gap-4">
+              <h3 className="text-sm font-semibold text-gray-700">
+                Pronostici dei partecipanti
+              </h3>
+              <h3 className="text-sm font-semibold text-gray-700 text-center">
+                Punti
+              </h3>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="max-h-64 overflow-y-auto">
+              {participants.map((participant: any) => {
+                const pick = pickMap.get(participant.id);
+                const points = getMatchPoints(participant.id);
+                return (
+                  <div key={participant.id} className="grid grid-cols-2 gap-4 py-2 border-b border-gray-100 last:border-b-0">
+                    {/* Left 50% - Participant name and pick */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-800 truncate mr-2">
+                        {participant.nickname}
+                      </span>
+                      <span className={`px-2 py-1 rounded text-xs font-bold ${
+                        pick === "1" ? "bg-blue-100 text-blue-800" :
+                        pick === "X" ? "bg-gray-100 text-gray-800" :
+                        pick === "2" ? "bg-red-100 text-red-800" :
+                        "bg-gray-50 text-gray-400"
+                      }`}>
+                        {pick || "-"}
+                      </span>
+                    </div>
+                    
+                    {/* Right 50% - Points */}
+                    <div className="flex items-center justify-center">
+                      <span className={`text-sm font-bold ${
+                        points === "1" ? "text-green-600" :
+                        points === "0" ? "text-red-500" :
+                        "text-gray-400"
+                      }`}>
+                        {points}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Bottom Summary - Sticky Footer */}
