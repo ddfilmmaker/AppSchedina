@@ -332,7 +332,7 @@ export class MemStorage implements IStorage {
       .filter(pick => pick.userId === userId && matchIds.includes(pick.matchId));
   }
 
-  async getAllPicksForMatchday(matchdayId: string): Promise<(Pick & { user: User })[]> {
+  async getAllPicksForMatchday(matchdayId: string): Promise<Array<{ user: User; pick: Pick; matchId: string }>> {
     const matchdayMatches = await this.getMatchdayMatches(matchdayId);
     const matchIds = matchdayMatches.map(m => m.id);
 
@@ -340,8 +340,9 @@ export class MemStorage implements IStorage {
       .filter(pick => matchIds.includes(pick.matchId));
 
     return picks.map(pick => ({
-      ...pick,
-      user: this.users.get(pick.userId)!
+      user: this.users.get(pick.userId)!,
+      pick: pick,
+      matchId: pick.matchId
     })).filter(p => p.user);
   }
 
