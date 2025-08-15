@@ -74,61 +74,66 @@ export default function MatchCard({ match, userPick, isLocked }: MatchCardProps)
         <div className="text-sm text-gray-500">Serie A</div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
-        <Button
-          variant={selectedPick === "1" ? "default" : "outline"}
-          className={`py-3 px-4 font-semibold transition-all ${
-            selectedPick === "1"
-              ? "bg-primary text-white hover:bg-green-700"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          }`}
-          onClick={() => handlePickSelect("1")}
-          disabled={isLocked || submitPickMutation.isPending}
-          data-testid={`pick-1-${match.id}`}
-        >
-          <div className="text-lg">1</div>
-        </Button>
+      {/* Pick Selection - only show when not locked */}
+      {!isLocked && (
+        <>
+          <div className="grid grid-cols-3 gap-2 mt-4">
+            <Button
+              variant={selectedPick === "1" ? "default" : "outline"}
+              className={`py-3 px-4 font-semibold transition-all ${
+                selectedPick === "1"
+                  ? "bg-primary text-white hover:bg-green-700"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+              onClick={() => handlePickSelect("1")}
+              disabled={submitPickMutation.isPending}
+              data-testid={`pick-1-${match.id}`}
+            >
+              <div className="text-lg">1</div>
+            </Button>
 
-        <Button
-          variant={selectedPick === "X" ? "default" : "outline"}
-          className={`py-3 px-4 font-semibold transition-all ${
-            selectedPick === "X"
-              ? "bg-primary text-white hover:bg-green-700"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          }`}
-          onClick={() => handlePickSelect("X")}
-          disabled={isLocked || submitPickMutation.isPending}
-          data-testid={`pick-X-${match.id}`}
-        >
-          <div className="text-lg">X</div>
-        </Button>
+            <Button
+              variant={selectedPick === "X" ? "default" : "outline"}
+              className={`py-3 px-4 font-semibold transition-all ${
+                selectedPick === "X"
+                  ? "bg-primary text-white hover:bg-green-700"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+              onClick={() => handlePickSelect("X")}
+              disabled={submitPickMutation.isPending}
+              data-testid={`pick-X-${match.id}`}
+            >
+              <div className="text-lg">X</div>
+            </Button>
 
-        <Button
-          variant={selectedPick === "2" ? "default" : "outline"}
-          className={`py-3 px-4 font-semibold transition-all ${
-            selectedPick === "2"
-              ? "bg-primary text-white hover:bg-green-700"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          }`}
-          onClick={() => handlePickSelect("2")}
-          disabled={isLocked || submitPickMutation.isPending}
-          data-testid={`pick-2-${match.id}`}
-        >
-          <div className="text-lg">2</div>
-        </Button>
-      </div>
+            <Button
+              variant={selectedPick === "2" ? "default" : "outline"}
+              className={`py-3 px-4 font-semibold transition-all ${
+                selectedPick === "2"
+                  ? "bg-primary text-white hover:bg-green-700"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+              onClick={() => handlePickSelect("2")}
+              disabled={submitPickMutation.isPending}
+              data-testid={`pick-2-${match.id}`}
+            >
+              <div className="text-lg">2</div>
+            </Button>
+          </div>
 
-      {userPick && (
-        <div className="mt-2 text-center">
-          <span className="text-xs text-gray-500">
-            Ultima modifica: {new Date(userPick.lastModified).toLocaleDateString("it-IT", {
-              day: "2-digit",
-              month: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit"
-            })}
-          </span>
-        </div>
+          {userPick && (
+            <div className="mt-2 text-center">
+              <span className="text-xs text-gray-500">
+                Ultima modifica: {new Date(userPick.lastModified).toLocaleDateString("it-IT", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit"
+                })}
+              </span>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
