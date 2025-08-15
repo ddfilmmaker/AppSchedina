@@ -14,7 +14,7 @@ import {
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { db } from "./db";
-import { leagueMembers, users, preSeasonPredictions } from "./schema";
+import { leagueMembers, users, preSeasonPredictions } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 import crypto from "crypto";
 
