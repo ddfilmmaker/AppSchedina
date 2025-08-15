@@ -36,6 +36,8 @@ export interface Pick {
   lastModified: string;
 }
 
+export type { Match, Matchday, League, Pick, User } from "@shared/schema";
+
 export async function createLeague(name: string): Promise<League> {
   const response = await apiRequest("POST", "/api/leagues", { name });
   return response.json();

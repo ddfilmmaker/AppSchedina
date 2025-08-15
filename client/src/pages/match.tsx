@@ -1,10 +1,10 @@
-
 import { useQuery } from "@tanstack/react-query";
-import { useRoute, Link } from "wouter";
 import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Link, useRoute } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import MatchCard from "@/components/match-card";
+import { useAuth } from "@/lib/auth";
 
 export default function Match() {
   const [, params] = useRoute("/match/:id");
@@ -14,6 +14,8 @@ export default function Match() {
     queryKey: ["/api/matches", matchId, "details"],
     enabled: !!matchId,
   });
+
+  const { user } = useAuth(); // Added useAuth hook to get user information
 
   if (isLoading) {
     return (
@@ -44,7 +46,7 @@ export default function Match() {
   const now = new Date();
   const matchKickoff = new Date(match.kickoff);
   const isLocked = now > new Date(matchKickoff.getTime() - 60000); // 1 minute before kickoff
-  
+
   // Find user's pick for this match
   const userPick = pickForThisMatch.find((p: any) => p.userId === data.userId);
 
@@ -66,6 +68,18 @@ export default function Match() {
     return pick === resultForThisMatch ? "1" : "0";
   };
 
+  // Function to handle updating the match result
+  const handleUpdateResult = async (value: string) => {
+    await fetch(`/api/matches/${match.id}/result`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ value }),
+    });
+    // Optionally re-fetch data or update local state
+  };
+
   return (
     <div className="max-w-md mx-auto px-4 py-6 space-y-6 pb-24">
       <div className="flex items-center mb-6">
@@ -85,6 +99,22 @@ export default function Match() {
         userPick={userPick ? { ...userPick, id: "user-pick", matchId: match.id, submittedAt: "", lastModified: "" } : undefined}
         isLocked={isLocked}
       />
+
+      {/* Admin controls to update result */}
+      {isLocked && user?.role === "admin" && ( // Show only if locked and user is admin
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Aggiorna Risultato</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-center gap-4">
+              <Button onClick={() => handleUpdateResult("1")} className="w-1/3">1</Button>
+              <Button onClick={() => handleUpdateResult("X")} className="w-1/3">X</Button>
+              <Button onClick={() => handleUpdateResult("2")} className="w-1/3">2</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Participants Section - Only show after lock */}
       {isLocked && (
@@ -120,7 +150,7 @@ export default function Match() {
                         {pick || "-"}
                       </span>
                     </div>
-                    
+
                     {/* Right 50% - Points */}
                     <div className="flex items-center justify-center">
                       <span className={`text-sm font-bold ${

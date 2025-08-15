@@ -3,16 +3,17 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { submitPick } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Match, Pick } from "@/lib/api";
+import { Match, Pick, User } from "@/lib/api";
 import { Link } from "wouter";
 
 interface MatchCardProps {
   match: Match;
   userPick?: Pick;
   isLocked: boolean;
+  user?: User;
 }
 
-export default function MatchCard({ match, userPick, isLocked }: MatchCardProps) {
+export default function MatchCard({ match, userPick, isLocked, user }: MatchCardProps) {
   const [selectedPick, setSelectedPick] = useState(userPick?.pick || "");
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -35,11 +36,49 @@ export default function MatchCard({ match, userPick, isLocked }: MatchCardProps)
     },
   });
 
+  const updateResultMutation = useMutation({
+    mutationFn: async (result: string) => {
+      const response = await fetch(`/api/matches/${match.id}/result`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ result }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Errore durante l\'aggiornamento del risultato');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Risultato aggiornato",
+        description: "Il risultato della partita è stato aggiornato con successo.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/matchdays"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Errore",
+        description: error.message || "Errore durante l'aggiornamento del risultato.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handlePickSelect = (pick: string) => {
     if (isLocked) return;
 
     setSelectedPick(pick);
     submitPickMutation.mutate(pick);
+  };
+
+  const handleResultUpdate = (result: string) => {
+    updateResultMutation.mutate(result);
   };
 
   const formatTime = (dateString: string) => {
@@ -134,6 +173,60 @@ export default function MatchCard({ match, userPick, isLocked }: MatchCardProps)
             </div>
           )}
         </>
+      )}
+
+      {/* Current Result Display - show when locked */}
+      {isLocked && match.result && (
+        <div className="mt-4 text-center">
+          <div className="text-sm text-gray-500 mb-2">Risultato finale:</div>
+          <div className={`inline-block px-3 py-2 rounded text-lg font-bold ${
+            match.result === "1" ? "bg-blue-100 text-blue-800" :
+            match.result === "X" ? "bg-gray-100 text-gray-800" :
+            "bg-red-100 text-red-800"
+          }`}>
+            {match.result}
+          </div>
+        </div>
+      )}
+
+      {/* Admin Result Update - only show for admins when locked and no result yet */}
+      {isLocked && user?.isAdmin && !match.result && (
+        <div className="mt-4">
+          <div className="text-sm text-gray-500 text-center mb-3">
+            Inserisci il risultato finale:
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <Button
+              variant="outline"
+              className="py-2 px-4 font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
+              onClick={() => handleResultUpdate("1")}
+              disabled={updateResultMutation.isPending}
+              data-testid={`result-1-${match.id}`}
+            >
+              <div className="text-lg">1</div>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="py-2 px-4 font-semibold bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200"
+              onClick={() => handleResultUpdate("X")}
+              disabled={updateResultMutation.isPending}
+              data-testid={`result-X-${match.id}`}
+            >
+              <div className="text-lg">X</div>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="py-2 px-4 font-semibold bg-red-50 text-red-700 hover:bg-red-100 border-red-200"
+              onClick={() => handleResultUpdate("2")}
+              disabled={updateResultMutation.isPending}
+              data-testid={`result-2-${match.id}`}
+            >
+              <div className="text-lg">2</div>
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );

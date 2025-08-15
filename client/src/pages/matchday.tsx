@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import MatchCard from "@/components/match-card";
 import CountdownTimer from "@/components/countdown-timer";
+import { useAuth } from "@/lib/auth"; // Assuming useAuth is in this path
 
 export default function Matchday() {
   const [, params] = useRoute("/matchday/:id");
   const matchdayId = params?.id;
+  const { user } = useAuth(); // Get the user object
 
   const { data, isLoading } = useQuery({
     queryKey: ["/api/matchdays", matchdayId],
@@ -99,7 +101,7 @@ export default function Matchday() {
               />
             </div>
           </div>
-          
+
           {/* Progress indicator */}
           <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
             <div 
@@ -129,8 +131,9 @@ export default function Matchday() {
                 match={match}
                 userPick={userPick}
                 isLocked={isMatchLocked || isExpired}
+                user={user} // Pass user prop here
               />
-              
+
               {/* Show all participants' picks if deadline has passed */}
               {isExpired && matchPicks.length > 0 && (
                 <Card className="mt-2 bg-gray-50">
