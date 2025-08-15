@@ -46,40 +46,17 @@ export default function Header({ user }: HeaderProps) {
     <header className="bg-primary shadow-lg sticky top-0 z-50" data-testid="header">
       <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center relative shadow-md border-2 border-yellow-600" style={{
-            background: 'radial-gradient(circle at 30% 30%, #fbbf24, #f59e0b)',
-          }}>
-            {/* Mini football pattern */}
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 32 32">
-              <path
-                d="M8 6 Q16 10 24 6"
-                stroke="#92400e"
-                strokeWidth="1"
-                fill="none"
-              />
-              <path
-                d="M6 10 Q10 16 6 22"
-                stroke="#92400e"
-                strokeWidth="1"
-                fill="none"
-              />
-              <path
-                d="M26 10 Q22 16 26 22"
-                stroke="#92400e"
-                strokeWidth="1"
-                fill="none"
-              />
-              <path
-                d="M8 26 Q16 22 24 26"
-                stroke="#92400e"
-                strokeWidth="1"
-                fill="none"
-              />
+          <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center relative shadow-md border border-gray-300">
+            {/* Mini soccer ball */}
+            <svg className="w-6 h-6" viewBox="0 0 32 32" fill="none">
+              <circle cx="16" cy="16" r="15" fill="white" stroke="#000" strokeWidth="1"/>
+              <path d="M16 6 L21 11 L19 18 L13 18 L11 11 Z" fill="black"/>
+              <path d="M16 6 L11 11 L7 9 L9 4 L14 4 Z" fill="white" stroke="black" strokeWidth="0.5"/>
+              <path d="M16 6 L21 11 L25 9 L23 4 L18 4 Z" fill="white" stroke="black" strokeWidth="0.5"/>
+              <path d="M11 11 L13 18 L8 22 L4 18 L7 9 Z" fill="white" stroke="black" strokeWidth="0.5"/>
+              <path d="M21 11 L25 9 L28 14 L24 22 L19 18 Z" fill="white" stroke="black" strokeWidth="0.5"/>
+              <path d="M13 18 L19 18 L16 26 L10 24 L8 22 Z" fill="white" stroke="black" strokeWidth="0.5"/>
             </svg>
-            {/* Mini 1-X-2 text */}
-            <div className="relative z-10 text-yellow-900 font-black text-xs leading-none">
-              <div className="text-center">1X2</div>
-            </div>
           </div>
           <h1 className="text-white font-bold text-lg">La Schedina</h1>
         </div>

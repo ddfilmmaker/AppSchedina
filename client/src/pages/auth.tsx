@@ -53,69 +53,30 @@ export default function Auth() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-20 h-24 bg-gradient-to-br from-amber-700 to-amber-900 rounded-full flex items-center justify-center mx-auto mb-4 relative shadow-lg border-2 border-amber-800 transform rotate-12" style={{
-            background: 'linear-gradient(135deg, #92400e 0%, #78350f 50%, #451a03 100%)',
-            borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%'
-          }}>
-            {/* Classic football stitching pattern */}
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 80 96">
-              {/* Center seam */}
-              <line
-                x1="40"
-                y1="15"
-                x2="40"
-                y2="81"
-                stroke="#fbbf24"
-                strokeWidth="3"
-                strokeDasharray="4,3"
-              />
-              {/* Cross stitches - more prominent without text */}
-              <g stroke="#fbbf24" strokeWidth="2" strokeLinecap="round">
-                <line x1="33" y1="18" x2="47" y2="24" />
-                <line x1="47" y1="18" x2="33" y2="24" />
-                <line x1="33" y1="28" x2="47" y2="34" />
-                <line x1="47" y1="28" x2="33" y2="34" />
-                <line x1="33" y1="38" x2="47" y2="44" />
-                <line x1="47" y1="38" x2="33" y2="44" />
-                <line x1="33" y1="48" x2="47" y2="54" />
-                <line x1="47" y1="48" x2="33" y2="54" />
-                <line x1="33" y1="58" x2="47" y2="64" />
-                <line x1="47" y1="58" x2="33" y2="64" />
-                <line x1="33" y1="68" x2="47" y2="74" />
-                <line x1="47" y1="68" x2="33" y2="74" />
-                <line x1="33" y1="78" x2="47" y2="84" />
-                <line x1="47" y1="78" x2="33" y2="84" />
-              </g>
-              {/* Side curves for classic football shape */}
-              <path
-                d="M12 25 Q22 48 12 71"
-                stroke="#451a03"
-                strokeWidth="1.5"
-                fill="none"
-              />
-              <path
-                d="M68 25 Q58 48 68 71"
-                stroke="#451a03"
-                strokeWidth="1.5"
-                fill="none"
-              />
-              {/* Additional texture lines */}
-              <path
-                d="M25 12 Q40 18 55 12"
-                stroke="#451a03"
-                strokeWidth="1"
-                fill="none"
-              />
-              <path
-                d="M25 84 Q40 78 55 84"
-                stroke="#451a03"
-                strokeWidth="1"
-                fill="none"
-              />
+          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 relative shadow-lg border-2 border-gray-300">
+            {/* Soccer ball SVG */}
+            <svg className="w-16 h-16" viewBox="0 0 64 64" fill="none">
+              {/* White base circle */}
+              <circle cx="32" cy="32" r="30" fill="white" stroke="#000" strokeWidth="2"/>
+              
+              {/* Pentagon in center */}
+              <path d="M32 12 L42 22 L38 36 L26 36 L22 22 Z" fill="black"/>
+              
+              {/* Hexagons around pentagon */}
+              <path d="M32 12 L22 22 L14 18 L18 8 L28 8 Z" fill="white" stroke="black" strokeWidth="1"/>
+              <path d="M32 12 L42 22 L50 18 L46 8 L36 8 Z" fill="white" stroke="black" strokeWidth="1"/>
+              <path d="M22 22 L26 36 L16 44 L8 36 L14 18 Z" fill="white" stroke="black" strokeWidth="1"/>
+              <path d="M42 22 L50 18 L56 28 L48 44 L38 36 Z" fill="white" stroke="black" strokeWidth="1"/>
+              <path d="M26 36 L38 36 L32 52 L20 48 L16 44 Z" fill="white" stroke="black" strokeWidth="1"/>
+              
+              {/* Additional curved lines for 3D effect */}
+              <path d="M18 8 C24 6 40 6 46 8" stroke="black" strokeWidth="1" fill="none"/>
+              <path d="M8 36 C10 42 22 54 32 52" stroke="black" strokeWidth="1" fill="none"/>
+              <path d="M56 28 C54 34 42 46 32 52" stroke="black" strokeWidth="1" fill="none"/>
             </svg>
           </div>
-          <h1 className="text-2xl text-gray-900" style={{ fontFamily: "'Press Start 2P', monospace" }}>La Schedina</h1>
-          <p className="text-gray-600 mt-2">Gioca con gli amici</p>
+          <h1 className="text-2xl text-gray-900">La Schedina</h1>
+          <p className="text-gray-600 mt-2">Totocalcio con gli amici</p>
         </div>
 
         <Tabs defaultValue="login" className="w-full">
