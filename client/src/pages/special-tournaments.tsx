@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import CountdownTimer from "@/components/CountdownTimer";
+import CountdownTimer from "@/components/countdown-timer";
 
 // Helper function to determine card background color based on tournament type
 const getCardColors = (type: string) => {
