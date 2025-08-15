@@ -1,9 +1,28 @@
-import { apiRequest } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest, getQueryFn } from "@/lib/queryClient";
 
 export interface User {
   id: string;
   nickname: string;
   isAdmin: boolean;
+}
+
+export function useAuth() {
+  const { data: authData, isLoading, error } = useQuery({
+    queryKey: ["/api/auth/me"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    retry: false,
+  });
+
+  const user = authData?.user || null;
+  const isAuthenticated = !!user;
+
+  return {
+    user,
+    isAuthenticated,
+    isLoading,
+    error,
+  };
 }
 
 export async function login(nickname: string, password: string): Promise<User> {
