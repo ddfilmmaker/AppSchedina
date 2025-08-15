@@ -4,7 +4,7 @@ import { submitPick } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Match, Pick } from "@/lib/api";
-import Link from "next/link";
+import { Link } from "wouter";
 
 interface MatchCardProps {
   match: Match;
