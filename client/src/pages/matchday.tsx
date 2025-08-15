@@ -60,10 +60,10 @@ export default function Matchday() {
   const allPicksMap = new Map();
   if (isExpired && allPicks.length > 0) {
     allPicks.forEach((pick: any) => {
-      if (!allPicksMap.has(pick.match.id)) {
-        allPicksMap.set(pick.match.id, []);
+      if (!allPicksMap.has(pick.matchId)) {
+        allPicksMap.set(pick.matchId, []);
       }
-      allPicksMap.get(pick.match.id).push(pick);
+      allPicksMap.get(pick.matchId).push(pick);
     });
   }
 
