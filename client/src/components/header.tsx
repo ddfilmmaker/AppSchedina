@@ -46,16 +46,16 @@ export default function Header({ user }: HeaderProps) {
     <header className="bg-primary shadow-lg sticky top-0 z-50" data-testid="header">
       <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center relative shadow-md border border-gray-300">
+          <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center relative shadow-md border border-gray-800">
             {/* Mini soccer ball */}
-            <svg className="w-6 h-6" viewBox="0 0 32 32" fill="none">
-              <circle cx="16" cy="16" r="15" fill="white" stroke="#000" strokeWidth="1"/>
-              <path d="M16 6 L21 11 L19 18 L13 18 L11 11 Z" fill="black"/>
-              <path d="M16 6 L11 11 L7 9 L9 4 L14 4 Z" fill="white" stroke="black" strokeWidth="0.5"/>
-              <path d="M16 6 L21 11 L25 9 L23 4 L18 4 Z" fill="white" stroke="black" strokeWidth="0.5"/>
-              <path d="M11 11 L13 18 L8 22 L4 18 L7 9 Z" fill="white" stroke="black" strokeWidth="0.5"/>
-              <path d="M21 11 L25 9 L28 14 L24 22 L19 18 Z" fill="white" stroke="black" strokeWidth="0.5"/>
-              <path d="M13 18 L19 18 L16 26 L10 24 L8 22 Z" fill="white" stroke="black" strokeWidth="0.5"/>
+            <svg className="w-7 h-7" viewBox="0 0 100 100" fill="none">
+              <circle cx="50" cy="50" r="48" fill="white" stroke="#000" strokeWidth="3"/>
+              <path d="M50 20 L65 32 L59 52 L41 52 L35 32 Z" fill="#000"/>
+              <path d="M50 20 L35 32 L25 28 L30 12 L45 12 Z" fill="white" stroke="#000" strokeWidth="2"/>
+              <path d="M50 20 L65 32 L75 28 L70 12 L55 12 Z" fill="white" stroke="#000" strokeWidth="2"/>
+              <path d="M35 32 L41 52 L26 66 L12 58 L18 42 L25 28 Z" fill="white" stroke="#000" strokeWidth="2"/>
+              <path d="M65 32 L75 28 L82 42 L88 58 L74 66 L59 52 Z" fill="white" stroke="#000" strokeWidth="2"/>
+              <path d="M41 52 L59 52 L50 80 L35 68 Z" fill="white" stroke="#000" strokeWidth="2"/>
             </svg>
           </div>
           <h1 className="text-white font-bold text-lg">La Schedina</h1>

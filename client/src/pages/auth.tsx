@@ -53,29 +53,30 @@ export default function Auth() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 relative shadow-lg border-2 border-gray-300">
+          <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-4 relative shadow-lg border-2 border-gray-800">
             {/* Soccer ball SVG */}
-            <svg className="w-16 h-16" viewBox="0 0 64 64" fill="none">
+            <svg className="w-20 h-20" viewBox="0 0 100 100" fill="none">
               {/* White base circle */}
-              <circle cx="32" cy="32" r="30" fill="white" stroke="#000" strokeWidth="2"/>
+              <circle cx="50" cy="50" r="48" fill="white" stroke="#000" strokeWidth="2"/>
               
-              {/* Pentagon in center */}
-              <path d="M32 12 L42 22 L38 36 L26 36 L22 22 Z" fill="black"/>
+              {/* Central pentagon (black) */}
+              <path d="M50 20 L65 32 L59 52 L41 52 L35 32 Z" fill="#000"/>
               
-              {/* Hexagons around pentagon */}
-              <path d="M32 12 L22 22 L14 18 L18 8 L28 8 Z" fill="white" stroke="black" strokeWidth="1"/>
-              <path d="M32 12 L42 22 L50 18 L46 8 L36 8 Z" fill="white" stroke="black" strokeWidth="1"/>
-              <path d="M22 22 L26 36 L16 44 L8 36 L14 18 Z" fill="white" stroke="black" strokeWidth="1"/>
-              <path d="M42 22 L50 18 L56 28 L48 44 L38 36 Z" fill="white" stroke="black" strokeWidth="1"/>
-              <path d="M26 36 L38 36 L32 52 L20 48 L16 44 Z" fill="white" stroke="black" strokeWidth="1"/>
+              {/* Top hexagons */}
+              <path d="M50 20 L35 32 L25 28 L30 12 L45 12 Z" fill="white" stroke="#000" strokeWidth="1.5"/>
+              <path d="M50 20 L65 32 L75 28 L70 12 L55 12 Z" fill="white" stroke="#000" strokeWidth="1.5"/>
               
-              {/* Additional curved lines for 3D effect */}
-              <path d="M18 8 C24 6 40 6 46 8" stroke="black" strokeWidth="1" fill="none"/>
-              <path d="M8 36 C10 42 22 54 32 52" stroke="black" strokeWidth="1" fill="none"/>
-              <path d="M56 28 C54 34 42 46 32 52" stroke="black" strokeWidth="1" fill="none"/>
+              {/* Side hexagons */}
+              <path d="M35 32 L41 52 L26 66 L12 58 L18 42 L25 28 Z" fill="white" stroke="#000" strokeWidth="1.5"/>
+              <path d="M65 32 L75 28 L82 42 L88 58 L74 66 L59 52 Z" fill="white" stroke="#000" strokeWidth="1.5"/>
+              
+              {/* Bottom hexagon */}
+              <path d="M41 52 L59 52 L65 68 L50 80 L35 68 Z" fill="white" stroke="#000" strokeWidth="1.5"/>
+              <path d="M26 66 L41 52 L35 68 L20 76 L12 58 Z" fill="white" stroke="#000" strokeWidth="1.5"/>
+              <path d="M59 52 L74 66 L88 58 L80 76 L65 68 Z" fill="white" stroke="#000" strokeWidth="1.5"/>
             </svg>
           </div>
-          <h1 className="text-2xl text-gray-900">La Schedina</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">La Schedina</h1>
           <p className="text-gray-600 mt-2">Totocalcio con gli amici</p>
         </div>
 
