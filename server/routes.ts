@@ -249,7 +249,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const matches = await storage.getMatchdayMatches(matchday.id);
     const userPicks = await storage.getUserPicks(req.session.userId, matchday.id);
     
-    res.json({ matchday, matches, userPicks });
+    // If deadline has passed, include all picks from all participants
+    const now = new Date();
+    let allPicks = [];
+    if (now > new Date(matchday.deadline)) {
+      allPicks = await storage.getAllMatchdayPicks(matchday.id);
+    }
+    
+    res.json({ matchday, matches, userPicks, allPicks });
   });
 
   // Match routes
@@ -355,7 +362,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const tournaments = await storage.getLeagueSpecialTournaments(req.params.leagueId);
     const userBets = await storage.getLeagueUserSpecialBets(req.session.userId, req.params.leagueId);
     
-    res.json({ tournaments, userBets });
+    // Include all bets for expired tournaments
+    const now = new Date();
+    const allBets = await Promise.all(tournaments.map(async (tournament: any) => {
+      if (now > new Date(tournament.deadline)) {
+        return await storage.getAllSpecialTournamentBets(tournament.id);
+      }
+      return [];
+    }));
+    
+    res.json({ tournaments, userBets, allBets: allBets.flat() });
   });
 
   app.post("/api/leagues/:leagueId/special-tournaments", async (req, res) => {

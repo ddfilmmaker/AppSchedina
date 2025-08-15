@@ -55,6 +55,7 @@ export interface IStorage {
   submitSpecialBet(bet: InsertSpecialBet): Promise<SpecialBet>;
   getUserSpecialBets(userId: string): Promise<(SpecialBet & { tournament: SpecialTournament })[]>;
   getLeagueUserSpecialBets(userId: string, leagueId: string): Promise<(SpecialBet & { tournament: SpecialTournament })[]>;
+  getAllSpecialTournamentBets(tournamentId: string): Promise<(SpecialBet & { user: User; tournament: SpecialTournament })[]>;
 
   // Leaderboard
   getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number }[]>;
@@ -365,6 +366,17 @@ export class MemStorage implements IStorage {
       ...bet,
       tournament: this.specialTournaments.get(bet.tournamentId)!
     })).filter(b => b.tournament && b.tournament.leagueId === leagueId);
+  }
+
+  async getAllSpecialTournamentBets(tournamentId: string): Promise<(SpecialBet & { user: User; tournament: SpecialTournament })[]> {
+    const bets = Array.from(this.specialBets.values())
+      .filter(bet => bet.tournamentId === tournamentId);
+
+    return bets.map(bet => ({
+      ...bet,
+      user: this.users.get(bet.userId)!,
+      tournament: this.specialTournaments.get(bet.tournamentId)!
+    })).filter(b => b.user && b.tournament);
   }
 
   async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number }[]> {

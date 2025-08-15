@@ -45,6 +45,7 @@ export default function Matchday() {
   const matchday = (data as any)?.matchday;
   const matches = (data as any)?.matches || [];
   const userPicks = (data as any)?.userPicks || [];
+  const allPicks = (data as any)?.allPicks || [];
   const now = new Date();
   const deadline = new Date(matchday?.deadline || new Date());
   const isExpired = now > deadline;
@@ -54,6 +55,17 @@ export default function Matchday() {
   userPicks?.forEach((pick: any) => {
     pickMap.set(pick.matchId, pick);
   });
+
+  // Create a map of all picks grouped by match (for expired matchdays)
+  const allPicksMap = new Map();
+  if (isExpired && allPicks.length > 0) {
+    allPicks.forEach((pick: any) => {
+      if (!allPicksMap.has(pick.match.id)) {
+        allPicksMap.set(pick.match.id, []);
+      }
+      allPicksMap.get(pick.match.id).push(pick);
+    });
+  }
 
   const completedPicks = matches?.filter((match: any) => pickMap.has(match.id)).length || 0;
   const progress = (matches?.length || 0) > 0 ? (completedPicks / (matches?.length || 1)) * 100 : 0;
@@ -109,14 +121,48 @@ export default function Matchday() {
           const matchKickoff = new Date(match.kickoff);
           const isMatchLocked = now > new Date(matchKickoff.getTime() - 60000); // 1 minute before kickoff
           const userPick = pickMap.get(match.id);
+          const matchPicks = allPicksMap.get(match.id) || [];
 
           return (
-            <MatchCard
-              key={match.id}
-              match={match}
-              userPick={userPick}
-              isLocked={isMatchLocked || isExpired}
-            />
+            <div key={match.id}>
+              <MatchCard
+                match={match}
+                userPick={userPick}
+                isLocked={isMatchLocked || isExpired}
+              />
+              
+              {/* Show all participants' picks if deadline has passed */}
+              {isExpired && matchPicks.length > 0 && (
+                <Card className="mt-2 bg-gray-50">
+                  <CardContent className="p-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3">Pronostici dei partecipanti:</h4>
+                    <div className="space-y-2">
+                      {matchPicks.map((pick: any) => (
+                        <div key={pick.user.id} className="flex items-center justify-between text-sm">
+                          <span className="font-medium text-gray-600">{pick.user.nickname}</span>
+                          <div className="flex items-center space-x-2">
+                            <span className={`px-2 py-1 rounded text-xs font-bold ${
+                              pick.pick.pick === "1" ? "bg-blue-100 text-blue-800" :
+                              pick.pick.pick === "X" ? "bg-gray-100 text-gray-800" :
+                              "bg-red-100 text-red-800"
+                            }`}>
+                              {pick.pick.pick === "1" ? "1" : pick.pick.pick === "X" ? "X" : "2"}
+                            </span>
+                            {match.result && (
+                              <span className={`text-xs ${
+                                pick.pick.pick === match.result ? "text-green-600 font-semibold" : "text-red-500"
+                              }`}>
+                                {pick.pick.pick === match.result ? "✓" : "✗"}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           );
         })}
       </div>
