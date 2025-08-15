@@ -19,6 +19,7 @@ import CreateLeague from "@/pages/create-league";
 import JoinLeague from "@/pages/join-league";
 import CreateMatchday from "@/pages/create-matchday";
 import SpecialTournaments from "@/pages/special-tournaments";
+import LeagueSpecialTournaments from "@/pages/league-special-tournaments"; // Assuming this is the correct path
 import NotFound from "@/pages/not-found";
 
 import Header from "@/components/header";
@@ -80,6 +81,7 @@ function AppContent() {
           <Route path="/join-league" component={JoinLeague} />
           <Route path="/league/:leagueId/create-matchday" component={CreateMatchday} />
           <Route path="/special-tournaments" component={SpecialTournaments} />
+          <Route path="/special-tournaments/:leagueId" component={LeagueSpecialTournaments} />
           <Route component={NotFound} />
         </Switch>
       </main>

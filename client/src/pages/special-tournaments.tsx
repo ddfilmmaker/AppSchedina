@@ -77,7 +77,7 @@ export default function SpecialTournaments() {
       <div className="space-y-4">
         {leagues.length > 0 ? (
           leagues.map((league: any) => (
-            <Link key={league.id} href={`/league/${league.id}`}>
+            <Link key={league.id} href={`/special-tournaments/${league.id}`}>
               <Card className="cursor-pointer hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
@@ -95,7 +95,7 @@ export default function SpecialTournaments() {
                       Codice: {league.code}
                     </span>
                     <span className="text-primary text-sm font-medium">
-                      Vai alla lega →
+                      Vai ai tornei speciali →
                     </span>
                   </div>
                 </CardContent>

@@ -409,10 +409,20 @@ export class MemStorage implements IStorage {
     const bets = Array.from(this.specialBets.values())
       .filter(bet => bet.userId === userId);
 
-    return bets.map(bet => ({
-      ...bet,
-      tournament: this.specialTournaments.get(bet.tournamentId)!
-    })).filter(b => b.tournament && b.tournament.leagueId === leagueId);
+    const result = bets.map(bet => {
+      const tournament = this.specialTournaments.get(bet.tournamentId);
+      if (tournament && tournament.leagueId === leagueId) {
+        return {
+          ...bet,
+          tournament,
+          special_bets: bet,
+          special_tournaments: tournament
+        };
+      }
+      return null;
+    }).filter(Boolean);
+
+    return result as (SpecialBet & { tournament: SpecialTournament })[];
   }
 
   async getAllSpecialTournamentBets(tournamentId: string): Promise<(SpecialBet & { user: User; tournament: SpecialTournament })[]> {
