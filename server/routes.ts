@@ -253,7 +253,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const now = new Date();
     let allPicks = [];
     if (now > new Date(matchday.deadline)) {
-      allPicks = await storage.getAllMatchdayPicks(matchday.id);
+      allPicks = await storage.getAllPicksForMatchday(matchday.id);
     }
     
     res.json({ matchday, matches, userPicks, allPicks });
