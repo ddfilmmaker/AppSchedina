@@ -1,0 +1,166 @@
+
+import { useQuery } from "@tanstack/react-query";
+import { useRoute, Link } from "wouter";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import MatchCard from "@/components/match-card";
+
+export default function Match() {
+  const [, params] = useRoute("/match/:id");
+  const matchId = params?.id;
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["/api/matches", matchId, "details"],
+    enabled: !!matchId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-6 bg-gray-200 rounded"></div>
+          <div className="h-32 bg-gray-200 rounded-lg"></div>
+          <div className="space-y-4">
+            <div className="h-48 bg-gray-200 rounded-lg"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-6 text-center">
+        <p className="text-red-500">Partita non trovata</p>
+        <Link href="/">
+          <Button className="mt-4">Torna alla Home</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  const { match, matchday, participants, pickForThisMatch, resultForThisMatch, matchdayTotals } = data as any;
+  const now = new Date();
+  const matchKickoff = new Date(match.kickoff);
+  const isLocked = now > new Date(matchKickoff.getTime() - 60000); // 1 minute before kickoff
+  
+  // Find user's pick for this match
+  const userPick = pickForThisMatch.find((p: any) => p.userId === data.userId);
+
+  // Create maps for easy lookup
+  const pickMap = new Map();
+  pickForThisMatch.forEach((pick: any) => {
+    pickMap.set(pick.userId, pick.value);
+  });
+
+  const totalsMap = new Map();
+  matchdayTotals.forEach((total: any) => {
+    totalsMap.set(total.userId, total.points);
+  });
+
+  // Calculate points for this specific match
+  const getMatchPoints = (userId: string) => {
+    if (!resultForThisMatch) return "-";
+    const pick = pickMap.get(userId);
+    return pick === resultForThisMatch ? "1" : "0";
+  };
+
+  return (
+    <div className="max-w-md mx-auto px-4 py-6 space-y-6 pb-24">
+      <div className="flex items-center mb-6">
+        <Link href={`/matchday/${match.matchdayId}`}>
+          <Button variant="ghost" size="icon" className="mr-3">
+            <ArrowLeft className="w-6 h-6" />
+          </Button>
+        </Link>
+        <h1 className="text-xl font-bold text-gray-900">
+          {match.homeTeam} vs {match.awayTeam}
+        </h1>
+      </div>
+
+      {/* Match Header */}
+      <MatchCard
+        match={match}
+        userPick={userPick ? { ...userPick, id: "user-pick", matchId: match.id, submittedAt: "", lastModified: "" } : undefined}
+        isLocked={isLocked}
+      />
+
+      {/* Participants Section - Only show after lock */}
+      {isLocked && (
+        <div className="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+          {/* Left Column - Participants and Picks */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3 sticky top-0 bg-white py-1">
+              Pronostici dei partecipanti
+            </h3>
+            {participants.map((participant: any) => {
+              const pick = pickMap.get(participant.id);
+              return (
+                <div key={participant.id} className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <span className="text-sm font-medium text-gray-800 truncate">
+                    {participant.nickname}
+                  </span>
+                  <span className={`px-2 py-1 rounded text-xs font-bold ${
+                    pick === "1" ? "bg-blue-100 text-blue-800" :
+                    pick === "X" ? "bg-gray-100 text-gray-800" :
+                    pick === "2" ? "bg-red-100 text-red-800" :
+                    "bg-gray-50 text-gray-400"
+                  }`}>
+                    {pick || "-"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Right Column - Points */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3 sticky top-0 bg-white py-1">
+              Punti
+            </h3>
+            {participants.map((participant: any) => {
+              const points = getMatchPoints(participant.id);
+              return (
+                <div key={participant.id} className="flex items-center justify-center py-2 border-b border-gray-100 h-[41px]">
+                  <span className={`text-sm font-bold ${
+                    points === "1" ? "text-green-600" :
+                    points === "0" ? "text-red-500" :
+                    "text-gray-400"
+                  }`}>
+                    {points}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Bottom Summary - Sticky Footer */}
+      {isLocked && (
+        <Card className="fixed bottom-4 left-4 right-4 max-w-md mx-auto shadow-lg">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Punti giornata</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-2 max-h-32 overflow-y-auto">
+              {participants
+                .sort((a: any, b: any) => (totalsMap.get(b.id) || 0) - (totalsMap.get(a.id) || 0))
+                .map((participant: any) => (
+                  <div key={participant.id} className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-gray-700 truncate">
+                      {participant.nickname}
+                    </span>
+                    <span className="font-bold text-gray-900">
+                      {totalsMap.get(participant.id) || 0}
+                    </span>
+                  </div>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}

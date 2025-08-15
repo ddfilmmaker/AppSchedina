@@ -14,20 +14,33 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-export async function apiRequest(
-  method: string,
-  url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
-  const res = await fetch(url, {
+export async function apiRequest(method: string, url: string, data?: any) {
+  const config: RequestInit = {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
-  });
+    headers: {
+      "Content-Type": "application/json",
+    },
+  };
 
-  await throwIfResNotOk(res);
-  return res;
+  if (data) {
+    config.body = JSON.stringify(data);
+  }
+
+  // Handle match details endpoint
+  if (url.includes("/api/matches/") && url.includes("/details")) {
+    const matchId = url.split("/")[3];
+    url = `/api/matches/${matchId}/details`;
+  }
+
+  const response = await fetch(url, config);
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+  }
+
+  return response;
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

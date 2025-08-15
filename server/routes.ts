@@ -259,6 +259,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ matchday, matches, userPicks, allPicks });
   });
 
+  // New endpoint for match details with participants data
+  app.get("/api/matches/:id/details", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+    
+    const match = await storage.getMatchById(req.params.id);
+    if (!match) {
+      return res.status(404).json({ error: "Partita non trovata" });
+    }
+    
+    const matchday = await storage.getMatchday(match.matchdayId);
+    if (!matchday) {
+      return res.status(404).json({ error: "Giornata non trovata" });
+    }
+    
+    const isMember = await storage.isUserInLeague(matchday.leagueId, req.session.userId);
+    if (!isMember) {
+      return res.status(403).json({ error: "Non sei membro di questa lega" });
+    }
+    
+    // Get participants data
+    const participants = await storage.getLeagueMembers(matchday.leagueId);
+    const matchDetails = await storage.getMatchDetails(req.params.id, matchday.id);
+    
+    res.json({
+      match,
+      matchday,
+      participants: participants.map(p => ({ id: p.user.id, nickname: p.user.nickname })),
+      pickForThisMatch: matchDetails.picks,
+      resultForThisMatch: match.result,
+      matchdayTotals: matchDetails.matchdayTotals
+    });
+  });
+
   // Match routes
   app.post("/api/matchdays/:matchdayId/matches", async (req, res) => {
     if (!req.session.userId) {

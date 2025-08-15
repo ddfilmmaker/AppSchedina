@@ -11,6 +11,7 @@ import Auth from "@/pages/auth";
 import League from "@/pages/league";
 import Leagues from "@/pages/leagues";
 import Matchday from "@/pages/matchday";
+import Match from "@/pages/match";
 import Matchdays from "@/pages/matchdays";
 import Profile from "@/pages/profile";
 import Leaderboard from "@/pages/leaderboard";
@@ -73,6 +74,7 @@ function AppContent() {
           <Route path="/profile" component={Profile} />
           <Route path="/league/:id" component={League} />
           <Route path="/matchday/:id" component={Matchday} />
+          <Route path="/match/:id" component={Match} />
           <Route path="/leaderboard/:leagueId" component={Leaderboard} />
           <Route path="/create-league" component={CreateLeague} />
           <Route path="/join-league" component={JoinLeague} />

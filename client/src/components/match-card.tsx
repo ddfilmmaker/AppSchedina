@@ -4,6 +4,7 @@ import { submitPick } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Match, Pick } from "@/lib/api";
+import Link from "next/link";
 
 interface MatchCardProps {
   match: Match;
@@ -36,7 +37,7 @@ export default function MatchCard({ match, userPick, isLocked }: MatchCardProps)
 
   const handlePickSelect = (pick: string) => {
     if (isLocked) return;
-    
+
     setSelectedPick(pick);
     submitPickMutation.mutate(pick);
   };
@@ -50,8 +51,8 @@ export default function MatchCard({ match, userPick, isLocked }: MatchCardProps)
     });
   };
 
-  return (
-    <div 
+  const cardContent = (
+    <div
       className={`bg-white rounded-lg border border-gray-200 p-4 ${
         isLocked ? "opacity-75" : ""
       }`}
@@ -65,7 +66,7 @@ export default function MatchCard({ match, userPick, isLocked }: MatchCardProps)
           {isLocked ? "Chiuso" : "Aperto"}
         </div>
       </div>
-      
+
       <div className="text-center mb-4">
         <div className="text-lg font-bold text-gray-900 mb-1" data-testid={`match-teams-${match.id}`}>
           {match.homeTeam} vs {match.awayTeam}
@@ -77,8 +78,8 @@ export default function MatchCard({ match, userPick, isLocked }: MatchCardProps)
         <Button
           variant={selectedPick === "1" ? "default" : "outline"}
           className={`py-3 px-4 font-semibold transition-all ${
-            selectedPick === "1" 
-              ? "bg-primary text-white hover:bg-green-700" 
+            selectedPick === "1"
+              ? "bg-primary text-white hover:bg-green-700"
               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
           onClick={() => handlePickSelect("1")}
@@ -87,12 +88,12 @@ export default function MatchCard({ match, userPick, isLocked }: MatchCardProps)
         >
           <div className="text-lg">1</div>
         </Button>
-        
+
         <Button
           variant={selectedPick === "X" ? "default" : "outline"}
           className={`py-3 px-4 font-semibold transition-all ${
-            selectedPick === "X" 
-              ? "bg-primary text-white hover:bg-green-700" 
+            selectedPick === "X"
+              ? "bg-primary text-white hover:bg-green-700"
               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
           onClick={() => handlePickSelect("X")}
@@ -101,12 +102,12 @@ export default function MatchCard({ match, userPick, isLocked }: MatchCardProps)
         >
           <div className="text-lg">X</div>
         </Button>
-        
+
         <Button
           variant={selectedPick === "2" ? "default" : "outline"}
           className={`py-3 px-4 font-semibold transition-all ${
-            selectedPick === "2" 
-              ? "bg-primary text-white hover:bg-green-700" 
+            selectedPick === "2"
+              ? "bg-primary text-white hover:bg-green-700"
               : "bg-gray-100 text-gray-700 hover:bg-gray-200"
           }`}
           onClick={() => handlePickSelect("2")}
@@ -116,7 +117,7 @@ export default function MatchCard({ match, userPick, isLocked }: MatchCardProps)
           <div className="text-lg">2</div>
         </Button>
       </div>
-      
+
       {userPick && (
         <div className="mt-2 text-center">
           <span className="text-xs text-gray-500">
@@ -130,5 +131,13 @@ export default function MatchCard({ match, userPick, isLocked }: MatchCardProps)
         </div>
       )}
     </div>
+  );
+
+  return isLocked ? (
+    <Link href={`/matches/${match.id}`} passHref>
+      {cardContent}
+    </Link>
+  ) : (
+    cardContent
   );
 }

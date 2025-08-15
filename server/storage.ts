@@ -42,6 +42,11 @@ export interface IStorage {
   createMatch(match: InsertMatch): Promise<Match>;
   getMatchdayMatches(matchdayId: string): Promise<Match[]>;
   updateMatchResult(matchId: string, result: string): Promise<Match | undefined>;
+  getMatchById(matchId: string): Promise<Match | undefined>;
+  getMatchDetails(matchId: string, matchdayId: string): Promise<{
+    picks: { userId: string; value: string }[];
+    matchdayTotals: { userId: string; points: number }[];
+  }>;
 
   // Picks
   submitPick(pick: InsertPick): Promise<Pick>;
@@ -248,6 +253,47 @@ export class MemStorage implements IStorage {
     const updatedMatch = { ...match, result };
     this.matches.set(matchId, updatedMatch);
     return updatedMatch;
+  }
+
+  async getMatchById(matchId: string): Promise<Match | undefined> {
+    return this.matches.get(matchId);
+  }
+
+  async getMatchDetails(matchId: string, matchdayId: string): Promise<{
+    picks: { userId: string; value: string }[];
+    matchdayTotals: { userId: string; points: number }[];
+  }> {
+    // Get picks for this specific match
+    const matchPicks = Array.from(this.picks.values())
+      .filter(pick => pick.matchId === matchId)
+      .map(pick => ({ userId: pick.userId, value: pick.pick }));
+
+    // Get all matches in this matchday
+    const matchdayMatches = await this.getMatchdayMatches(matchdayId);
+    
+    // Calculate matchday totals for each user
+    const matchday = await this.getMatchday(matchdayId);
+    if (!matchday) return { picks: matchPicks, matchdayTotals: [] };
+    
+    const members = await this.getLeagueMembers(matchday.leagueId);
+    const matchdayTotals = members.map(member => {
+      let points = 0;
+      
+      for (const match of matchdayMatches) {
+        if (!match.result) continue;
+        
+        const pick = Array.from(this.picks.values())
+          .find(p => p.matchId === match.id && p.userId === member.userId);
+        
+        if (pick && pick.pick === match.result) {
+          points += 1;
+        }
+      }
+      
+      return { userId: member.userId, points };
+    });
+
+    return { picks: matchPicks, matchdayTotals };
   }
 
   async submitPick(insertPick: InsertPick): Promise<Pick> {
