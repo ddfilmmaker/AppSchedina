@@ -178,13 +178,77 @@ export default function Matchday() {
         </Card>
       )}
 
+      {/* Matchday Leaderboard */}
+      {matches.length > 0 && isExpired && (
+        <Card>
+          <CardContent className="p-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Classifica Giornata</h3>
+            <div className="space-y-2">
+              {(() => {
+                // Calculate points for each user for this matchday only
+                const userPoints = new Map();
+                
+                // Initialize all users with 0 points
+                allPicks.forEach(item => {
+                  if (!userPoints.has(item.user.id)) {
+                    userPoints.set(item.user.id, {
+                      user: item.user,
+                      points: 0,
+                      correctPicks: 0
+                    });
+                  }
+                });
+
+                // Calculate points for each match result
+                matches.forEach(match => {
+                  if (!match.result) return;
+                  
+                  const matchPicks = allPicks.filter(pick => pick.matchId === match.id);
+                  matchPicks.forEach(item => {
+                    const userData = userPoints.get(item.user.id);
+                    if (item.pick.pick === match.result) {
+                      userData.points += 1;
+                      userData.correctPicks += 1;
+                    }
+                  });
+                });
+
+                // Convert to array and sort by points
+                const sortedUsers = Array.from(userPoints.values())
+                  .sort((a, b) => b.points - a.points);
+
+                return sortedUsers.map((userData, index) => (
+                  <div key={userData.user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                        index === 0 ? 'bg-yellow-400 text-yellow-900' :
+                        index === 1 ? 'bg-gray-300 text-gray-700' :
+                        index === 2 ? 'bg-orange-300 text-orange-800' :
+                        'bg-gray-100 text-gray-600'
+                      }`}>
+                        {index + 1}
+                      </div>
+                      <span className="font-medium text-gray-900">{userData.user.nickname}</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-gray-900">{userData.points}</div>
+                      <div className="text-xs text-gray-500">{userData.correctPicks}/{matches.length}</div>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Action buttons */}
       {matches.length > 0 && (
         <div className="flex space-x-3">
           <Link href={`/leaderboard/${matchday.leagueId}`} className="flex-1">
             <Button variant="outline" className="w-full" data-testid="button-view-leaderboard">
               <BarChart3 className="w-4 h-4 mr-2" />
-              Classifica
+              Classifica Generale
             </Button>
           </Link>
         </div>
