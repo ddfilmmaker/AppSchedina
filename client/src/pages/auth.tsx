@@ -53,53 +53,56 @@ export default function Auth() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4 relative shadow-lg border-4 border-yellow-600" style={{
-            background: 'radial-gradient(circle at 30% 30%, #fbbf24, #f59e0b, #d97706)',
+          <div className="w-20 h-24 bg-gradient-to-br from-amber-700 to-amber-900 rounded-full flex items-center justify-center mx-auto mb-4 relative shadow-lg border-2 border-amber-800 transform rotate-12" style={{
+            background: 'linear-gradient(135deg, #92400e 0%, #78350f 50%, #451a03 100%)',
+            borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%'
           }}>
-            {/* Football pattern lines */}
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 80 80">
-              <path
-                d="M20 15 Q40 25 60 15"
-                stroke="#92400e"
-                strokeWidth="2.5"
-                fill="none"
-              />
-              <path
-                d="M15 25 Q25 40 15 55"
-                stroke="#92400e"
-                strokeWidth="2.5"
-                fill="none"
-              />
-              <path
-                d="M65 25 Q55 40 65 55"
-                stroke="#92400e"
-                strokeWidth="2.5"
-                fill="none"
-              />
-              <path
-                d="M20 65 Q40 55 60 65"
-                stroke="#92400e"
-                strokeWidth="2.5"
-                fill="none"
-              />
-              <path
-                d="M30 20 Q40 30 50 20"
-                stroke="#92400e"
+            {/* Classic football stitching pattern */}
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 80 96">
+              {/* Center seam */}
+              <line
+                x1="40"
+                y1="15"
+                x2="40"
+                y2="81"
+                stroke="#fbbf24"
                 strokeWidth="2"
+                strokeDasharray="3,2"
+              />
+              {/* Cross stitches */}
+              <g stroke="#fbbf24" strokeWidth="1.5" strokeLinecap="round">
+                <line x1="35" y1="20" x2="45" y2="26" />
+                <line x1="45" y1="20" x2="35" y2="26" />
+                <line x1="35" y1="30" x2="45" y2="36" />
+                <line x1="45" y1="30" x2="35" y2="36" />
+                <line x1="35" y1="40" x2="45" y2="46" />
+                <line x1="45" y1="40" x2="35" y2="46" />
+                <line x1="35" y1="50" x2="45" y2="56" />
+                <line x1="45" y1="50" x2="35" y2="56" />
+                <line x1="35" y1="60" x2="45" y2="66" />
+                <line x1="45" y1="60" x2="35" y2="66" />
+                <line x1="35" y1="70" x2="45" y2="76" />
+                <line x1="45" y1="70" x2="35" y2="76" />
+              </g>
+              {/* Side curves for classic football shape */}
+              <path
+                d="M15 25 Q25 48 15 71"
+                stroke="#451a03"
+                strokeWidth="1"
                 fill="none"
               />
               <path
-                d="M30 60 Q40 50 50 60"
-                stroke="#92400e"
-                strokeWidth="2"
+                d="M65 25 Q55 48 65 71"
+                stroke="#451a03"
+                strokeWidth="1"
                 fill="none"
               />
             </svg>
             {/* 1-X-2 text */}
-            <div className="relative z-10 text-yellow-900 font-black text-xs tracking-wider">
-              <div className="transform -rotate-12">1</div>
-              <div className="transform rotate-12 -mt-1">X</div>
-              <div className="transform -rotate-12 -mt-1">2</div>
+            <div className="relative z-10 text-amber-200 font-black text-xs tracking-wider transform -rotate-12">
+              <div className="transform -rotate-6">1</div>
+              <div className="transform rotate-6 -mt-1">X</div>
+              <div className="transform -rotate-6 -mt-1">2</div>
             </div>
           </div>
           <h1 className="text-2xl text-gray-900" style={{ fontFamily: "'Press Start 2P', monospace" }}>La Schedina</h1>
