@@ -115,7 +115,7 @@ export default function League() {
             <span className="text-sm">Classifica</span>
           </Button>
         </Link>
-        
+
         {isAdmin && (
           <Link href={`/league/${leagueId}/create-matchday`}>
             <Button className="w-full h-auto py-4 flex flex-col items-center space-y-2" data-testid="button-create-matchday">
@@ -136,37 +136,39 @@ export default function League() {
               const deadline = new Date(tournament.deadline);
               const isExpired = now > deadline;
               const userBet = ((specialTournamentsData as any).userBets || []).find((bet: any) => bet.tournamentId === tournament.id);
-              
+
               return (
-                <Card key={tournament.id} className="cursor-pointer hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold text-gray-900">{tournament.name}</h4>
-                      <div className="flex items-center space-x-2">
-                        {userBet && <Badge variant="default" className="text-xs">Completato</Badge>}
-                        <Badge variant={isExpired ? "secondary" : "default"}>
-                          {isExpired ? "Scaduto" : "Aperto"}
-                        </Badge>
+                <Link key={tournament.id} href={`/special-tournaments/${tournament.id}`}>
+                  <Card className="cursor-pointer hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold text-gray-900">{tournament.name}</h4>
+                        <div className="flex items-center space-x-2">
+                          {userBet && <Badge variant="default" className="text-xs">Completato</Badge>}
+                          <Badge variant={isExpired ? "secondary" : "default"}>
+                            {isExpired ? "Scaduto" : "Aperto"}
+                          </Badge>
+                        </div>
                       </div>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-3">{tournament.description}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500">
-                        Scadenza: {deadline.toLocaleDateString("it-IT", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit"
-                        })}
-                      </span>
-                      <div className="flex items-center space-x-2">
-                        <Star className="w-4 h-4 text-amber-500" />
-                        <span className="text-sm font-medium text-amber-600">+{tournament.points} punti</span>
+                      <p className="text-sm text-gray-600 mb-3">{tournament.description}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500">
+                          Scadenza: {deadline.toLocaleDateString("it-IT", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit"
+                          })}
+                        </span>
+                        <div className="flex items-center space-x-2">
+                          <Star className="w-4 h-4 text-amber-500" />
+                          <span className="text-sm font-medium text-amber-600">+{tournament.points} punti</span>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </Link>
               );
             })}
           </div>
