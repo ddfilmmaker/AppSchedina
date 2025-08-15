@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, boolean, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -66,12 +66,25 @@ export const specialTournaments = pgTable("special_tournaments", {
 });
 
 export const specialBets = pgTable("special_bets", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  tournamentId: varchar("tournament_id").references(() => specialTournaments.id).notNull(),
-  userId: varchar("user_id").references(() => users.id).notNull(),
+  id: uuid("id").primaryKey().defaultRandom(),
+  tournamentId: uuid("tournament_id").references(() => specialTournaments.id, { onDelete: "cascade" }).notNull(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
   prediction: text("prediction").notNull(),
-  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
-  lastModified: timestamp("last_modified").defaultNow().notNull(),
+  points: integer("points").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const preSeasonPredictions = pgTable("pre_season_predictions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  leagueId: uuid("league_id").references(() => leagues.id, { onDelete: "cascade" }).notNull(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  winner: text("winner").notNull(),
+  topScorer: text("top_scorer").notNull(),
+  relegated: text("relegated").notNull(),
+  points: integer("points").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Insert schemas

@@ -139,102 +139,115 @@ export default function LeagueSpecialTournaments() {
       </div>
 
       <div className="space-y-4">
-        {tournaments.length > 0 ? (
-          tournaments.map((tournament: any) => {
-            const userBet = userBetMap.get(tournament.id);
-            const now = new Date();
-            const deadline = new Date(tournament.deadline);
-            const isExpired = now > deadline;
-            const cardColors = getCardColors(tournament.type);
-            const tournamentBets = allBetsMap.get(tournament.id) || [];
+        {/* Pre-defined special tournaments */}
+        <Link href={`/pre-season-predictions/${leagueId}`}>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow bg-gradient-to-br from-purple-500 to-pink-600 border-2">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-2">Pronostici Pre-Stagione</h3>
+                  <p className="text-white/90 text-sm mb-3">
+                    Fai i tuoi pronostici per la stagione Serie A 2025/26
+                  </p>
 
-            return (
-              <div key={tournament.id}>
-                <Card className={`${cardColors} border-2`}>
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="text-xl font-bold text-white mb-2">{tournament.name}</h3>
-                        <p className="text-white/90 text-sm mb-3">{tournament.description}</p>
-
-                        <div className="flex items-center space-x-4 text-sm text-white/80">
-                          <div className="flex items-center">
-                            <Clock className="w-4 h-4 mr-1" />
-                            <CountdownTimer deadline={tournament.deadline} />
-                          </div>
-                          <div className="flex items-center">
-                            <Trophy className="w-4 h-4 mr-1" />
-                            <span>{tournament.points} punti</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                        {getTypeLabel(tournament.type)}
-                      </Badge>
+                  <div className="flex items-center space-x-4 text-sm text-white/80">
+                    <div className="flex items-center">
+                      <Clock className="w-4 h-4 mr-1" />
+                      17 Agosto, 14:30
                     </div>
+                    <div className="flex items-center">
+                      <Trophy className="w-4 h-4 mr-1" />
+                      <span>30 punti</span>
+                    </div>
+                  </div>
+                </div>
 
-                    {!isExpired ? (
-                      <div className="space-y-4">
-                        <Textarea
-                          placeholder="Inserisci il tuo pronostico..."
-                          value={predictions[tournament.id] || userBet?.prediction || ""}
-                          onChange={(e) => setPredictions(prev => ({
-                            ...prev,
-                            [tournament.id]: e.target.value
-                          }))}
-                          className="bg-white/10 border-white/30 text-white placeholder:text-white/60 resize-none"
-                          rows={3}
-                        />
-
-                        <Button
-                          onClick={() => handleSubmitBet(tournament.id)}
-                          disabled={isPending || !predictions[tournament.id]?.trim()}
-                          className="bg-white text-gray-900 hover:bg-white/90 font-semibold"
-                        >
-                          {isPending ? "Salvando..." : userBet ? "Aggiorna Pronostico" : "Salva Pronostico"}
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="bg-white/10 rounded-lg p-4">
-                        <p className="text-white/70 text-sm">Scadenza superata</p>
-                        {userBet && (
-                          <p className="text-white font-medium mt-2">
-                            Il tuo pronostico: "{userBet.prediction}"
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Show all participants' bets if deadline has passed */}
-                {isExpired && tournamentBets.length > 0 && (
-                  <Card className="mt-2 bg-gray-50">
-                    <CardContent className="p-4">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-3">Pronostici dei partecipanti:</h4>
-                      <div className="space-y-3">
-                        {tournamentBets.map((bet: any) => (
-                          <div key={bet.user.id} className="border-l-4 border-blue-500 pl-3">
-                            <div className="font-medium text-gray-700 text-sm">{bet.user.nickname}</div>
-                            <p className="text-gray-600 text-sm mt-1">"{bet.prediction}"</p>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                  Pre-Stagione
+                </Badge>
               </div>
-            );
-          })
-        ) : (
-          <Card>
-            <CardContent className="p-6 text-center">
-              <Trophy className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">Nessun torneo speciale disponibile per questa lega</p>
+
+              <div className="bg-white/10 rounded-lg p-3">
+                <p className="text-white text-sm">
+                  Clicca per fare i tuoi pronostici su vincitore, capocannoniere e retrocessioni →
+                </p>
+              </div>
             </CardContent>
           </Card>
-        )}
+        </Link>
+
+        <Link href={`/supercoppa-italiana/${leagueId}`}>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow bg-gradient-to-br from-blue-500 to-indigo-600 border-2">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-2">Supercoppa Italiana</h3>
+                  <p className="text-white/90 text-sm mb-3">
+                    Pronostica il risultato della Supercoppa Italiana
+                  </p>
+
+                  <div className="flex items-center space-x-4 text-sm text-white/80">
+                    <div className="flex items-center">
+                      <Clock className="w-4 h-4 mr-1" />
+                      6 Gennaio 2025, 20:00
+                    </div>
+                    <div className="flex items-center">
+                      <Trophy className="w-4 h-4 mr-1" />
+                      <span>20 punti</span>
+                    </div>
+                  </div>
+                </div>
+
+                <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                  Supercoppa
+                </Badge>
+              </div>
+
+              <div className="bg-white/10 rounded-lg p-3">
+                <p className="text-white text-sm">
+                  Pronostica vincitore e marcatore della Supercoppa →
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href={`/coppa-italia/${leagueId}`}>
+          <Card className="cursor-pointer hover:shadow-md transition-shadow bg-gradient-to-br from-green-500 to-emerald-600 border-2">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-2">Coppa Italia</h3>
+                  <p className="text-white/90 text-sm mb-3">
+                    Pronostica il vincitore della Coppa Italia 2024/25
+                  </p>
+
+                  <div className="flex items-center space-x-4 text-sm text-white/80">
+                    <div className="flex items-center">
+                      <Clock className="w-4 h-4 mr-1" />
+                      14 Maggio 2025, 21:00
+                    </div>
+                    <div className="flex items-center">
+                      <Trophy className="w-4 h-4 mr-1" />
+                      <span>25 punti</span>
+                    </div>
+                  </div>
+                </div>
+
+                <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                  Coppa Italia
+                </Badge>
+              </div>
+
+              <div className="bg-white/10 rounded-lg p-3">
+                <p className="text-white text-sm">
+                  Pronostica la squadra vincitrice della Coppa Italia →
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
       </div>
     </div>
   );

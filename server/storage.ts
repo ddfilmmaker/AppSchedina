@@ -51,7 +51,7 @@ export interface IStorage {
   // Picks
   submitPick(pick: InsertPick): Promise<Pick>;
   getUserPicks(userId: string, matchdayId: string): Promise<Pick[]>;
-  getAllPicksForMatchday(matchdayId: string): Promise<(Pick & { user: User })[]>;
+  getAllPicksForMatchday(matchdayId: string): Promise<Array<{ user: User; pick: Pick; matchId: string }>>;
 
   // Special Tournaments
   getSpecialTournaments(): Promise<SpecialTournament[]>;
