@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { createLeague } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,19 @@ export default function CreateLeague() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const { data: authData } = useQuery({ 
+    queryKey: ["/api/auth/me"],
+    retry: false
+  });
+  
+  const user = (authData as any)?.user;
+
+  // Redirect to auth if not logged in
+  if (authData && !user) {
+    setLocation("/auth");
+    return null;
+  }
 
   const createLeagueMutation = useMutation({
     mutationFn: () => createLeague(name),
@@ -47,6 +60,18 @@ export default function CreateLeague() {
     }
     createLeagueMutation.mutate();
   };
+
+  // Show loading while checking authentication
+  if (!authData) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-6 bg-gray-200 rounded"></div>
+          <div className="h-32 bg-gray-200 rounded-lg"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto px-4 py-6">
