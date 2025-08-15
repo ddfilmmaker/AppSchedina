@@ -1,0 +1,298 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+2:49:07 PM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+Auth check - Session ID: undefined
+Session data: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-09-14T14:49:10.968Z,
+    originalMaxAge: 2592000000,
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax'
+  }
+}
+2:49:10 PM [express] GET /api/auth/me 401 in 3ms :: {"error":"Non autenticato"}
+Login attempt: { nickname: 'test', password: 'test' }
+User found: yes
+Password valid: true
+Session created for user: test-user-1
+2:49:33 PM [express] POST /api/auth/login 200 in 91ms :: {"user":{"id":"test-user-1","nickname":"tes…
+Auth check - Session ID: test-user-1
+Session data: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-09-14T14:49:33.217Z,
+    originalMaxAge: 2592000000,
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax'
+  },
+  userId: 'test-user-1'
+}
+User found for session: yes
+2:49:33 PM [express] GET /api/auth/me 304 in 2ms :: {"user":{"id":"test-user-1","nickname":"test","i…
+Auth check - Session ID: test-user-1
+Session data: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-09-14T14:49:34.821Z,
+    originalMaxAge: 2592000000,
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax'
+  },
+  userId: 'test-user-1'
+}
+User found for session: yes
+2:49:34 PM [express] GET /api/auth/me 304 in 1ms :: {"user":{"id":"test-user-1","nickname":"test","i…
+2:49:35 PM [express] GET /api/leagues 200 in 1ms :: []
+2:49:43 PM [express] POST /api/leagues 200 in 2ms :: {"name":"schedina 2025","adminId":"test-user-1"…
+2:49:43 PM [express] GET /api/leagues/70bb0665-e820-4f58-ab13-7613abed1a01 200 in 2ms :: {"league":{…
+2:49:43 PM [express] GET /api/leagues/70bb0665-e820-4f58-ab13-7613abed1a01/special-tournaments 200 i…
+Request body: {
+  name: 'Prima',
+  deadline: '2025-08-15T14:54:00.000Z',
+  isCompleted: false
+}
+League ID: 70bb0665-e820-4f58-ab13-7613abed1a01
+Parsed data: {
+  name: 'Prima',
+  deadline: 2025-08-15T14:54:00.000Z,
+  isCompleted: false
+}
+Created matchday: {
+  name: 'Prima',
+  deadline: 2025-08-15T14:54:00.000Z,
+  isCompleted: false,
+  id: 'a15791d1-b30d-4d7b-b2ca-337dd1cf7cdb',
+  leagueId: '70bb0665-e820-4f58-ab13-7613abed1a01',
+  createdAt: 2025-08-15T14:50:56.191Z
+}
+2:50:56 PM [express] POST /api/leagues/70bb0665-e820-4f58-ab13-7613abed1a01/matchdays 200 in 2ms :: …
+Match creation request body: {
+  homeTeam: 'Inter',
+  awayTeam: 'Milan',
+  kickoff: '2025-08-15T14:55:00.000Z'
+}
+Matchday ID: a15791d1-b30d-4d7b-b2ca-337dd1cf7cdb
+Parsed match data: {
+  homeTeam: 'Inter',
+  awayTeam: 'Milan',
+  kickoff: 2025-08-15T14:55:00.000Z
+}
+Created match: {
+  homeTeam: 'Inter',
+  awayTeam: 'Milan',
+  kickoff: 2025-08-15T14:55:00.000Z,
+  matchdayId: 'a15791d1-b30d-4d7b-b2ca-337dd1cf7cdb',
+  id: '4087bff6-f13c-4f10-b2b0-8f7bb20ddbd1',
+  createdAt: 2025-08-15T14:50:56.335Z,
+  result: null
+}
+2:50:56 PM [express] POST /api/matchdays/a15791d1-b30d-4d7b-b2ca-337dd1cf7cdb/matches 200 in 3ms :: …
+Match creation request body: {
+  homeTeam: 'Juventus',
+  awayTeam: 'Como',
+  kickoff: '2025-08-17T14:55:00.000Z'
+}
+Matchday ID: a15791d1-b30d-4d7b-b2ca-337dd1cf7cdb
+Parsed match data: {
+  homeTeam: 'Juventus',
+  awayTeam: 'Como',
+  kickoff: 2025-08-17T14:55:00.000Z
+}
+Created match: {
+  homeTeam: 'Juventus',
+  awayTeam: 'Como',
+  kickoff: 2025-08-17T14:55:00.000Z,
+  matchdayId: 'a15791d1-b30d-4d7b-b2ca-337dd1cf7cdb',
+  id: '89a19755-98c1-488e-ab63-73224a816312',
+  createdAt: 2025-08-15T14:50:56.338Z,
+  result: null
+}
+2:50:56 PM [express] POST /api/matchdays/a15791d1-b30d-4d7b-b2ca-337dd1cf7cdb/matches 200 in 1ms :: …
+2:50:56 PM [express] GET /api/leagues/70bb0665-e820-4f58-ab13-7613abed1a01/special-tournaments 304 i…
+2:50:56 PM [express] GET /api/leagues/70bb0665-e820-4f58-ab13-7613abed1a01 200 in 1ms :: {"league":{…
+2:50:59 PM [express] GET /api/matchdays/a15791d1-b30d-4d7b-b2ca-337dd1cf7cdb 200 in 1ms :: {"matchda…
+2:51:00 PM [express] POST /api/picks 200 in 1ms :: {"matchId":"4087bff6-f13c-4f10-b2b0-8f7bb20ddbd1"…
+2:51:00 PM [express] GET /api/matchdays/a15791d1-b30d-4d7b-b2ca-337dd1cf7cdb 200 in 1ms :: {"matchda…
+2:51:02 PM [express] POST /api/picks 200 in 1ms :: {"matchId":"89a19755-98c1-488e-ab63-73224a816312"…
+2:51:02 PM [express] GET /api/matchdays/a15791d1-b30d-4d7b-b2ca-337dd1cf7cdb 200 in 1ms :: {"matchda…
+2:51:05 PM [express] POST /api/auth/logout 200 in 1ms :: {"success":true}
+Auth check - Session ID: undefined
+Session data: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-09-14T14:51:07.565Z,
+    originalMaxAge: 2592000000,
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax'
+  }
+}
+2:51:07 PM [express] GET /api/auth/me 401 in 1ms :: {"error":"Non autenticato"}
+Login attempt: { nickname: 'test', password: 'test' }
+User found: yes
+Password valid: true
+Session created for user: test-user-1
+2:51:12 PM [express] POST /api/auth/login 200 in 84ms :: {"user":{"id":"test-user-1","nickname":"tes…
+Auth check - Session ID: test-user-1
+Session data: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-09-14T14:51:12.356Z,
+    originalMaxAge: 2592000000,
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax'
+  },
+  userId: 'test-user-1'
+}
+User found for session: yes
+2:51:12 PM [express] GET /api/auth/me 304 in 1ms :: {"user":{"id":"test-user-1","nickname":"test","i…
+Auth check - Session ID: test-user-1
+Session data: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-09-14T14:51:13.928Z,
+    originalMaxAge: 2592000000,
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax'
+  },
+  userId: 'test-user-1'
+}
+User found for session: yes
+2:51:14 PM [express] GET /api/auth/me 304 in 1ms :: {"user":{"id":"test-user-1","nickname":"test","i…
+2:51:14 PM [express] GET /api/leagues 200 in 1ms :: [{"name":"schedina 2025","adminId":"test-user-1"…
+2:51:15 PM [express] GET /api/leagues/70bb0665-e820-4f58-ab13-7613abed1a01/special-tournaments 304 i…
+2:51:15 PM [express] GET /api/leagues/70bb0665-e820-4f58-ab13-7613abed1a01 304 in 2ms :: {"league":{…
+2:51:23 PM [express] POST /api/auth/logout 200 in 0ms :: {"success":true}
+Auth check - Session ID: undefined
+Session data: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-09-14T14:51:25.476Z,
+    originalMaxAge: 2592000000,
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax'
+  }
+}
+2:51:25 PM [express] GET /api/auth/me 401 in 1ms :: {"error":"Non autenticato"}
+Registration attempt: { nickname: 'dino', password: 'qwerty' }
+User created: f2be9491-e354-4a78-baa6-5911ea5c1eef
+2:51:33 PM [express] POST /api/auth/register 200 in 95ms :: {"user":{"id":"f2be9491-e354-4a78-baa6-5…
+Auth check - Session ID: f2be9491-e354-4a78-baa6-5911ea5c1eef
+Session data: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-09-14T14:51:33.069Z,
+    originalMaxAge: 2592000000,
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax'
+  },
+  userId: 'f2be9491-e354-4a78-baa6-5911ea5c1eef'
+}
+User found for session: yes
+2:51:33 PM [express] GET /api/auth/me 200 in 1ms :: {"user":{"id":"f2be9491-e354-4a78-baa6-5911ea5c1…
+Auth check - Session ID: f2be9491-e354-4a78-baa6-5911ea5c1eef
+Session data: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-09-14T14:51:34.631Z,
+    originalMaxAge: 2592000000,
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax'
+  },
+  userId: 'f2be9491-e354-4a78-baa6-5911ea5c1eef'
+}
+User found for session: yes
+2:51:34 PM [express] GET /api/auth/me 304 in 1ms :: {"user":{"id":"f2be9491-e354-4a78-baa6-5911ea5c1…
+2:51:34 PM [express] GET /api/leagues 200 in 1ms :: []
+2:51:37 PM [express] POST /api/leagues/join 200 in 1ms :: {"success":true,"league":{"name":"schedina…
+2:51:38 PM [express] GET /api/leagues/70bb0665-e820-4f58-ab13-7613abed1a01 200 in 1ms :: {"league":{…
+2:51:38 PM [express] GET /api/leagues/70bb0665-e820-4f58-ab13-7613abed1a01/special-tournaments 304 i…
+2:51:40 PM [express] GET /api/matchdays/a15791d1-b30d-4d7b-b2ca-337dd1cf7cdb 200 in 1ms :: {"matchda…
+2:51:41 PM [express] POST /api/picks 200 in 1ms :: {"matchId":"4087bff6-f13c-4f10-b2b0-8f7bb20ddbd1"…
+2:51:41 PM [express] GET /api/matchdays/a15791d1-b30d-4d7b-b2ca-337dd1cf7cdb 200 in 0ms :: {"matchda…
+2:51:42 PM [express] POST /api/picks 200 in 1ms :: {"matchId":"89a19755-98c1-488e-ab63-73224a816312"…
+2:51:42 PM [express] GET /api/matchdays/a15791d1-b30d-4d7b-b2ca-337dd1cf7cdb 200 in 0ms :: {"matchda…
+2:51:45 PM [express] POST /api/auth/logout 200 in 1ms :: {"success":true}
+Auth check - Session ID: undefined
+Session data: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-09-14T14:51:47.057Z,
+    originalMaxAge: 2592000000,
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax'
+  }
+}
+2:51:47 PM [express] GET /api/auth/me 401 in 2ms :: {"error":"Non autenticato"}
+Login attempt: { nickname: 'Dino', password: 'qwerty' }
+User found: no
+2:52:02 PM [express] POST /api/auth/login 401 in 1ms :: {"error":"Credenziali non valide"}
+Login attempt: { nickname: 'Dino', password: 'qwerty' }
+User found: no
+2:52:03 PM [express] POST /api/auth/login 401 in 0ms :: {"error":"Credenziali non valide"}
+Login attempt: { nickname: 'Dino', password: 'qwerty' }
+User found: no
+2:52:05 PM [express] POST /api/auth/login 401 in 1ms :: {"error":"Credenziali non valide"}
+Login attempt: { nickname: 'Dino', password: 'qwerty' }
+User found: no
+2:52:09 PM [express] POST /api/auth/login 401 in 1ms :: {"error":"Credenziali non valide"}
+Login attempt: { nickname: 'test', password: 'test' }
+User found: yes
+Password valid: true
+Session created for user: test-user-1
+2:52:21 PM [express] POST /api/auth/login 200 in 92ms :: {"user":{"id":"test-user-1","nickname":"tes…
+Auth check - Session ID: test-user-1
+Session data: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-09-14T14:52:21.812Z,
+    originalMaxAge: 2592000000,
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax'
+  },
+  userId: 'test-user-1'
+}
+User found for session: yes
+2:52:21 PM [express] GET /api/auth/me 200 in 1ms :: {"user":{"id":"test-user-1","nickname":"test","i…
+Auth check - Session ID: test-user-1
+Session data: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-09-14T14:52:23.377Z,
+    originalMaxAge: 2592000000,
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax'
+  },
+  userId: 'test-user-1'
+}
+User found for session: yes
+2:52:23 PM [express] GET /api/auth/me 304 in 1ms :: {"user":{"id":"test-user-1","nickname":"test","i…
+2:52:23 PM [express] GET /api/leagues 200 in 1ms :: [{"name":"schedina 2025","adminId":"test-user-1"…
+2:52:27 PM [express] GET /api/leagues/70bb0665-e820-4f58-ab13-7613abed1a01/special-tournaments 304 i…
+2:52:27 PM [express] GET /api/leagues/70bb0665-e820-4f58-ab13-7613abed1a01 304 in 0ms :: {"league":{…
+/home/runner/workspace/server/routes.ts:256
+      allPicks = await storage.getAllMatchdayPicks(matchday.id);
+                               ^
+
+
+TypeError: storage.getAllMatchdayPicks is not a function
+    at <anonymous> (/home/runner/workspace/server/routes.ts:256:32)
+
+Node.js v20.19.3
