@@ -54,37 +54,6 @@ export default function LeagueSpecialTournaments() {
     enabled: !!leagueId,
   });
 
-  if (isLoading) {
-    return (
-      <div className="max-w-md mx-auto px-4 py-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-gray-200 rounded"></div>
-          <div className="h-32 bg-gray-200 rounded-lg"></div>
-        </div>
-      </div>
-    );
-  }
-
-  const tournaments = data?.tournaments || [];
-  const userBets = data?.userBets || [];
-  const allBets = data?.allBets || [];
-  const league = leagueData?.league;
-
-  // Create a map for quick lookup of user bets
-  const userBetMap = new Map();
-  userBets.forEach((bet: any) => {
-    userBetMap.set(bet.tournamentId, bet);
-  });
-
-  // Create a map of all bets grouped by tournament (for expired tournaments)
-  const allBetsMap = new Map();
-  allBets.forEach((bet: any) => {
-    if (!allBetsMap.has(bet.tournament.id)) {
-      allBetsMap.set(bet.tournament.id, []);
-    }
-    allBetsMap.get(bet.tournament.id).push(bet);
-  });
-
   const { mutate: submitBet, isPending } = useMutation({
     mutationFn: async (tournamentId: string) => {
       const prediction = predictions[tournamentId]?.trim();
@@ -123,6 +92,37 @@ export default function LeagueSpecialTournaments() {
       submitBet(tournamentId);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-6 bg-gray-200 rounded"></div>
+          <div className="h-32 bg-gray-200 rounded-lg"></div>
+        </div>
+      </div>
+    );
+  }
+
+  const tournaments = data?.tournaments || [];
+  const userBets = data?.userBets || [];
+  const allBets = data?.allBets || [];
+  const league = leagueData?.league;
+
+  // Create a map for quick lookup of user bets
+  const userBetMap = new Map();
+  userBets.forEach((bet: any) => {
+    userBetMap.set(bet.tournamentId, bet);
+  });
+
+  // Create a map of all bets grouped by tournament (for expired tournaments)
+  const allBetsMap = new Map();
+  allBets.forEach((bet: any) => {
+    if (!allBetsMap.has(bet.tournament.id)) {
+      allBetsMap.set(bet.tournament.id, []);
+    }
+    allBetsMap.get(bet.tournament.id).push(bet);
+  });
 
   return (
     <div className="max-w-md mx-auto px-4 py-6 space-y-6">
