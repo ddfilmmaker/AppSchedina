@@ -102,7 +102,7 @@ export default function Auth() {
               <div className="transform -rotate-12 -mt-1">2</div>
             </div>
           </div>
-          <h1 className="text-4xl text-gray-900" style={{ fontFamily: "'Lobster', cursive" }}>La Schedina</h1>
+          <h1 className="text-2xl text-gray-900" style={{ fontFamily: "'Press Start 2P', monospace" }}>La Schedina</h1>
           <p className="text-gray-600 mt-2">Gioca con gli amici</p>
         </div>
 
