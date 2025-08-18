@@ -536,6 +536,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ error: "Non autenticato" });
     }
 
+    try {
+      const { leagueId } = req.params;
+      
+      // Check if user is member of the league
+      const membership = await db.select()
+        .from(leagueMembers)
+        .where(and(
+          eq(leagueMembers.leagueId, leagueId),
+          eq(leagueMembers.userId, req.session.userId)
+        ))
+        .limit(1);
+
+      if (membership.length === 0) {
+        return res.status(403).json({ error: "Non sei membro di questa lega" });
+      }
+
+      // Return predefined special tournaments
+      const tournaments = [
+        {
+          id: "preseason-2024",
+          name: "Pronostici Pre-Stagione",
+          type: "preseason",
+          description: "Prevedi il vincitore della Serie A, l'ultimo classificato e il capocannoniere per la stagione 2025/26",
+          deadline: "2025-08-17T14:30:00.000Z",
+          isActive: true,
+          points: 50
+        },
+        {
+          id: "supercoppa-2024",
+          name: "Supercoppa Italiana",
+          type: "supercoppa", 
+          description: "Prevedi i finalisti e il vincitore della Supercoppa Italiana 2025",
+          deadline: "2025-01-06T19:00:00.000Z",
+          isActive: true,
+          points: 25
+        },
+        {
+          id: "coppa-italia-2024",
+          name: "Coppa Italia",
+          type: "coppa_italia",
+          description: "Prevedi il vincitore della Coppa Italia 2024/25",
+          deadline: "2025-05-14T19:00:00.000Z", 
+          isActive: true,
+          points: 30
+        }
+      ];
+
+      res.json({ tournaments });
+    } catch (error) {
+      console.error("Error fetching special tournaments:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  // Legacy route support
+  app.get("/api/leagues/:leagueId/special-tournaments-old", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
     const league = await storage.getLeague(req.params.leagueId);
     if (!league) {
       return res.status(404).json({ error: "Lega non trovata" });

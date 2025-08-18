@@ -36,13 +36,16 @@ export default function LeagueSpecialTournaments() {
   const league = leagueData?.league || leagueData;
   const tournaments = Array.isArray(tournamentData?.tournaments) ? tournamentData.tournaments : [];
 
-  const getTournamentRoute = (tournamentId: string) => {
-    switch (tournamentId) {
+  const getTournamentRoute = (tournament: any) => {
+    switch (tournament.id || tournament.type) {
       case "preseason-2024":
+      case "preseason":
         return `/leagues/${leagueId}/pre-season-predictions`;
       case "supercoppa-2024":
+      case "supercoppa":
         return `/leagues/${leagueId}/supercoppa-predictions`;
       case "coppa-italia-2024":
+      case "coppa_italia":
         return `/leagues/${leagueId}/coppa-italia-predictions`;
       default:
         return "#";
@@ -109,7 +112,7 @@ export default function LeagueSpecialTournaments() {
             const isActive = tournament.isActive && !isDeadlinePassed;
 
             return (
-              <Link key={tournament.id} href={getTournamentRoute(tournament.id)}>
+              <Link key={tournament.id} href={getTournamentRoute(tournament)}>
                 <Card className={`cursor-pointer transition-all hover:shadow-md ${
                   isActive ? "border-primary" : "border-gray-200"
                 }`}>
