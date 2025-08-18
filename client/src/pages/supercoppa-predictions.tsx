@@ -89,9 +89,9 @@ export default function SupercoppaPredictions() {
     );
   }
 
-  const league = leagueData?.league || leagueData;
-  const tournaments = Array.isArray(tournamentData?.tournaments) ? tournamentData.tournaments : [];
-  const supercoppaData = tournaments.find(t => t.id === "supercoppa-2024");
+  const league = (leagueData as any)?.league || leagueData;
+  const tournaments = Array.isArray((tournamentData as any)?.tournaments) ? (tournamentData as any).tournaments : [];
+  const supercoppaData = tournaments.find((t: any) => t.id === "supercoppa-2024");
 
   if (!supercoppaData) {
     return (
@@ -115,7 +115,7 @@ export default function SupercoppaPredictions() {
   }
 
   const isDeadlinePassed = new Date() > new Date(supercoppaData.deadline);
-  const existingBet = userBet ? JSON.parse(userBet.prediction) : null;
+  const existingBet = userBet ? JSON.parse((userBet as any).prediction) : null;
 
   return (
     <div className="max-w-md mx-auto px-4 py-6 space-y-6">

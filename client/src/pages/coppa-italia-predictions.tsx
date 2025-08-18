@@ -101,9 +101,9 @@ export default function CoppaItaliaPredictions() {
     );
   }
 
-  const league = leagueData?.league || leagueData;
-  const tournaments = Array.isArray(tournamentData?.tournaments) ? tournamentData.tournaments : [];
-  const coppaData = tournaments.find(t => t.id === "coppa-italia-2024");
+  const league = (leagueData as any)?.league || leagueData;
+  const tournaments = Array.isArray((tournamentData as any)?.tournaments) ? (tournamentData as any).tournaments : [];
+  const coppaData = tournaments.find((t: any) => t.id === "coppa-italia-2024");
 
   if (!coppaData) {
     return (
@@ -127,7 +127,7 @@ export default function CoppaItaliaPredictions() {
   }
 
   const isDeadlinePassed = new Date() > new Date(coppaData.deadline);
-  const existingBet = userBet ? JSON.parse(userBet.prediction) : null;
+  const existingBet = userBet ? JSON.parse((userBet as any).prediction) : null;
 
   return (
     <div className="max-w-md mx-auto px-4 py-6 space-y-6">
