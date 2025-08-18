@@ -10,6 +10,9 @@ import {
   type InsertMatch,
   type Pick,
   type InsertPick,
+  type SpecialTournament,
+  type SpecialBet,
+  type InsertSpecialBet
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -50,6 +53,15 @@ export interface IStorage {
   getUserPicks(userId: string, matchdayId: string): Promise<Pick[]>;
   getAllPicksForMatchday(matchdayId: string): Promise<Array<{ user: User; pick: Pick; matchId: string }>>;
 
+  // Special Tournaments
+  getSpecialTournaments(): Promise<SpecialTournament[]>;
+  getLeagueSpecialTournaments(leagueId: string): Promise<SpecialTournament[]>;
+  createSpecialTournament(tournament: Omit<SpecialTournament, 'id'>, leagueId: string): Promise<SpecialTournament>;
+  submitSpecialBet(bet: InsertSpecialBet): Promise<SpecialBet>;
+  getUserSpecialBets(userId: string): Promise<(SpecialBet & { tournament: SpecialTournament })[]>;
+  getLeagueUserSpecialBets(userId: string, leagueId: string): Promise<(SpecialBet & { tournament: SpecialTournament })[]>;
+  getAllSpecialTournamentBets(tournamentId: string): Promise<(SpecialBet & { user: User; tournament: SpecialTournament })[]>;
+
   // Leaderboard
   getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number }[]>;
 }
@@ -61,9 +73,13 @@ export class MemStorage implements IStorage {
   private matchdays: Map<string, Matchday> = new Map();
   private matches: Map<string, Match> = new Map();
   private picks: Map<string, Pick> = new Map();
+  private specialBets: Map<string, any> = new Map();
+  private specialTournaments: Map<string, SpecialTournament> = new Map();
+  private specialBets: Map<string, SpecialBet> = new Map();
 
   constructor() {
     // Removed initialization of global special tournaments as they are now league-specific.
+    // this.initializeSpecialTournaments();
     this.initializeSampleUsers();
   }
 
@@ -81,6 +97,7 @@ export class MemStorage implements IStorage {
     this.users.set(testUser.id, testUser);
   }
 
+  // Removed initializeSpecialTournaments as it's no longer needed globally
 
   private generateCode(): string {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -121,6 +138,7 @@ export class MemStorage implements IStorage {
     await this.joinLeague(id, insertLeague.adminId);
 
     // Create default special tournaments for the league
+    await this.createDefaultSpecialTournaments(id);
 
     return league;
   }
@@ -329,37 +347,235 @@ export class MemStorage implements IStorage {
     })).filter(p => p.user);
   }
 
+  async getSpecialTournaments(): Promise<SpecialTournament[]> {
+    return Array.from(this.specialTournaments.values());
+  }
+
+  async getLeagueSpecialTournaments(leagueId: string): Promise<any[]> {
+    // For now, return static tournament data with the correct format expected by frontend
+    return [
+      {
+        id: "preseason-2024",
+        name: "Pronostici Pre-Stagione",
+        type: "preseason",
+        deadline: "2025-08-20T12:00:00.000Z",
+        isActive: true,
+        points: 10,
+        description: "Vincitore Serie A (+10), Ultimo posto (+5), Capocannoniere (+5)"
+      },
+      {
+        id: "supercoppa-2024", 
+        name: "Supercoppa Italiana",
+        type: "supercoppa",
+        deadline: "2025-01-15T12:00:00.000Z",
+        isActive: true,
+        points: 5,
+        description: "Finalisti (+5) e Vincitore (+5)"
+      },
+      {
+        id: "coppa-italia-2024",
+        name: "Coppa Italia",
+        type: "coppa_italia",
+        deadline: "2025-05-20T18:00:00.000Z",
+        isActive: true,
+        points: 5,
+        description: "Vincitore finale (+5 punti)"
+      }
+    ];
+  }
+
+  async getSpecialTournament(tournamentId: string): Promise<any | null> {
+    const tournaments = await this.getLeagueSpecialTournaments("");
+    return tournaments.find(t => t.id === tournamentId) || null;
+  }
+
+  async upsertSpecialBet(betData: { tournamentId: string; userId: string; prediction: string }): Promise<any> {
+    const betId = `${betData.userId}-${betData.tournamentId}`;
+    const bet = {
+      id: betId,
+      tournamentId: betData.tournamentId,
+      userId: betData.userId,
+      prediction: betData.prediction,
+      submittedAt: new Date(),
+      lastModified: new Date()
+    };
+    
+    this.specialBets.set(betId, bet);
+    return bet;
+  }
+
+  async getSpecialBet(tournamentId: string, userId: string): Promise<any | null> {
+    const betId = `${userId}-${tournamentId}`;
+    return this.specialBets.get(betId) || null;
+  }
+
+  async updateSpecialTournament(tournamentId: string, updates: { deadline?: Date; isActive?: boolean }): Promise<any | null> {
+    // This is a static implementation - in a real app, this would update the database
+    // For now, we'll just return the updated tournament data
+    const tournament = await this.getSpecialTournament(tournamentId);
+    if (!tournament) return null;
+    
+    return {
+      ...tournament,
+      ...updates,
+      deadline: updates.deadline ? updates.deadline.toISOString() : tournament.deadline
+    };
+  }
+
+  async createSpecialTournament(tournament: Omit<SpecialTournament, 'id'>, leagueId: string): Promise<SpecialTournament> {
+    const id = randomUUID();
+    const newTournament: SpecialTournament = {
+      ...tournament,
+      id,
+      leagueId,
+    };
+
+    this.specialTournaments.set(id, newTournament);
+    return newTournament;
+  }
+
+  async submitSpecialBet(bet: InsertSpecialBet): Promise<SpecialBet> {
+    // Check if bet already exists for this user/tournament
+    const existingBet = Array.from(this.specialBets.values())
+      .find(b => b.tournamentId === bet.tournamentId && b.userId === bet.userId);
+
+    if (existingBet) {
+      // Update existing bet
+      const updatedBet: SpecialBet = {
+        ...existingBet,
+        prediction: bet.prediction,
+        lastModified: new Date(),
+      };
+      this.specialBets.set(existingBet.id, updatedBet);
+      return updatedBet;
+    } else {
+      // Create new bet
+      const id = randomUUID();
+      const newBet: SpecialBet = {
+        ...bet,
+        id,
+        submittedAt: new Date(),
+        lastModified: new Date(),
+      };
+      this.specialBets.set(id, newBet);
+      return newBet;
+    }
+  }
+
+  async getUserSpecialBets(userId: string): Promise<(SpecialBet & { tournament: SpecialTournament })[]> {
+    const bets = Array.from(this.specialBets.values())
+      .filter(bet => bet.userId === userId);
+
+    return bets.map(bet => ({
+      ...bet,
+      tournament: this.specialTournaments.get(bet.tournamentId)!
+    })).filter(b => b.tournament);
+  }
+
+  async getLeagueUserSpecialBets(userId: string, leagueId: string): Promise<(SpecialBet & { tournament: SpecialTournament })[]> {
+    const bets = Array.from(this.specialBets.values())
+      .filter(bet => bet.userId === userId);
+
+    const result = bets.map(bet => {
+      const tournament = this.specialTournaments.get(bet.tournamentId);
+      if (tournament && tournament.leagueId === leagueId) {
+        return {
+          ...bet,
+          tournament,
+          special_bets: bet,
+          special_tournaments: tournament
+        };
+      }
+      return null;
+    }).filter(Boolean);
+
+    return result as (SpecialBet & { tournament: SpecialTournament })[];
+  }
+
+  async getAllSpecialTournamentBets(tournamentId: string): Promise<(SpecialBet & { user: User; tournament: SpecialTournament })[]> {
+    const bets = Array.from(this.specialBets.values())
+      .filter(bet => bet.tournamentId === tournamentId);
+
+    return bets.map(bet => ({
+      ...bet,
+      user: this.users.get(bet.userId)!,
+      tournament: this.specialTournaments.get(bet.tournamentId)!
+    })).filter(b => b.user && b.tournament);
+  }
+
+  async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number }[]>;
   async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number }[]> {
     const members = await this.getLeagueMembers(leagueId);
     const matchdays = await this.getLeagueMatchdays(leagueId);
-    
-    const leaderboard = await Promise.all(
-      members.map(async (member) => {
-        let totalPoints = 0;
-        let correctPicks = 0;
-        
-        for (const matchday of matchdays) {
-          const matches = await this.getMatchdayMatches(matchday.id);
-          const userPicks = await this.getUserPicks(member.userId, matchday.id);
-          
-          for (const pick of userPicks) {
-            const match = matches.find(m => m.id === pick.matchId);
-            if (match?.result && pick.pick === match.result) {
-              totalPoints += 3;
-              correctPicks += 1;
-            }
+
+    const leaderboard = members.map(member => {
+      let points = 0;
+      let correctPicks = 0;
+
+      for (const matchday of matchdays) {
+        const matches = Array.from(this.matches.values())
+          .filter(match => match.matchdayId === matchday.id);
+
+        for (const match of matches) {
+          // Count points for any match that has a result, regardless of matchday completion
+          if (!match.result) continue;
+
+          const pick = Array.from(this.picks.values())
+            .find(p => p.matchId === match.id && p.userId === member.userId);
+
+          if (pick && pick.pick === match.result) {
+            points += 1;
+            correctPicks += 1;
           }
         }
-        
-        return {
-          user: member.user,
-          points: totalPoints,
-          correctPicks
-        };
-      })
-    );
-    
+      }
+
+      return {
+        user: member.user,
+        points,
+        correctPicks
+      };
+    });
+
     return leaderboard.sort((a, b) => b.points - a.points);
+  }
+
+  private async createDefaultSpecialTournaments(leagueId: string): Promise<void> {
+    const currentYear = new Date().getFullYear();
+    const nextYear = currentYear + 1;
+
+    // Preseason tournament
+    const preseasonDeadline = new Date(`${nextYear}-08-20T23:59:59.000Z`);
+    await this.createSpecialTournament({
+      name: "Pronostici Pre-Stagione",
+      type: "preseason",
+      deadline: preseasonDeadline,
+      isActive: true,
+      points: 20,
+      description: "Pronostica il vincitore, l'ultimo posto e il capocannoniere della Serie A"
+    }, leagueId);
+
+    // Supercoppa tournament
+    const supercoppaDeadline = new Date(`${nextYear}-01-05T20:00:00.000Z`);
+    await this.createSpecialTournament({
+      name: "Supercoppa Italiana",
+      type: "supercoppa",
+      deadline: supercoppaDeadline,
+      isActive: true,
+      points: 5,
+      description: "Pronostica la vincitrice della Supercoppa Italiana"
+    }, leagueId);
+
+    // Coppa Italia tournament
+    const coppaDeadline = new Date(`${nextYear}-05-10T20:00:00.000Z`);
+    await this.createSpecialTournament({
+      name: "Coppa Italia",
+      type: "coppa_italia",
+      deadline: coppaDeadline,
+      isActive: true,
+      points: 10,
+      description: "Pronostica la vincitrice della Coppa Italia"
+    }, leagueId);
   }
 }
 

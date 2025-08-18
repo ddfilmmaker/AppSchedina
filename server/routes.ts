@@ -9,11 +9,13 @@ import {
   insertMatchdaySchema,
   insertMatchSchema,
   pickUpdateSchema,
-
+  insertSpecialBetSchema,
+  insertSpecialTournamentSchema
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { db } from "./db";
-import { leagueMembers, users } from "@shared/schema";
+import { leagueMembers, users, preSeasonPredictions } from "@shared/schema";
+import { eq, and } from "drizzle-orm";
 import crypto from "crypto";
 
 declare module "express-session" {
@@ -384,7 +386,323 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Pre-season predictions routes
+  app.get("/api/leagues/:leagueId/pre-season-tournament", async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: "Non autenticato" });
+      }
+
+      const { leagueId } = req.params;
+
+      // Check if user is member of the league
+      const membership = await db.select()
+        .from(leagueMembers)
+        .where(and(
+          eq(leagueMembers.leagueId, leagueId),
+          eq(leagueMembers.userId, userId)
+        ))
+        .limit(1);
+
+      if (membership.length === 0) {
+        return res.status(403).json({ error: "Non sei membro di questa lega" });
+      }
+
+      // Get user's existing prediction
+      const userPrediction = await db.select()
+        .from(preSeasonPredictions)
+        .where(and(
+          eq(preSeasonPredictions.leagueId, leagueId),
+          eq(preSeasonPredictions.userId, userId)
+        ))
+        .limit(1);
+
+      // Get all predictions for this league (only after deadline)
+      const deadline = new Date("2025-08-17T14:30:00");
+      const now = new Date();
+      let allPredictions = [];
+
+      if (now > deadline) {
+        const predictions = await db.select({
+          userId: preSeasonPredictions.userId,
+          winner: preSeasonPredictions.winner,
+          topScorer: preSeasonPredictions.topScorer,
+          relegated: preSeasonPredictions.relegated,
+          user: {
+            id: users.id,
+            nickname: users.nickname,
+          }
+        })
+        .from(preSeasonPredictions)
+        .leftJoin(users, eq(users.id, preSeasonPredictions.userId))
+        .where(eq(preSeasonPredictions.leagueId, leagueId));
+
+        allPredictions = predictions;
+      }
+
+      res.json({
+        userPrediction: userPrediction[0] || null,
+        allPredictions,
+        deadline: deadline.toISOString()
+      });
+    } catch (error) {
+      console.error("Error fetching pre-season tournament:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  app.post("/api/leagues/:leagueId/pre-season-predictions", async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: "Non autenticato" });
+      }
+
+      const { leagueId } = req.params;
+      const { winner, topScorer, relegated } = req.body;
+
+      // Validate required fields
+      if (!winner || !topScorer || !relegated) {
+        return res.status(400).json({ error: "Tutti i campi sono obbligatori" });
+      }
+
+      // Check deadline
+      const deadline = new Date("2025-08-17T14:30:00");
+      const now = new Date();
+      if (now > deadline) {
+        return res.status(400).json({ error: "Scadenza superata" });
+      }
+
+      // Check if user is member of the league
+      const membership = await db.select()
+        .from(leagueMembers)
+        .where(and(
+          eq(leagueMembers.leagueId, leagueId),
+          eq(leagueMembers.userId, userId)
+        ))
+        .limit(1);
+
+      if (membership.length === 0) {
+        return res.status(403).json({ error: "Non sei membro di questa lega" });
+      }
+
+      // Check if user already has prediction
+      const existingPrediction = await db.select()
+        .from(preSeasonPredictions)
+        .where(and(
+          eq(preSeasonPredictions.leagueId, leagueId),
+          eq(preSeasonPredictions.userId, userId)
+        ))
+        .limit(1);
+
+      if (existingPrediction.length > 0) {
+        // Update existing prediction
+        await db.update(preSeasonPredictions)
+          .set({
+            winner,
+            topScorer,
+            relegated,
+            updatedAt: new Date()
+          })
+          .where(and(
+            eq(preSeasonPredictions.leagueId, leagueId),
+            eq(preSeasonPredictions.userId, userId)
+          ));
+      } else {
+        // Create new prediction
+        await db.insert(preSeasonPredictions).values({
+          id: crypto.randomUUID(),
+          leagueId,
+          userId,
+          winner,
+          topScorer,
+          relegated,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error saving pre-season predictions:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  // Special tournaments routes
+  app.get("/api/leagues/:leagueId/special-tournaments", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    const league = await storage.getLeague(req.params.leagueId);
+    if (!league) {
+      return res.status(404).json({ error: "Lega non trovata" });
+    }
+
+    const isMember = await storage.isUserInLeague(league.id, req.session.userId);
+    if (!isMember) {
+      return res.status(403).json({ error: "Non sei membro di questa lega" });
+    }
+
+    const tournaments = await storage.getLeagueSpecialTournaments(req.params.leagueId);
+    const userBets = await storage.getLeagueUserSpecialBets(req.session.userId, req.params.leagueId);
+
+    // Include all bets for expired tournaments
+    const now = new Date();
+    const allBets = await Promise.all(tournaments.map(async (tournament: any) => {
+      if (now > new Date(tournament.deadline)) {
+        return await storage.getAllSpecialTournamentBets(tournament.id);
+      }
+      return [];
+    }));
+
+    res.json({ tournaments, userBets, allBets: allBets.flat() });
+  });
+
+  app.post("/api/leagues/:leagueId/special-tournaments", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    const league = await storage.getLeague(req.params.leagueId);
+    if (!league) {
+      return res.status(404).json({ error: "Lega non trovata" });
+    }
+
+    if (league.adminId !== req.session.userId) {
+      return res.status(403).json({ error: "Solo l'admin può creare tornei speciali" });
+    }
+
+    try {
+      const data = insertSpecialTournamentSchema.parse(req.body);
+      const tournament = await storage.createSpecialTournament(data, req.params.leagueId);
+      res.json(tournament);
+    } catch (error) {
+      res.status(400).json({ error: "Dati non validi" });
+    }
+  });
+
+  // Get user's bet for a specific tournament
+  app.get("/api/special-tournaments/:tournamentId/bet", async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: "Non autenticato" });
+      }
+
+      const { tournamentId } = req.params;
+
+      if (tournamentId === "preseason-2024") {
+        // Get user's pre-season prediction
+        const userPrediction = await db.select()
+          .from(preSeasonPredictions)
+          .where(and(
+            eq(preSeasonPredictions.userId, userId)
+          ))
+          .limit(1);
+
+        if (userPrediction.length > 0) {
+          const prediction = userPrediction[0];
+          res.json({
+            prediction: JSON.stringify({
+              winner: prediction.winner,
+              lastPlace: prediction.relegated,
+              topScorer: prediction.topScorer
+            })
+          });
+        } else {
+          res.status(404).json({ error: "Nessun pronostico trovato" });
+        }
+      } else {
+        res.status(404).json({ error: "Torneo non trovato" });
+      }
+    } catch (error) {
+      console.error("Error fetching user bet:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  // Submit bet for a specific tournament
+  app.post("/api/special-tournaments/:tournamentId/bet", async (req, res) => {
+    try {
+      const userId = req.session?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: "Non autenticato" });
+      }
+
+      const { tournamentId } = req.params;
+      const { prediction } = req.body;
+
+      if (tournamentId === "preseason-2024") {
+        // Check deadline
+        const deadline = new Date("2025-08-17T14:30:00");
+        const now = new Date();
+        if (now > deadline) {
+          return res.status(400).json({ error: "Scadenza superata" });
+        }
+
+        const predictionData = JSON.parse(prediction);
+        const { winner, lastPlace, topScorer } = predictionData;
+
+        // Check if user already has prediction
+        const existingPrediction = await db.select()
+          .from(preSeasonPredictions)
+          .where(eq(preSeasonPredictions.userId, userId))
+          .limit(1);
+
+        if (existingPrediction.length > 0) {
+          // Update existing prediction
+          await db.update(preSeasonPredictions)
+            .set({
+              winner,
+              topScorer,
+              relegated: lastPlace,
+              updatedAt: new Date()
+            })
+            .where(eq(preSeasonPredictions.userId, userId));
+        } else {
+          // Create new prediction
+          await db.insert(preSeasonPredictions).values({
+            id: crypto.randomUUID(),
+            leagueId: "global", // For global tournaments
+            userId,
+            winner,
+            topScorer,
+            relegated: lastPlace,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          });
+        }
+
+        res.json({ success: true });
+      } else {
+        res.status(404).json({ error: "Torneo non trovato" });
+      }
+    } catch (error) {
+      console.error("Error saving bet:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  app.post("/api/special-bets", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    try {
+      const data = insertSpecialBetSchema.parse(req.body);
+      const bet = await storage.submitSpecialBet({
+        ...data,
+        userId: req.session.userId
+      });
+      res.json(bet);
+    } catch (error) {
+      res.status(400).json({ error: "Dati non validi" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
-
