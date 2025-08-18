@@ -69,15 +69,25 @@ export default function Match() {
   };
 
   // Function to handle updating the match result
-  const handleUpdateResult = async (value: string) => {
-    await fetch(`/api/matches/${match.id}/result`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ value }),
-    });
-    // Optionally re-fetch data or update local state
+  const handleUpdateResult = async (result: string) => {
+    try {
+      const response = await fetch(`/api/matches/${match.id}/result`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ result }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Errore durante l'aggiornamento del risultato");
+      }
+      
+      // Refresh the page data
+      window.location.reload();
+    } catch (error) {
+      console.error("Error updating result:", error);
+    }
   };
 
   return (
@@ -101,7 +111,7 @@ export default function Match() {
       />
 
       {/* Admin controls to update result */}
-      {isLocked && user?.role === "admin" && ( // Show only if locked and user is admin
+      {isLocked && user?.isAdmin && ( // Show only if locked and user is admin
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">Aggiorna Risultato</CardTitle>

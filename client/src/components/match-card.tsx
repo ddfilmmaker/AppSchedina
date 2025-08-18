@@ -36,6 +36,7 @@ export default function MatchCard({ match, userPick, isLocked, user }: MatchCard
     },
   });
 
+  // Admin result update mutation
   const updateResultMutation = useMutation({
     mutationFn: async (result: string) => {
       const response = await fetch(`/api/matches/${match.id}/result`, {
@@ -46,12 +47,12 @@ export default function MatchCard({ match, userPick, isLocked, user }: MatchCard
         credentials: 'include',
         body: JSON.stringify({ result }),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || 'Errore durante l\'aggiornamento del risultato');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -60,6 +61,7 @@ export default function MatchCard({ match, userPick, isLocked, user }: MatchCard
         description: "Il risultato della partita è stato aggiornato con successo.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/matchdays"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/matches"] });
     },
     onError: (error: any) => {
       toast({
@@ -211,7 +213,7 @@ export default function MatchCard({ match, userPick, isLocked, user }: MatchCard
               className="py-2 px-4 font-semibold bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200"
               onClick={() => handleResultUpdate("X")}
               disabled={updateResultMutation.isPending}
-              data-testid={`result-X-${match.id}`}
+              data-testid={`result-x-${match.id}`}
             >
               <div className="text-lg">X</div>
             </Button>
