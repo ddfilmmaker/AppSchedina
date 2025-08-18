@@ -3,7 +3,7 @@ import { useRoute, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Users, Calendar, Trophy, Plus, Copy, Star } from "lucide-react";
+import { ArrowLeft, Users, Calendar, Trophy, Plus, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function League() {
@@ -19,10 +19,7 @@ export default function League() {
   const { data: authData } = useQuery({ queryKey: ["/api/auth/me"] });
   const user = (authData as any)?.user;
 
-  const { data: specialTournamentsData } = useQuery({
-    queryKey: ["/api/leagues", leagueId, "special-tournaments"],
-    enabled: !!leagueId,
-  });
+
 
   // Ensure data has the expected structure
   const league = (data as any)?.league;
@@ -126,61 +123,7 @@ export default function League() {
         )}
       </div>
 
-      {/* Special Tournaments */}
-      <div>
-        <h3 className="text-lg font-bold text-gray-900 mb-4">Tornei Speciali</h3>
-        {specialTournamentsData && (specialTournamentsData as any).tournaments?.length > 0 ? (
-          <div className="space-y-3">
-            {((specialTournamentsData as any).tournaments || []).map((tournament: any) => {
-              const now = new Date();
-              const deadline = new Date(tournament.deadline);
-              const isExpired = now > deadline;
-              const userBet = ((specialTournamentsData as any).userBets || []).find((bet: any) => bet.tournamentId === tournament.id);
 
-              return (
-                <Link key={tournament.id} href={`/special-tournaments/${tournament.id}`}>
-                  <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold text-gray-900">{tournament.name}</h4>
-                        <div className="flex items-center space-x-2">
-                          {userBet && <Badge variant="default" className="text-xs">Completato</Badge>}
-                          <Badge variant={isExpired ? "secondary" : "default"}>
-                            {isExpired ? "Scaduto" : "Aperto"}
-                          </Badge>
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-3">{tournament.description}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">
-                          Scadenza: {deadline.toLocaleDateString("it-IT", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit"
-                          })}
-                        </span>
-                        <div className="flex items-center space-x-2">
-                          <Star className="w-4 h-4 text-amber-500" />
-                          <span className="text-sm font-medium text-amber-600">+{tournament.points} punti</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              );
-            })}
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="p-6 text-center">
-              <Star className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">Nessun torneo speciale disponibile</p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
 
       {/* Matchdays */}
       <div>

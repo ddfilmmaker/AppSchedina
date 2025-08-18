@@ -54,38 +54,7 @@ export const picks = pgTable("picks", {
   lastModified: timestamp("last_modified").defaultNow().notNull(),
 });
 
-export const specialTournaments = pgTable("special_tournaments", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  leagueId: varchar("league_id").references(() => leagues.id).notNull(),
-  name: text("name").notNull(),
-  type: text("type").notNull(), // "preseason", "supercoppa", "coppa_italia"
-  deadline: timestamp("deadline").notNull(),
-  isActive: boolean("is_active").default(true).notNull(),
-  points: integer("points").notNull(),
-  description: text("description").notNull(),
-});
 
-export const specialBets = pgTable("special_bets", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  tournamentId: uuid("tournament_id").references(() => specialTournaments.id, { onDelete: "cascade" }).notNull(),
-  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
-  prediction: text("prediction").notNull(),
-  points: integer("points").default(0),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const preSeasonPredictions = pgTable("pre_season_predictions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  leagueId: uuid("league_id").references(() => leagues.id, { onDelete: "cascade" }).notNull(),
-  userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
-  winner: text("winner").notNull(),
-  topScorer: text("top_scorer").notNull(),
-  relegated: text("relegated").notNull(),
-  points: integer("points").default(0),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
 
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
@@ -122,18 +91,7 @@ export const insertPickSchema = createInsertSchema(picks).omit({
   lastModified: true,
 });
 
-export const insertSpecialBetSchema = createInsertSchema(specialBets).omit({
-  id: true,
-  submittedAt: true,
-  lastModified: true,
-});
 
-export const insertSpecialTournamentSchema = createInsertSchema(specialTournaments).omit({
-  id: true,
-  leagueId: true,
-}).extend({
-  deadline: z.string().datetime().transform(val => new Date(val)),
-});
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -147,9 +105,7 @@ export type InsertMatch = z.infer<typeof insertMatchSchema>;
 export type Match = typeof matches.$inferSelect;
 export type InsertPick = z.infer<typeof insertPickSchema>;
 export type Pick = typeof picks.$inferSelect;
-export type SpecialTournament = typeof specialTournaments.$inferSelect;
-export type InsertSpecialBet = z.infer<typeof insertSpecialBetSchema>;
-export type SpecialBet = typeof specialBets.$inferSelect;
+
 
 // Additional schemas for API validation
 export const loginSchema = z.object({

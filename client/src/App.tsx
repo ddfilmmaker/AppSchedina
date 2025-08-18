@@ -1,11 +1,17 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient, getQueryFn } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-
+function Redirect({ to }: { to: string }) {
+  const [, navigate] = useLocation();
+  useEffect(() => {
+    navigate(to, { replace: true });
+  }, [to, navigate]);
+  return null;
+}
 import Home from "@/pages/home";
 import Auth from "@/pages/auth";
 import League from "@/pages/league";
@@ -18,11 +24,7 @@ import Leaderboard from "@/pages/leaderboard";
 import CreateLeague from "@/pages/create-league";
 import JoinLeague from "@/pages/join-league";
 import CreateMatchday from "@/pages/create-matchday";
-import SpecialTournaments from "@/pages/special-tournaments";
-import LeagueSpecialTournaments from "./pages/league-special-tournaments";
-import PreSeasonPredictions from "./pages/pre-season-predictions";
-import SupercoppaPredictions from "./pages/supercoppa-predictions";
-import CoppaItaliaPredictions from "./pages/coppa-italia-predictions";
+
 import NotFound from "@/pages/not-found";
 
 import Header from "@/components/header";
@@ -82,12 +84,13 @@ function AppContent() {
           <Route path="/leaderboard/:leagueId" component={Leaderboard} />
           <Route path="/create-league" component={CreateLeague} />
           <Route path="/join-league" component={JoinLeague} />
-          <Route path="/special-tournaments" component={SpecialTournaments} />
-          <Route path="/leagues/:leagueId/special-tournaments" component={LeagueSpecialTournaments} />
-          <Route path="/leagues/:leagueId/pre-season-predictions" component={PreSeasonPredictions} />
-          <Route path="/leagues/:leagueId/supercoppa-predictions" component={SupercoppaPredictions} />
-          <Route path="/leagues/:leagueId/coppa-italia-predictions" component={CoppaItaliaPredictions} />
+
+
+
+
+
           <Route path="/league/:leagueId/create-matchday" component={CreateMatchday} />
+
           <Route component={NotFound} />
         </Switch>
       </main>

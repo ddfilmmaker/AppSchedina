@@ -4,7 +4,7 @@ import { ArrowLeft, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import MatchCard from "@/components/match-card";
-import CountdownTimer from "@/components/countdown-timer";
+
 import { useAuth } from "@/lib/auth"; // Assuming useAuth is in this path
 
 export default function Matchday() {
@@ -95,10 +95,9 @@ export default function Matchday() {
             </div>
             <div className="text-right">
               <div className="text-sm font-medium text-gray-900">Scadenza</div>
-              <CountdownTimer 
-                deadline={matchday.deadline} 
-                className="text-lg font-bold"
-              />
+              <div className="text-lg font-bold">
+                {new Date(matchday.deadline).toLocaleDateString('it-IT')}
+              </div>
             </div>
           </div>
 
