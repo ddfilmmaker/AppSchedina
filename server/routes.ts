@@ -584,105 +584,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get user's bet for a specific tournament
-  app.get("/api/special-tournaments/:tournamentId/bet", async (req, res) => {
+  app.post("/api/special-tournaments/:tournamentId/bet", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
     try {
-      const userId = req.session?.userId;
-      if (!userId) {
-        return res.status(401).json({ error: "Non autenticato" });
+      const { prediction } = req.body;
+      if (!prediction || typeof prediction !== 'string') {
+        return res.status(400).json({ error: "Previsione non valida" });
       }
 
-      const { tournamentId } = req.params;
-
-      if (tournamentId === "preseason-2024") {
-        // Get user's pre-season prediction
-        const userPrediction = await db.select()
-          .from(preSeasonPredictions)
-          .where(and(
-            eq(preSeasonPredictions.userId, userId)
-          ))
-          .limit(1);
-
-        if (userPrediction.length > 0) {
-          const prediction = userPrediction[0];
-          res.json({
-            prediction: JSON.stringify({
-              winner: prediction.winner,
-              lastPlace: prediction.relegated,
-              topScorer: prediction.topScorer
-            })
-          });
-        } else {
-          res.status(404).json({ error: "Nessun pronostico trovato" });
-        }
-      } else {
-        res.status(404).json({ error: "Torneo non trovato" });
-      }
+      const bet = await storage.submitSpecialBet({
+        tournamentId: req.params.tournamentId,
+        prediction,
+        userId: req.session.userId
+      });
+      res.json(bet);
     } catch (error) {
-      console.error("Error fetching user bet:", error);
-      res.status(500).json({ error: "Errore interno del server" });
+      console.error("Special bet submission error:", error);
+      res.status(400).json({ error: "Dati non validi" });
     }
   });
 
-  // Submit bet for a specific tournament
-  app.post("/api/special-tournaments/:tournamentId/bet", async (req, res) => {
+  app.put("/api/special-tournaments/:tournamentId/bet", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
     try {
-      const userId = req.session?.userId;
-      if (!userId) {
-        return res.status(401).json({ error: "Non autenticato" });
-      }
-
-      const { tournamentId } = req.params;
       const { prediction } = req.body;
-
-      if (tournamentId === "preseason-2024") {
-        // Check deadline
-        const deadline = new Date("2025-08-17T14:30:00");
-        const now = new Date();
-        if (now > deadline) {
-          return res.status(400).json({ error: "Scadenza superata" });
-        }
-
-        const predictionData = JSON.parse(prediction);
-        const { winner, lastPlace, topScorer } = predictionData;
-
-        // Check if user already has prediction
-        const existingPrediction = await db.select()
-          .from(preSeasonPredictions)
-          .where(eq(preSeasonPredictions.userId, userId))
-          .limit(1);
-
-        if (existingPrediction.length > 0) {
-          // Update existing prediction
-          await db.update(preSeasonPredictions)
-            .set({
-              winner,
-              topScorer,
-              relegated: lastPlace,
-              updatedAt: new Date()
-            })
-            .where(eq(preSeasonPredictions.userId, userId));
-        } else {
-          // Create new prediction
-          await db.insert(preSeasonPredictions).values({
-            id: crypto.randomUUID(),
-            leagueId: "global", // For global tournaments
-            userId,
-            winner,
-            topScorer,
-            relegated: lastPlace,
-            createdAt: new Date(),
-            updatedAt: new Date()
-          });
-        }
-
-        res.json({ success: true });
-      } else {
-        res.status(404).json({ error: "Torneo non trovato" });
+      if (!prediction || typeof prediction !== 'string') {
+        return res.status(400).json({ error: "Previsione non valida" });
       }
+
+      const bet = await storage.updateSpecialBet({
+        tournamentId: req.params.tournamentId,
+        prediction,
+        userId: req.session.userId
+      });
+      res.json(bet);
     } catch (error) {
-      console.error("Error saving bet:", error);
-      res.status(500).json({ error: "Errore interno del server" });
+      console.error("Special bet update error:", error);
+      res.status(400).json({ error: "Dati non validi" });
     }
   });
 

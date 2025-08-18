@@ -73,7 +73,6 @@ export class MemStorage implements IStorage {
   private matchdays: Map<string, Matchday> = new Map();
   private matches: Map<string, Match> = new Map();
   private picks: Map<string, Pick> = new Map();
-  private specialBets: Map<string, any> = new Map();
   private specialTournaments: Map<string, SpecialTournament> = new Map();
   private specialBets: Map<string, SpecialBet> = new Map();
 
@@ -351,75 +350,9 @@ export class MemStorage implements IStorage {
     return Array.from(this.specialTournaments.values());
   }
 
-  async getLeagueSpecialTournaments(leagueId: string): Promise<any[]> {
-    // For now, return static tournament data with the correct format expected by frontend
-    return [
-      {
-        id: "preseason-2024",
-        name: "Pronostici Pre-Stagione",
-        type: "preseason",
-        deadline: "2025-08-20T12:00:00.000Z",
-        isActive: true,
-        points: 10,
-        description: "Vincitore Serie A (+10), Ultimo posto (+5), Capocannoniere (+5)"
-      },
-      {
-        id: "supercoppa-2024", 
-        name: "Supercoppa Italiana",
-        type: "supercoppa",
-        deadline: "2025-01-15T12:00:00.000Z",
-        isActive: true,
-        points: 5,
-        description: "Finalisti (+5) e Vincitore (+5)"
-      },
-      {
-        id: "coppa-italia-2024",
-        name: "Coppa Italia",
-        type: "coppa_italia",
-        deadline: "2025-05-20T18:00:00.000Z",
-        isActive: true,
-        points: 5,
-        description: "Vincitore finale (+5 punti)"
-      }
-    ];
-  }
-
-  async getSpecialTournament(tournamentId: string): Promise<any | null> {
-    const tournaments = await this.getLeagueSpecialTournaments("");
-    return tournaments.find(t => t.id === tournamentId) || null;
-  }
-
-  async upsertSpecialBet(betData: { tournamentId: string; userId: string; prediction: string }): Promise<any> {
-    const betId = `${betData.userId}-${betData.tournamentId}`;
-    const bet = {
-      id: betId,
-      tournamentId: betData.tournamentId,
-      userId: betData.userId,
-      prediction: betData.prediction,
-      submittedAt: new Date(),
-      lastModified: new Date()
-    };
-    
-    this.specialBets.set(betId, bet);
-    return bet;
-  }
-
-  async getSpecialBet(tournamentId: string, userId: string): Promise<any | null> {
-    const betId = `${userId}-${tournamentId}`;
-    return this.specialBets.get(betId) || null;
-  }
-
-  async updateSpecialTournament(tournamentId: string, updates: { deadline?: Date; isActive?: boolean }): Promise<any | null> {
-    // This is a static implementation - in a real app, this would update the database
-    // For now, we'll just return the updated tournament data
-    const tournament = await this.getSpecialTournament(tournamentId);
-    if (!tournament) return null;
-    
-    return {
-      ...tournament,
-      ...updates,
-      deadline: updates.deadline ? updates.deadline.toISOString() : tournament.deadline
-    };
+  async getLeagueSpecialTournaments(leagueId: string): Promise<SpecialTournament[]> {
+    return Array.from(this.specialTournaments.values())
+      .filter(tournament => tournament.leagueId === leagueId);
   }
 
   async createSpecialTournament(tournament: Omit<SpecialTournament, 'id'>, leagueId: string): Promise<SpecialTournament> {
