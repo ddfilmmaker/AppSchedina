@@ -140,7 +140,7 @@ export default function LeagueSpecialTournaments() {
 
       <div className="space-y-4">
         {/* Pre-defined special tournaments */}
-        <Link href={`/pre-season-predictions/${leagueId}`}>
+        <Link href={`/leagues/${leagueId}/pre-season-predictions`}>
           <Card className="cursor-pointer hover:shadow-md transition-shadow bg-gradient-to-br from-purple-500 to-pink-600 border-2">
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-4">
