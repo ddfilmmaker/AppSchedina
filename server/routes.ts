@@ -595,7 +595,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Previsione non valida" });
       }
 
-      const bet = await storage.submitSpecialBet({
+      const bet = await storage.upsertSpecialBet({
         tournamentId: req.params.tournamentId,
         prediction,
         userId: req.session.userId

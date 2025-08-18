@@ -20,7 +20,9 @@ import JoinLeague from "@/pages/join-league";
 import CreateMatchday from "@/pages/create-matchday";
 import SpecialTournaments from "@/pages/special-tournaments";
 import LeagueSpecialTournaments from "@/pages/league-special-tournaments";
-import PreSeasonPredictions from "@/pages/pre-season-predictions"; // Added import
+import PreSeasonPredictions from "@/pages/pre-season-predictions";
+import SupercoppaPredictions from "@/pages/supercoppa-predictions";
+import CoppaItaliaPredictions from "@/pages/coppa-italia-predictions";
 import NotFound from "@/pages/not-found";
 
 import Header from "@/components/header";
@@ -83,6 +85,8 @@ function AppContent() {
           <Route path="/special-tournaments" component={SpecialTournaments} />
           <Route path="/leagues/:leagueId/special-tournaments" component={LeagueSpecialTournaments} />
           <Route path="/leagues/:leagueId/pre-season-predictions" component={PreSeasonPredictions} />
+          <Route path="/leagues/:leagueId/supercoppa-predictions" component={SupercoppaPredictions} />
+          <Route path="/leagues/:leagueId/coppa-italia-predictions" component={CoppaItaliaPredictions} />
           <Route path="/league/:leagueId/create-matchday" component={CreateMatchday} />
           <Route component={NotFound} />
         </Switch>

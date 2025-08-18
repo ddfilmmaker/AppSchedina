@@ -2,47 +2,31 @@ import { useState } from "react";
 import { useParams } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { ArrowLeft, Trophy, Target, TrendingDown, Award } from "lucide-react";
+import { ArrowLeft, Trophy, Users, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import CountdownTimer from "@/components/countdown-timer";
 
-const serieATeams = {
-  'milan': 'AC Milan',
-  'inter': 'Inter Milano', 
-  'juventus': 'Juventus',
-  'roma': 'AS Roma',
-  'napoli': 'SSC Napoli',
-  'lazio': 'Lazio',
-  'atalanta': 'Atalanta',
-  'fiorentina': 'ACF Fiorentina',
-  'bologna': 'Bologna FC',
-  'torino': 'Torino FC',
-  'udinese': 'Udinese Calcio',
-  'empoli': 'Empoli FC',
-  'parma': 'Parma Calcio 1913',
-  'cagliari': 'Cagliari Calcio',
-  'verona': 'Hellas Verona FC',
-  'como': 'Como 1907',
-  'lecce': 'US Lecce',
-  'genoa': 'Genoa CFC',
-  'monza': 'Monza',
-  'venezia': 'Venezia FC'
-};
-
-export default function PreSeasonPredictions() {
+export default function SupercoppaPredictions() {
   const { leagueId } = useParams();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  const [finalist1, setFinalist1] = useState("");
+  const [finalist2, setFinalist2] = useState("");
   const [winner, setWinner] = useState("");
-  const [lastPlace, setLastPlace] = useState("");
-  const [topScorer, setTopScorer] = useState("");
+
+  // Teams in semifinals
+  const semifinalTeams = {
+    'napoli': 'Napoli',
+    'milan': 'Milan',
+    'bologna': 'Bologna', 
+    'inter': 'Inter'
+  };
 
   const { data: leagueData, isLoading: isLoadingLeague } = useQuery({
     queryKey: ["/api/leagues", leagueId],
@@ -53,33 +37,33 @@ export default function PreSeasonPredictions() {
   });
 
   const { data: userBet } = useQuery({
-    queryKey: ["/api/special-tournaments", "preseason-2024", "bet"],
+    queryKey: ["/api/special-tournaments", "supercoppa-2024", "bet"],
   });
 
   const submitMutation = useMutation({
     mutationFn: async () => {
-      if (!winner || !lastPlace || !topScorer) {
-        throw new Error("Compila tutti i campi");
+      if (!finalist1 || !finalist2 || !winner) {
+        throw new Error("Seleziona entrambi i finalisti e il vincitore");
       }
 
       const prediction = JSON.stringify({
-        winner,
-        lastPlace,
-        topScorer
+        finalist1,
+        finalist2,
+        winner
       });
 
-      return await apiRequest("POST", "/api/special-tournaments/preseason-2024/bet", {
+      return await apiRequest("POST", "/api/special-tournaments/supercoppa-2024/bet", {
         prediction,
-        tournamentId: "preseason-2024"
+        tournamentId: "supercoppa-2024"
       });
     },
     onSuccess: () => {
       toast({
         title: "Successo!",
-        description: "Pronostici pre-stagione salvati",
+        description: "Pronostico per la Supercoppa Italiana salvato",
       });
       queryClient.invalidateQueries({
-        queryKey: ["/api/special-tournaments", "preseason-2024", "bet"],
+        queryKey: ["/api/special-tournaments", "supercoppa-2024", "bet"],
       });
     },
     onError: (error: any) => {
@@ -107,9 +91,9 @@ export default function PreSeasonPredictions() {
 
   const league = leagueData?.league || leagueData;
   const tournaments = Array.isArray(tournamentData?.tournaments) ? tournamentData.tournaments : [];
-  const preseasonData = tournaments.find(t => t.id === "preseason-2024");
+  const supercoppaData = tournaments.find(t => t.id === "supercoppa-2024");
 
-  if (!preseasonData) {
+  if (!supercoppaData) {
     return (
       <div className="max-w-md mx-auto px-4 py-6">
         <div className="flex items-center mb-6">
@@ -118,7 +102,7 @@ export default function PreSeasonPredictions() {
               <ArrowLeft className="w-6 h-6" />
             </Button>
           </Link>
-          <h1 className="text-xl font-bold text-gray-900">Pronostici Pre-Stagione</h1>
+          <h1 className="text-xl font-bold text-gray-900">Supercoppa Italiana</h1>
         </div>
         <Card>
           <CardContent className="p-6 text-center">
@@ -130,7 +114,7 @@ export default function PreSeasonPredictions() {
     );
   }
 
-  const isDeadlinePassed = new Date() > new Date(preseasonData.deadline);
+  const isDeadlinePassed = new Date() > new Date(supercoppaData.deadline);
   const existingBet = userBet ? JSON.parse(userBet.prediction) : null;
 
   return (
@@ -141,7 +125,7 @@ export default function PreSeasonPredictions() {
             <ArrowLeft className="w-6 h-6" />
           </Button>
         </Link>
-        <h1 className="text-xl font-bold text-gray-900">Pronostici Pre-Stagione</h1>
+        <h1 className="text-xl font-bold text-gray-900">Supercoppa Italiana</h1>
       </div>
 
       <Card>
@@ -149,15 +133,15 @@ export default function PreSeasonPredictions() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Trophy className="w-5 h-5 text-yellow-600" />
-              {preseasonData.name}
+              {supercoppaData.name}
             </CardTitle>
-            <Badge variant={preseasonData.isActive ? "default" : "secondary"}>
-              {preseasonData.points} punti
+            <Badge variant={supercoppaData.isActive ? "default" : "secondary"}>
+              {supercoppaData.points} punti
             </Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-gray-600 mb-4">{preseasonData.description}</p>
+          <p className="text-sm text-gray-600 mb-4">{supercoppaData.description}</p>
           
           {!isDeadlinePassed && (
             <div className="bg-blue-50 p-3 rounded-lg">
@@ -165,7 +149,7 @@ export default function PreSeasonPredictions() {
                 <Award className="w-4 h-4" />
                 Tempo rimasto per scommettere
               </div>
-              <CountdownTimer targetDate={preseasonData.deadline} />
+              <CountdownTimer targetDate={supercoppaData.deadline} />
             </div>
           )}
           
@@ -182,7 +166,7 @@ export default function PreSeasonPredictions() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Target className="w-5 h-5" />
+            <Users className="w-5 h-5" />
             I tuoi pronostici
           </CardTitle>
         </CardHeader>
@@ -190,7 +174,44 @@ export default function PreSeasonPredictions() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Chi vincerà la Serie A?
+                Chi saranno i finalisti? (Napoli vs Milan, Bologna vs Inter)
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <Select 
+                  value={finalist1} 
+                  onValueChange={setFinalist1}
+                  disabled={isDeadlinePassed}
+                >
+                  <SelectTrigger data-testid="select-finalist1">
+                    <SelectValue placeholder="1° Finalista" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(semifinalTeams).map(([key, name]) => (
+                      <SelectItem key={key} value={key}>{name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <Select 
+                  value={finalist2} 
+                  onValueChange={setFinalist2}
+                  disabled={isDeadlinePassed}
+                >
+                  <SelectTrigger data-testid="select-finalist2">
+                    <SelectValue placeholder="2° Finalista" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(semifinalTeams).map(([key, name]) => (
+                      <SelectItem key={key} value={key}>{name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Chi vincerà la Supercoppa?
               </label>
               <Select 
                 value={winner} 
@@ -201,54 +222,20 @@ export default function PreSeasonPredictions() {
                   <SelectValue placeholder="Seleziona il vincitore" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(serieATeams).map(([key, name]) => (
+                  {Object.entries(semifinalTeams).map(([key, name]) => (
                     <SelectItem key={key} value={key}>{name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Chi finirà ultimo?
-              </label>
-              <Select 
-                value={lastPlace} 
-                onValueChange={setLastPlace}
-                disabled={isDeadlinePassed}
-              >
-                <SelectTrigger data-testid="select-last-place">
-                  <SelectValue placeholder="Seleziona l'ultimo posto" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(serieATeams).map(([key, name]) => (
-                    <SelectItem key={key} value={key}>{name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Chi sarà il capocannoniere?
-              </label>
-              <Input
-                value={topScorer}
-                onChange={(e) => setTopScorer(e.target.value)}
-                placeholder="Nome del giocatore"
-                disabled={isDeadlinePassed}
-                data-testid="input-top-scorer"
-              />
             </div>
           </div>
 
           {existingBet && (
             <div className="bg-green-50 p-3 rounded-lg">
-              <p className="text-green-700 text-sm font-medium mb-2">Pronostici salvati:</p>
+              <p className="text-green-700 text-sm font-medium mb-2">Pronostico salvato:</p>
               <div className="text-sm text-green-600">
-                <p>Vincitore: {serieATeams[existingBet.winner as keyof typeof serieATeams]}</p>
-                <p>Ultimo: {serieATeams[existingBet.lastPlace as keyof typeof serieATeams]}</p>
-                <p>Capocannoniere: {existingBet.topScorer}</p>
+                <p>Finalisti: {semifinalTeams[existingBet.finalist1 as keyof typeof semifinalTeams]} vs {semifinalTeams[existingBet.finalist2 as keyof typeof semifinalTeams]}</p>
+                <p>Vincitore: {semifinalTeams[existingBet.winner as keyof typeof semifinalTeams]}</p>
               </div>
             </div>
           )}
@@ -256,11 +243,11 @@ export default function PreSeasonPredictions() {
           {!isDeadlinePassed && (
             <Button 
               onClick={() => submitMutation.mutate()} 
-              disabled={submitMutation.isPending || !winner || !lastPlace || !topScorer}
+              disabled={submitMutation.isPending || !finalist1 || !finalist2 || !winner}
               className="w-full"
               data-testid="button-submit-prediction"
             >
-              {submitMutation.isPending ? "Salvando..." : "Salva Pronostici"}
+              {submitMutation.isPending ? "Salvando..." : "Salva Pronostico"}
             </Button>
           )}
         </CardContent>
