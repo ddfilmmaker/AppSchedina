@@ -1,0 +1,133 @@
+Add Pre-Season Predictions as a feature, scoped per League, mobile-first.
+
+Where
+
+On each League page, add a small card/link: “Pronostici Pre-stagione”.
+
+Route: /leagues/:leagueId/pre-season-predictions.
+
+Page UI
+
+Title: “Pronostici Pre-stagione”.
+
+3 inputs for participants:
+
+Vincitrice Serie A — dropdown with all Serie A 2025/26 clubs:
+
+Milan
+
+Atalanta
+
+Bologna
+
+Cagliari
+
+Como
+
+Cremonese
+
+Fiorentina
+
+Genoa
+
+Inter
+
+Juventus
+
+Lazio
+
+Lecce
+
+Napoli
+
+Parma
+
+Pisa
+
+Roma
+
+Sassuolo
+
+Torino
+
+Udinese
+
+Verona
+
+Ultima classificata — same dropdown.
+
+Capocannoniere — free text.
+
+Buttons: “Salva” (primary) and “Indietro” (back to league).
+
+Admin controls (only visible to league owner/admin)
+
+Editable deadline: Lock entro (date+time). Admin can set/update this.
+
+Actions:
+
+Salva scadenza (updates deadline)
+
+Chiudi ora (forces lock immediately)
+
+After lock:
+
+Inputs to set the risultati ufficiali:
+
+Vincitrice ufficiale
+
+Ultima classificata ufficiale
+
+Capocannoniere ufficiale (text)
+
+Button Conferma risultati → computes points.
+
+Rules
+
+Before lock: participants can only see their own predictions (others hidden).
+
+After lock: participants can see all other predictions.
+
+After lock: predictions become read-only.
+
+Admin sets official results only after lock.
+
+Scoring (added to league totals):
+
+Winner correct → +10
+
+Bottom team correct → +5
+
+Top scorer correct → +5
+
+API Endpoints
+
+GET /api/extras/preseason/:leagueId → returns current user picks, lockAt, official results.
+
+POST /api/extras/preseason → upsert user picks.
+
+POST /api/extras/preseason/lock → admin sets/updates deadline.
+
+POST /api/extras/preseason/results → admin sets official results and triggers scoring.
+
+DB
+
+preseason_bet: id, league_id, user_id, winner text, bottom text, top_scorer text, updated_at (unique on league_id + user_id).
+
+preseason_settings: league_id (PK), lock_at datetime, locked boolean, winner_official text, bottom_official text, top_scorer_official text, results_confirmed_at datetime.
+
+Acceptance
+
+From a League page, I can open “Pronostici Pre-stagione”.
+
+As participant: save and see my predictions until lock.
+
+Before lock → I only see my own picks.
+
+After lock → I can also see predictions from all other participants.
+
+As admin: set deadline, lock, set results, and points are computed.
+
+Notes
+
+Keep UI text in Italian.
