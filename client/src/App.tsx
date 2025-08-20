@@ -19,9 +19,9 @@ import CreateLeague from "@/pages/create-league";
 import JoinLeague from "@/pages/join-league";
 import CreateMatchday from "@/pages/create-matchday";
 import SpecialTournaments from "@/pages/special-tournaments";
-import LeagueSpecialTournaments from "./pages/league-special-tournaments";
-import PreSeasonPredictions from "./pages/pre-season-predictions";
-import SupercoppaPredictions from "./pages/supercoppa-predictions";
+import LeagueSpecialTournaments from "@/pages/league-special-tournaments";
+import PreSeasonPredictions from "@/pages/pre-season-predictions";
+import SupercoppaPredictions from "@/pages/supercoppa-predictions";
 import NotFound from "@/pages/not-found";
 
 import Header from "@/components/header";

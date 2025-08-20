@@ -176,7 +176,7 @@ export default function LeagueSpecialTournaments() {
           </Card>
         </Link>
 
-        <Link href={`/supercoppa-italiana/${leagueId}`}>
+        <Link href={/leagues/${leagueId}/supercoppa-predictions}>
           <Card className="cursor-pointer hover:shadow-md transition-shadow bg-gradient-to-br from-blue-500 to-indigo-600 border-2">
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-4">
