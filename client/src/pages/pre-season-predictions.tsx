@@ -78,10 +78,7 @@ export default function PreSeasonPredictions() {
   // Save predictions mutation
   const saveMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/extras/preseason`, {
-        method: "POST",
-        body: { leagueId, winner, bottom, topScorer },
-      });
+      return apiRequest("POST", `/api/extras/preseason`, { leagueId, winner, bottom, topScorer });
     },
     onSuccess: () => {
       toast({
@@ -102,10 +99,7 @@ export default function PreSeasonPredictions() {
   // Save deadline mutation
   const saveDeadlineMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/extras/preseason/lock`, {
-        method: "POST",
-        body: { leagueId, lockAt },
-      });
+      return apiRequest("POST", `/api/extras/preseason/lock`, { leagueId, lockAt });
     },
     onSuccess: () => {
       toast({
@@ -126,10 +120,7 @@ export default function PreSeasonPredictions() {
   // Lock now mutation
   const lockNowMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/extras/preseason/lock`, {
-        method: "POST",
-        body: { leagueId },
-      });
+      return apiRequest("POST", `/api/extras/preseason/lock`, { leagueId });
     },
     onSuccess: () => {
       toast({
@@ -150,10 +141,7 @@ export default function PreSeasonPredictions() {
   // Save results mutation
   const saveResultsMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/extras/preseason/results`, {
-        method: "POST",
-        body: { leagueId, winnerOfficial, bottomOfficial, topScorerOfficial },
-      });
+      return apiRequest("POST", `/api/extras/preseason/results`, { leagueId, winnerOfficial, bottomOfficial, topScorerOfficial });
     },
     onSuccess: () => {
       toast({
