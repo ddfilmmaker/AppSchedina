@@ -589,7 +589,16 @@ export class MemStorage implements IStorage {
   }
 
   async getPreseasonSettings(leagueId: string): Promise<any | null> {
-    return this.preseasonSettings.get(leagueId) || null;
+    const settings = this.preseasonSettings.get(leagueId);
+    if (!settings) return null;
+    
+    // Auto-lock if deadline has passed
+    if (settings.lockAt && new Date() > settings.lockAt && !settings.locked) {
+      settings.locked = true;
+      this.preseasonSettings.set(leagueId, settings);
+    }
+    
+    return settings;
   }
 
   async upsertPreseasonSettings(leagueId: string, settings: any): Promise<void> {
@@ -681,6 +690,9 @@ export class MemStorage implements IStorage {
     }
   }
 
+  // Store preseason points separately to integrate with leaderboard
+  private preseasonPoints: Map<string, number> = new Map(); // Key: `${leagueId}-${userId}`
+
   async computePreseasonPoints(leagueId: string): Promise<void> {
     const settings = await this.getPreseasonSettings(leagueId);
     if (!settings || !settings.resultsConfirmedAt || !settings.winnerOfficial || !settings.bottomOfficial || !settings.topScorerOfficial) {
@@ -691,8 +703,6 @@ export class MemStorage implements IStorage {
     const leagueMembers = await this.getLeagueMembers(leagueId);
     const predictions = await this.getPreseasonPredictionsForLeague(leagueId);
 
-    // This part is a simplification. In a real app, you'd update user points in a dedicated table/service.
-    // For MemStorage, we'll just log the points.
     console.log(`Computing Preseason Points for League: ${leagueId}`);
     for (const member of leagueMembers) {
       const userPick = predictions.find(p => p.user.id === member.userId);
@@ -703,14 +713,17 @@ export class MemStorage implements IStorage {
       if (userPick.bottom === settings.bottomOfficial) points += 5;
       if (userPick.topScorer === settings.topScorerOfficial) points += 5;
 
+      // Store points for leaderboard integration
+      const pointsKey = `${leagueId}-${member.userId}`;
+      this.preseasonPoints.set(pointsKey, points);
+
       if (points > 0) {
-        console.log(`User ${userPick.user.nickname} (${member.userId}) earned ${points} points.`);
-        // In a real implementation, you would update the user's total points for the league.
+        console.log(`User ${userPick.user.nickname} (${member.userId}) earned ${points} preseason points.`);
       }
     }
   }
 
-  async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number }[]> {
+  async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number }[]> {
     const members = await this.getLeagueMembers(leagueId);
     const matchdays = await this.getLeagueMatchdays(leagueId);
 
@@ -736,14 +749,16 @@ export class MemStorage implements IStorage {
         }
       }
 
-      // Add points from special tournaments and preseason bets if applicable
-      // This is a placeholder and would require more complex logic to integrate.
-      // For now, only matchday points are considered.
+      // Add preseason points to total
+      const preseasonPointsKey = `${leagueId}-${member.userId}`;
+      const preseasonPoints = this.preseasonPoints.get(preseasonPointsKey) || 0;
+      points += preseasonPoints;
 
       return {
         user: member.user,
         points,
-        correctPicks
+        correctPicks,
+        preseasonPoints: preseasonPoints > 0 ? preseasonPoints : undefined
       };
     });
 

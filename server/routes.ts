@@ -667,7 +667,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const userBet = await storage.getPreseasonBet(leagueId, req.session.userId);
-      const settings = await storage.getPreseasonSettings(leagueId);
+      const settings = await storage.getPreseasonSettings(leagueId); // This will auto-lock if deadline passed
       
       // Only show all bets if locked
       let allBets = [];
@@ -785,7 +785,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       await storage.setPreseasonResults(leagueId, results);
       
-      // TODO: Calculate and assign points to users
+      // Calculate and assign points to users
+      await storage.computePreseasonPoints(leagueId);
 
       res.json({ success: true });
     } catch (error) {
