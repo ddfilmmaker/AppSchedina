@@ -100,7 +100,7 @@ export default function PreSeasonPredictions() {
     <div className="max-w-md mx-auto px-4 py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center mb-6">
-        <Link to={`/leagues/${leagueId}/special-tournaments`}>
+        <Link href={`/leagues/${leagueId}/special-tournaments`}>
           <Button variant="ghost" size="icon" className="mr-2">
             <ArrowLeft className="w-5 h-5" />
           </Button>
