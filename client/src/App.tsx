@@ -18,6 +18,8 @@ import Leaderboard from "@/pages/leaderboard";
 import CreateLeague from "@/pages/create-league";
 import JoinLeague from "@/pages/join-league";
 import CreateMatchday from "@/pages/create-matchday";
+import PreSeasonPredictions from "./pages/pre-season-predictions";
+import SupercoppaPredictions from "./pages/supercoppa-predictions";
 import NotFound from "@/pages/not-found";
 
 import Header from "@/components/header";
@@ -80,6 +82,10 @@ function AppContent() {
           <Route
             path="/league/:leagueId/create-matchday"
             component={CreateMatchday}
+          />
+          <Route
+            path="/leagues/:leagueId/pre-season-predictions"
+            component={PreSeasonPredictions}
           />
 
           <Route component={NotFound} />

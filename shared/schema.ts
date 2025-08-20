@@ -99,6 +99,18 @@ export const preseasonBets = pgTable("preseason_bet", {
   unq: sql`unique(${table.leagueId}, ${table.userId})`
 }));
 
+export const preseasonSettings = pgTable("preseason_settings", {
+  leagueId: varchar("league_id").primaryKey().references(() => leagues.id).notNull(),
+  lockAt: timestamp("lock_at").notNull(),
+  locked: boolean("locked").default(false).notNull(),
+  winnerOfficial: text("winner_official"),
+  bottomOfficial: text("bottom_official"),
+  topScorerOfficial: text("top_scorer_official"),
+  resultsConfirmedAt: timestamp("results_confirmed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -176,4 +188,20 @@ export const joinLeagueSchema = z.object({
 export const pickUpdateSchema = z.object({
   matchId: z.string(),
   pick: z.enum(["1", "X", "2"]),
+});
+
+export const preseasonBetSchema = z.object({
+  winner: z.string().min(1),
+  bottom: z.string().min(1),
+  topScorer: z.string().min(1),
+});
+
+export const preseasonSettingsSchema = z.object({
+  lockAt: z.string().datetime().transform(val => new Date(val)),
+});
+
+export const preseasonResultsSchema = z.object({
+  winnerOfficial: z.string().min(1),
+  bottomOfficial: z.string().min(1),
+  topScorerOfficial: z.string().min(1),
 });

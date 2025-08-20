@@ -121,6 +121,24 @@ export default function League() {
         )}
       </div>
 
+      {/* Pre-Season Predictions Card */}
+      <Card className="mb-4">
+        <CardContent className="p-4">
+          <Link href={`/leagues/${leagueId}/pre-season-predictions`}>
+            <div className="flex items-center justify-between cursor-pointer hover:bg-gray-50 rounded-lg p-2">
+              <div className="flex items-center space-x-3">
+                <Star className="w-5 h-5 text-yellow-500" />
+                <div>
+                  <h4 className="font-medium text-gray-900">Pronostici Pre-stagione</h4>
+                  <p className="text-sm text-gray-500">Vincitore, Ultima, Capocannoniere</p>
+                </div>
+              </div>
+              <div className="text-primary font-medium text-sm">→</div>
+            </div>
+          </Link>
+        </CardContent>
+      </Card>
+
       {/* Matchdays */}
       <div>
         <h3 className="text-lg font-bold text-gray-900 mb-4">Giornate</h3>

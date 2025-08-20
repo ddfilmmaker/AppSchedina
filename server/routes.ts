@@ -10,11 +10,15 @@ import {
   insertMatchSchema,
   pickUpdateSchema,
   insertSpecialBetSchema,
-  insertSpecialTournamentSchema
+  insertSpecialTournamentSchema,
+  preseasonBetSchema,
+  preseasonSettingsSchema,
+  preseasonResultsSchema
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { db } from "./db";
 import { leagueMembers, users, preSeasonPredictions } from "@shared/schema";
+import { z } from "zod";
 import { eq, and } from "drizzle-orm";
 import crypto from "crypto";
 
@@ -648,40 +652,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Preseason endpoints
-  app.post("/api/extras/preseason", async (req, res) => {
-    if (!req.session.userId) {
-      return res.status(401).json({ error: "Non autenticato" });
-    }
-
-    try {
-      const { leagueId, winnerTeam, bottomTeam, topScorer } = req.body;
-
-      if (!leagueId || !winnerTeam || !bottomTeam || !topScorer) {
-        return res.status(400).json({ error: "Tutti i campi sono obbligatori" });
-      }
-
-      // Check if user is member of the league
-      const isMember = await storage.isUserInLeague(leagueId, req.session.userId);
-      if (!isMember) {
-        return res.status(403).json({ error: "Non sei membro di questa lega" });
-      }
-
-      // Upsert the preseason bet
-      await storage.upsertPreseasonBet({
-        leagueId,
-        userId: req.session.userId,
-        winner: winnerTeam,
-        bottom: bottomTeam,
-        topScorer
-      });
-
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Preseason bet error:", error);
-      res.status(500).json({ error: "Errore interno del server" });
-    }
-  });
-
   app.get("/api/extras/preseason/:leagueId", async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ error: "Non autenticato" });
@@ -696,10 +666,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Non sei membro di questa lega" });
       }
 
-      const bet = await storage.getPreseasonBet(leagueId, req.session.userId);
-      res.json(bet);
+      const userBet = await storage.getPreseasonBet(leagueId, req.session.userId);
+      const settings = await storage.getPreseasonSettings(leagueId);
+      
+      // Only show all bets if locked
+      let allBets = [];
+      if (settings && settings.locked) {
+        allBets = await storage.getAllPreseasonBets(leagueId);
+      }
+
+      res.json({ 
+        userBet,
+        settings,
+        allBets: settings && settings.locked ? allBets : []
+      });
     } catch (error) {
       console.error("Get preseason bet error:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  app.post("/api/extras/preseason", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    try {
+      const { leagueId, winner, bottom, topScorer } = preseasonBetSchema.extend({
+        leagueId: z.string()
+      }).parse(req.body);
+
+      // Check if user is member of the league
+      const isMember = await storage.isUserInLeague(leagueId, req.session.userId);
+      if (!isMember) {
+        return res.status(403).json({ error: "Non sei membro di questa lega" });
+      }
+
+      // Check if still unlocked
+      const settings = await storage.getPreseasonSettings(leagueId);
+      if (settings && settings.locked) {
+        return res.status(400).json({ error: "Pronostici bloccati" });
+      }
+
+      // Check deadline if set
+      if (settings && settings.lockAt && new Date() > settings.lockAt) {
+        return res.status(400).json({ error: "Scadenza superata" });
+      }
+
+      // Upsert the preseason bet
+      await storage.upsertPreseasonBet({
+        leagueId,
+        userId: req.session.userId,
+        winner,
+        bottom: bottom,
+        topScorer
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Preseason bet error:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  app.post("/api/extras/preseason/lock", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    try {
+      const { leagueId } = req.body;
+
+      // Check if user is admin of the league
+      const league = await storage.getLeague(leagueId);
+      if (!league || league.adminId !== req.session.userId) {
+        return res.status(403).json({ error: "Solo l'admin può gestire le impostazioni" });
+      }
+
+      const { lockAt } = req.body;
+
+      if (lockAt) {
+        // Update deadline
+        const parsedData = preseasonSettingsSchema.parse({ lockAt });
+        await storage.upsertPreseasonSettings(leagueId, parsedData);
+      } else {
+        // Force lock now
+        await storage.lockPreseason(leagueId);
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Preseason lock error:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  app.post("/api/extras/preseason/results", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    try {
+      const { leagueId, ...results } = preseasonResultsSchema.extend({
+        leagueId: z.string()
+      }).parse(req.body);
+
+      // Check if user is admin of the league
+      const league = await storage.getLeague(leagueId);
+      if (!league || league.adminId !== req.session.userId) {
+        return res.status(403).json({ error: "Solo l'admin può impostare i risultati" });
+      }
+
+      // Check if locked
+      const settings = await storage.getPreseasonSettings(leagueId);
+      if (!settings || !settings.locked) {
+        return res.status(400).json({ error: "Deve essere prima bloccato" });
+      }
+
+      await storage.setPreseasonResults(leagueId, results);
+      
+      // TODO: Calculate and assign points to users
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Preseason results error:", error);
       res.status(500).json({ error: "Errore interno del server" });
     }
   });
