@@ -647,6 +647,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Preseason endpoints
+  app.post("/api/extras/preseason", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    try {
+      const { leagueId, winnerTeam, bottomTeam, topScorer } = req.body;
+
+      if (!leagueId || !winnerTeam || !bottomTeam || !topScorer) {
+        return res.status(400).json({ error: "Tutti i campi sono obbligatori" });
+      }
+
+      // Check if user is member of the league
+      const isMember = await storage.isUserInLeague(leagueId, req.session.userId);
+      if (!isMember) {
+        return res.status(403).json({ error: "Non sei membro di questa lega" });
+      }
+
+      // Upsert the preseason bet
+      await storage.upsertPreseasonBet({
+        leagueId,
+        userId: req.session.userId,
+        winner: winnerTeam,
+        bottom: bottomTeam,
+        topScorer
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Preseason bet error:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  app.get("/api/extras/preseason/:leagueId", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    try {
+      const { leagueId } = req.params;
+
+      // Check if user is member of the league
+      const isMember = await storage.isUserInLeague(leagueId, req.session.userId);
+      if (!isMember) {
+        return res.status(403).json({ error: "Non sei membro di questa lega" });
+      }
+
+      const bet = await storage.getPreseasonBet(leagueId, req.session.userId);
+      res.json(bet);
+    } catch (error) {
+      console.error("Get preseason bet error:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -62,6 +62,10 @@ export interface IStorage {
   getLeagueUserSpecialBets(userId: string, leagueId: string): Promise<(SpecialBet & { tournament: SpecialTournament })[]>;
   getAllSpecialTournamentBets(tournamentId: string): Promise<(SpecialBet & { user: User; tournament: SpecialTournament })[]>;
 
+  // Preseason Bets
+  upsertPreseasonBet(data: { leagueId: string; userId: string; winner: string; bottom: string; topScorer: string }): Promise<any>;
+  getPreseasonBet(leagueId: string, userId: string): Promise<any | null>;
+
   // Leaderboard
   getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number }[]>;
 }
@@ -425,15 +429,57 @@ export class MemStorage implements IStorage {
     return result as (SpecialBet & { tournament: SpecialTournament })[];
   }
 
-  async getAllSpecialTournamentBets(tournamentId: string): Promise<(SpecialBet & { user: User; tournament: SpecialTournament })[]> {
-    const bets = Array.from(this.specialBets.values())
-      .filter(bet => bet.tournamentId === tournamentId);
+  async getAllSpecialTournamentBets(tournamentId: string): Promise<any[]> {
+    return await this.db.select({
+      id: specialBets.id,
+      prediction: specialBets.prediction,
+      points: specialBets.points,
+      user: {
+        id: users.id,
+        nickname: users.nickname,
+      },
+      tournament: {
+        id: specialTournaments.id,
+        name: specialTournaments.name,
+      }
+    })
+    .from(specialBets)
+    .leftJoin(users, eq(users.id, specialBets.userId))
+    .leftJoin(specialTournaments, eq(specialTournaments.id, specialBets.tournamentId))
+    .where(eq(specialBets.tournamentId, tournamentId));
+  }
 
-    return bets.map(bet => ({
-      ...bet,
-      user: this.users.get(bet.userId)!,
-      tournament: this.specialTournaments.get(bet.tournamentId)!
-    })).filter(b => b.user && b.tournament);
+  async upsertPreseasonBet(data: { leagueId: string; userId: string; winner: string; bottom: string; topScorer: string }) {
+    return await this.db.insert(preseasonBets)
+      .values({
+        leagueId: data.leagueId,
+        userId: data.userId,
+        winner: data.winner,
+        bottom: data.bottom,
+        topScorer: data.topScorer,
+        updatedAt: new Date()
+      })
+      .onConflictDoUpdate({
+        target: [preseasonBets.leagueId, preseasonBets.userId],
+        set: {
+          winner: data.winner,
+          bottom: data.bottom,
+          topScorer: data.topScorer,
+          updatedAt: new Date()
+        }
+      });
+  }
+
+  async getPreseasonBet(leagueId: string, userId: string) {
+    const result = await this.db.select()
+      .from(preseasonBets)
+      .where(and(
+        eq(preseasonBets.leagueId, leagueId),
+        eq(preseasonBets.userId, userId)
+      ))
+      .limit(1);
+
+    return result[0] || null;
   }
 
   async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number }[]>;

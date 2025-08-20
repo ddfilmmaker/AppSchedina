@@ -87,6 +87,18 @@ export const preSeasonPredictions = pgTable("pre_season_predictions", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const preseasonBets = pgTable("preseason_bet", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  leagueId: varchar("league_id").references(() => leagues.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  winner: text("winner").notNull(),
+  bottom: text("bottom").notNull(),
+  topScorer: text("top_scorer").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  unq: sql`unique(${table.leagueId}, ${table.userId})`
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
