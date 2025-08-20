@@ -746,9 +746,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { lockAt } = req.body;
 
       if (lockAt) {
-        // Update deadline
-        const parsedData = preseasonSettingsSchema.parse({ lockAt });
-        await storage.upsertPreseasonSettings(leagueId, parsedData);
+        // Update deadline - convert datetime-local format to ISO string
+        const lockAtDate = new Date(lockAt);
+        await storage.upsertPreseasonSettings(leagueId, { lockAt: lockAtDate });
       } else {
         // Force lock now
         await storage.lockPreseason(leagueId);

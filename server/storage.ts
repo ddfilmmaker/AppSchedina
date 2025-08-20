@@ -570,8 +570,60 @@ export class MemStorage implements IStorage {
     return predictions;
   }
 
-  async getPreseasonSettings(leagueId: string): Promise<PreSeasonSetting | null> {
+  async getAllPreseasonBets(leagueId: string): Promise<any[]> {
+    const bets: any[] = [];
+    for (const [key, bet] of this.preseasonBets.entries()) {
+      if (key.startsWith(`${leagueId}-`)) {
+        const userId = key.split('-')[1];
+        const user = this.users.get(userId);
+        if (user) {
+          bets.push({
+            id: randomUUID(),
+            ...bet,
+            user: { id: user.id, nickname: user.nickname }
+          });
+        }
+      }
+    }
+    return bets;
+  }
+
+  async getPreseasonSettings(leagueId: string): Promise<any | null> {
     return this.preseasonSettings.get(leagueId) || null;
+  }
+
+  async upsertPreseasonSettings(leagueId: string, settings: any): Promise<void> {
+    const currentSettings = this.preseasonSettings.get(leagueId);
+    if (currentSettings) {
+      this.preseasonSettings.set(leagueId, { ...currentSettings, ...settings, updatedAt: new Date() });
+    } else {
+      this.preseasonSettings.set(leagueId, {
+        leagueId,
+        lockAt: settings.lockAt || null,
+        locked: false,
+        winnerOfficial: null,
+        bottomOfficial: null,
+        topScorerOfficial: null,
+        resultsConfirmedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        ...settings
+      });
+    }
+  }
+
+  async setPreseasonResults(leagueId: string, results: any): Promise<void> {
+    const settings = this.preseasonSettings.get(leagueId);
+    if (settings) {
+      this.preseasonSettings.set(leagueId, {
+        ...settings,
+        winnerOfficial: results.winnerOfficial,
+        bottomOfficial: results.bottomOfficial,
+        topScorerOfficial: results.topScorerOfficial,
+        resultsConfirmedAt: new Date(),
+        updatedAt: new Date()
+      });
+    }
   }
 
   async updatePreseasonSettings(leagueId: string, settings: Partial<PreSeasonSetting>): Promise<void> {
