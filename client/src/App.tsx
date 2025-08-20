@@ -81,9 +81,18 @@ function AppContent() {
           <Route path="/create-league" component={CreateLeague} />
           <Route path="/join-league" component={JoinLeague} />
           <Route path="/special-tournaments" component={SpecialTournaments} />
-          <Route path="/leagues/:leagueId/special-tournaments" component={LeagueSpecialTournaments} />
-          <Route path="/leagues/:leagueId/pre-season-predictions" component={PreSeasonPredictions} />
-          <Route path="/league/:leagueId/create-matchday" component={CreateMatchday} />
+          <Route
+            path="/leagues/:leagueId/special-tournaments"
+            component={LeagueSpecialTournaments}
+          />
+          <Route
+            path="/leagues/:leagueId/pre-season-predictions"
+            component={PreSeasonPredictions}
+          />
+          <Route
+            path="/league/:leagueId/create-matchday"
+            component={CreateMatchday}
+          />
           <Route component={NotFound} />
         </Switch>
       </main>
