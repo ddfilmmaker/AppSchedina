@@ -93,6 +93,10 @@ function AppContent() {
             path="/league/:leagueId/create-matchday"
             component={CreateMatchday}
           />
+          <Route
+            path="/leagues/:leagueId/supercoppa-predictions"
+            component={SupercoppaPredictions}
+          />
           <Route component={NotFound} />
         </Switch>
       </main>
