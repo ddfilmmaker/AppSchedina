@@ -948,16 +948,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Solo l'admin può impostare i risultati" });
       }
 
-      // Check if locked
-      const settings = await storage.getSupercoppaSettings(leagueId);
-      if (!settings || !settings.locked) {
-        return res.status(400).json({ error: "Deve essere prima bloccato" });
-      }
+      // Admin can set results anytime, no lock restriction needed
 
       await storage.setSupercoppaResults(leagueId, results);
 
       // Calculate and assign points to users
-      await storage.computeSuipercoppaiPoints(leagueId);
+      await storage.computeSupercoppaPoints(leagueId);
 
       res.json({ success: true });
     } catch (error) {

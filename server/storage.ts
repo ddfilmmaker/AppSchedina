@@ -903,6 +903,10 @@ export class MemStorage implements IStorage {
         const userId = key.substring(`${leagueId}-`.length);
         const user = this.users.get(userId);
         if (user) {
+          // Get calculated points if available
+          const pointsKey = `${leagueId}-${userId}`;
+          const points = this.supercoppaPoints.get(pointsKey) || 0;
+          
           bets.push({
             userId: userId,
             userNickname: user.nickname,
@@ -911,6 +915,7 @@ export class MemStorage implements IStorage {
               finalist2: bet.finalist2,
               winner: bet.winner
             },
+            points: points,
             updatedAt: bet.updatedAt
           });
         }
@@ -920,7 +925,10 @@ export class MemStorage implements IStorage {
     return bets;
   }
 
-  async computeSuipercoppaiPoints(leagueId: string): Promise<void> {
+  // Store supercoppa points separately to integrate with leaderboard
+  private supercoppaPoints: Map<string, number> = new Map(); // Key: `${leagueId}-${userId}`
+
+  async computeSupercoppaPoints(leagueId: string): Promise<void> {
     const results = await this.getSupercoppaSettings(leagueId);
     if (!results?.officialFinalist1 || !results?.officialFinalist2 || !results?.officialWinner) {
       return;
@@ -943,13 +951,14 @@ export class MemStorage implements IStorage {
         points += 5;
       }
 
-      // Add points to user's total (this would integrate with your existing leaderboard system)
-      // For now, we'll just log it - you'll need to integrate this with your points system
+      // Store points for leaderboard integration
+      const pointsKey = `${leagueId}-${bet.userId}`;
+      this.supercoppaPoints.set(pointsKey, points);
       console.log(`User ${bet.userId} scored ${points} points for Supercoppa`);
     }
   }
 
-  async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number }[]> {
+  async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number; supercoppaPoints?: number }[]> {
     const members = await this.getLeagueMembers(leagueId);
     const matchdays = await this.getLeagueMatchdays(leagueId);
 
@@ -978,15 +987,21 @@ export class MemStorage implements IStorage {
       // Add preseason points to total
       const preseasonPointsKey = `${leagueId}-${member.userId}`;
       const preseasonPoints = this.preseasonPoints.get(preseasonPointsKey) || 0;
-      const totalPoints = matchdayPoints + preseasonPoints;
+      
+      // Add supercoppa points to total
+      const supercoppaPointsKey = `${leagueId}-${member.userId}`;
+      const supercoppaPoints = this.supercoppaPoints.get(supercoppaPointsKey) || 0;
+      
+      const totalPoints = matchdayPoints + preseasonPoints + supercoppaPoints;
 
-      console.log(`Leaderboard calculation for ${member.user.nickname}: matchday points: ${matchdayPoints}, preseason points: ${preseasonPoints}, total: ${totalPoints}`);
+      console.log(`Leaderboard calculation for ${member.user.nickname}: matchday points: ${matchdayPoints}, preseason points: ${preseasonPoints}, supercoppa points: ${supercoppaPoints}, total: ${totalPoints}`);
 
       return {
         user: member.user,
         points: totalPoints,
         correctPicks,
-        preseasonPoints: preseasonPoints > 0 ? preseasonPoints : undefined
+        preseasonPoints: preseasonPoints > 0 ? preseasonPoints : undefined,
+        supercoppaPoints: supercoppaPoints > 0 ? supercoppaPoints : undefined
       };
     });
 

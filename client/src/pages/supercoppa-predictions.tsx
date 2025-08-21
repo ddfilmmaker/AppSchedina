@@ -446,50 +446,27 @@ export default function SupercoppaPredictions() {
 
       {/* All Predictions (visible after lock or deadline passed) */}
       {shouldShowAllBets && allBets && allBets.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <h3 className="text-lg font-semibold mb-4 flex items-center space-x-2">
               <Users className="w-5 h-5" />
-              <span>Tutti i Pronostici ({allBets.length})</span>
-            </CardTitle>
-            {settings?.lockAt && (
-              <p className="text-sm text-gray-500">
-                Bloccato il {formatDateTime(settings.lockAt)}
-              </p>
-            )}
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {allBets.map((bet: any, index: number) => (
-                <div key={bet.userId || index} className="p-4 border rounded-lg bg-gray-50">
-                  <h4 className="font-semibold mb-2 text-primary">
-                    {bet.userNickname || `Partecipante ${index + 1}`}
-                  </h4>
-                  <div className="grid grid-cols-1 gap-2 text-sm">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium text-gray-700">Finalisti:</span>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-gray-900">
-                          {bet.predictions?.finalist1 || "Non specificato"} vs {bet.predictions?.finalist2 || "Non specificato"}
-                        </span>
-                        {settings?.officialFinalist1 && settings?.officialFinalist2 &&
-                         new Set([bet.predictions?.finalist1, bet.predictions?.finalist2]).size === 2 &&
-                         [...new Set([bet.predictions?.finalist1, bet.predictions?.finalist2])].every(f =>
-                           [settings.officialFinalist1, settings.officialFinalist2].includes(f)
-                         ) && (
-                          <span className="text-green-600">✓</span>
-                        )}
+              <span>Tutti i pronostici</span>
+            </h3>
+            <div className="space-y-3">
+              {allBets.map((bet: any) => (
+                <div key={bet.userId} className="bg-gray-50 p-3 rounded-lg">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="font-medium text-sm">{bet.userNickname}</div>
+                    {bet.points > 0 && settings?.resultsConfirmedAt && (
+                      <div className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
+                        {bet.points} pt
                       </div>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium text-gray-700">Vincitore:</span>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-gray-900">{bet.predictions?.winner || "Non specificato"}</span>
-                        {settings?.officialWinner && bet.predictions?.winner === settings.officialWinner && (
-                          <span className="text-green-600">✓</span>
-                        )}
-                      </div>
-                    </div>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    <div>Finalista 1: {bet.predictions.finalist1}</div>
+                    <div>Finalista 2: {bet.predictions.finalist2}</div>
+                    <div>Vincitore: {bet.predictions.winner}</div>
                   </div>
                 </div>
               ))}
