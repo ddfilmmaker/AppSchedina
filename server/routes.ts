@@ -675,8 +675,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (isLocked) {
         allBets = await storage.getAllPreseasonBets(leagueId);
-        console.log(`Returning ${allBets.length} preseason bets for league ${leagueId}`);
+        console.log(`Returning ${allBets.length} preseason bets for league ${leagueId}:`, allBets);
       }
+
+      console.log(`Preseason data for league ${leagueId}:`, {
+        userBet: userBet ? 'found' : 'not found',
+        settings: settings ? 'found' : 'not found',
+        isLocked,
+        allBetsCount: allBets.length
+      });
 
       res.json({ 
         userBet,

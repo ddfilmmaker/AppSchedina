@@ -553,7 +553,18 @@ export class MemStorage implements IStorage {
   async getPreseasonBet(leagueId: string, userId: string): Promise<PreSeasonPrediction | null> {
     const key = `${leagueId}-${userId}`;
     const bet = this.preseasonBets.get(key);
-    return bet ? { ...bet, id: randomUUID(), submittedAt: new Date(), lastModified: new Date() } : null;
+    if (!bet) return null;
+    
+    return {
+      id: randomUUID(),
+      leagueId: bet.leagueId,
+      userId: bet.userId,
+      winner: bet.winner,
+      bottom: bet.bottom,
+      topScorer: bet.topScorer,
+      submittedAt: new Date(),
+      lastModified: new Date()
+    };
   }
 
   async getPreseasonPredictionsForLeague(leagueId: string): Promise<(PreSeasonPrediction & { user: User })[]> {
@@ -574,12 +585,15 @@ export class MemStorage implements IStorage {
     const bets: any[] = [];
     for (const [key, bet] of this.preseasonBets.entries()) {
       if (key.startsWith(`${leagueId}-`)) {
-        const userId = key.split('-')[1];
+        const userId = key.split('-').slice(1).join('-'); // Handle UUIDs with dashes
         const user = this.users.get(userId);
         if (user) {
           bets.push({
             id: randomUUID(),
-            ...bet,
+            winner: bet.winner,
+            bottom: bet.bottom,
+            topScorer: bet.topScorer,
+            submittedAt: new Date(),
             user: { id: user.id, nickname: user.nickname }
           });
         }

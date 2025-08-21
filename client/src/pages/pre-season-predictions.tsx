@@ -192,7 +192,7 @@ export default function PreSeasonPredictions() {
       </div>
 
       {/* Status Badge */}
-      <div className="flex justify-center mb-4">
+      <div className="flex flex-col items-center mb-4 space-y-2">
         {isLocked ? (
           <Badge variant="destructive" className="flex items-center space-x-1">
             <Lock className="w-3 h-3" />
@@ -205,6 +205,27 @@ export default function PreSeasonPredictions() {
           </Badge>
         ) : (
           <Badge variant="default">Aperto</Badge>
+        )}
+        
+        {/* Show lock date/time */}
+        {settings?.lockAt && (
+          <div className="text-center">
+            <p className="text-xs text-gray-500">
+              {isLocked || hasDeadlinePassed ? "Bloccato il:" : "Scadenza:"}
+            </p>
+            <p className="text-sm font-medium text-gray-700">
+              {new Date(settings.lockAt).toLocaleDateString("it-IT", {
+                day: "2-digit",
+                month: "2-digit", 
+                year: "numeric"
+              })}{" "}
+              alle{" "}
+              {new Date(settings.lockAt).toLocaleTimeString("it-IT", {
+                hour: "2-digit",
+                minute: "2-digit"
+              })}
+            </p>
+          </div>
         )}
       </div>
 
@@ -362,7 +383,7 @@ export default function PreSeasonPredictions() {
       </Card>
 
       {/* All Predictions (visible after lock or deadline passed) */}
-      {shouldShowAllBets && allBets && allBets.length > 0 && (
+      {shouldShowAllBets && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -371,18 +392,24 @@ export default function PreSeasonPredictions() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {allBets.map((bet: any) => (
-                <div key={bet.id} className="border rounded-lg p-3 space-y-2">
-                  <h4 className="font-medium">{bet.user.nickname}</h4>
-                  <div className="text-sm text-gray-600 space-y-1">
-                    <div><strong>Vincitrice:</strong> {bet.winner}</div>
-                    <div><strong>Ultima:</strong> {bet.bottom}</div>
-                    <div><strong>Capocannoniere:</strong> {bet.topScorer}</div>
+            {allBets && allBets.length > 0 ? (
+              <div className="space-y-4">
+                {allBets.map((bet: any, index: number) => (
+                  <div key={bet.id || `bet-${index}`} className="border rounded-lg p-3 space-y-2">
+                    <h4 className="font-medium">{bet.user?.nickname || 'Partecipante'}</h4>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <div><strong>Vincitrice:</strong> {bet.winner || 'Non specificato'}</div>
+                      <div><strong>Ultima:</strong> {bet.bottom || 'Non specificato'}</div>
+                      <div><strong>Capocannoniere:</strong> {bet.topScorer || 'Non specificato'}</div>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-4">
+                Nessun pronostico ancora inserito
+              </p>
+            )}
           </CardContent>
         </Card>
       )}
