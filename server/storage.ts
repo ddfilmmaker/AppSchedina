@@ -419,18 +419,27 @@ export class MemStorage implements IStorage {
       .filter(pick => pick.userId === userId && matchIds.includes(pick.matchId));
   }
 
-  async getAllPicksForMatchday(matchdayId: string): Promise<Array<{ user: User; pick: Pick; matchId: string }>> {
+  async getAllPicksForMatchday(matchdayId: string): Promise<any[]> {
     const matchdayMatches = await this.getMatchdayMatches(matchdayId);
     const matchIds = matchdayMatches.map(m => m.id);
 
     const picks = Array.from(this.picks.values())
       .filter(pick => matchIds.includes(pick.matchId));
 
-    return picks.map(pick => ({
-      user: this.users.get(pick.userId)!,
-      pick: pick,
-      matchId: pick.matchId
-    })).filter(p => p.user);
+    // Return picks with user information in the format expected by the client
+    const allPicks = [];
+    for (const pick of picks) {
+      const user = this.users.get(pick.userId);
+      if (user) {
+        allPicks.push({
+          user: { id: user.id, nickname: user.nickname },
+          pick: { pick: pick.pick },
+          matchId: pick.matchId
+        });
+      }
+    }
+
+    return allPicks;
   }
 
   async getSpecialTournaments(): Promise<SpecialTournament[]> {
@@ -739,10 +748,10 @@ export class MemStorage implements IStorage {
     }
 
     const leagueMembers = await this.getLeagueMembers(leagueId);
-    
+
     console.log(`Computing Preseason Points for League: ${leagueId}`);
     console.log(`Official results: Winner=${settings.winnerOfficial}, Bottom=${settings.bottomOfficial}, TopScorer=${settings.topScorerOfficial}`);
-    
+
     for (const member of leagueMembers) {
       const userBet = await this.getPreseasonBet(leagueId, member.userId);
       if (!userBet) {
@@ -752,7 +761,7 @@ export class MemStorage implements IStorage {
 
       let points = 0;
       console.log(`Checking predictions for ${member.user.nickname}: Winner=${userBet.winner}, Bottom=${userBet.bottom}, TopScorer=${userBet.topScorer}`);
-      
+
       if (userBet.winner === settings.winnerOfficial) {
         points += 10;
         console.log(`${member.user.nickname} got winner correct (+10 points)`);
