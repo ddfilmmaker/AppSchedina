@@ -414,22 +414,51 @@ export default function PreSeasonPredictions() {
                     {bet.userNickname || `Partecipante ${index + 1}`}
                   </h4>
                   <div className="grid grid-cols-1 gap-2 text-sm">
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center">
                       <span className="font-medium text-gray-700">Vincitore:</span>
-                      <span className="text-gray-900">{bet.predictions?.winner || "Non specificato"}</span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-gray-900">{bet.predictions?.winner || "Non specificato"}</span>
+                        {settings?.winnerOfficial && bet.predictions?.winner === settings.winnerOfficial && (
+                          <span className="text-green-600">✓</span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center">
                       <span className="font-medium text-gray-700">Ultima:</span>
-                      <span className="text-gray-900">{bet.predictions?.lastPlace || "Non specificato"}</span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-gray-900">{bet.predictions?.lastPlace || "Non specificato"}</span>
+                        {settings?.bottomOfficial && bet.predictions?.lastPlace === settings.bottomOfficial && (
+                          <span className="text-green-600">✓</span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center">
                       <span className="font-medium text-gray-700">Capocannoniere:</span>
-                      <span className="text-gray-900">{bet.predictions?.topScorer || "Non specificato"}</span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-gray-900">{bet.predictions?.topScorer || "Non specificato"}</span>
+                        {settings?.topScorerOfficial && bet.predictions?.topScorer === settings.topScorerOfficial && (
+                          <span className="text-green-600">✓</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   {bet.submittedAt && (
                     <div className="mt-2 text-xs text-gray-500">
                       Inviato: {formatDateTime(bet.submittedAt)}
+                    </div>
+                  )}
+                  
+                  {/* Show points earned if official results are confirmed */}
+                  {settings?.resultsConfirmedAt && (
+                    <div className="mt-2 pt-2 border-t border-gray-200">
+                      <div className="text-xs text-gray-600">
+                        Punti guadagnati: 
+                        <span className="font-semibold ml-1">
+                          {(bet.predictions?.winner === settings.winnerOfficial ? 10 : 0) +
+                           (bet.predictions?.lastPlace === settings.bottomOfficial ? 5 : 0) +
+                           (bet.predictions?.topScorer === settings.topScorerOfficial ? 5 : 0)}
+                        </span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -444,6 +473,37 @@ export default function PreSeasonPredictions() {
           <CardContent className="p-6 text-center text-gray-500">
             <Users className="w-8 h-8 mx-auto mb-2 text-gray-400" />
             <p>Nessun pronostico inviato ancora</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Official Results (visible when confirmed) */}
+      {settings?.resultsConfirmedAt && settings?.winnerOfficial && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Trophy className="w-5 h-5 text-yellow-500" />
+              <span>Risultati Ufficiali</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="font-medium text-gray-700">Vincitore:</span>
+                <span className="text-gray-900 font-semibold">{settings.winnerOfficial}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium text-gray-700">Ultima:</span>
+                <span className="text-gray-900 font-semibold">{settings.bottomOfficial}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium text-gray-700">Capocannoniere:</span>
+                <span className="text-gray-900 font-semibold">{settings.topScorerOfficial}</span>
+              </div>
+            </div>
+            <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-500">
+              Confermato il {formatDateTime(settings.resultsConfirmedAt)}
+            </div>
           </CardContent>
         </Card>
       )}
