@@ -47,9 +47,9 @@ const matchdays = { id: "matchdays.id", leagueId: "matchdays.leagueId", deadline
 const matches = { id: "matches.id", matchdayId: "matches.matchdayId", result: "matches.result", kickoff: "matches.kickoff" } as any;
 const picks = { id: "picks.id", userId: "picks.userId", matchId: "picks.matchId", pick: "picks.pick" } as any;
 const specialTournaments = { id: "specialTournaments.id", leagueId: "specialTournaments.leagueId", name: "specialTournaments.name" } as any;
-const specialBets = { id: "specialBets.id", userId: "specialBets.userId", tournamentId: "specialBets.tournamentId", prediction: "specialBets.prediction", points: "specialBets.points" } as any;
+const specialBets = { id: "specialBets.id", userId: "specialBets.userId", tournamentId: "specialTournaments.id", prediction: "specialBets.prediction", points: "specialBets.points" } as any;
 const preSeasonPredictions = { id: "preSeasonPredictions.id", leagueId: "preSeasonPredictions.leagueId", userId: "preSeasonPredictions.userId", winner: "preSeasonPredictions.winner", bottom: "preSeasonPredictions.bottom", topScorer: "preSeasonPredictions.topScorer", updatedAt: "preSeasonPredictions.updatedAt" } as any;
-const preseasonSettings = { leagueId: "preseasonSettings.leagueId", lockAt: "preseasonSettings.lockAt", locked: "preseasonSettings.locked", winnerOfficial: "preseasonSettings.winnerOfficial", bottomOfficial: "preseasonSettings.bottomOfficial", topScorerOfficial: "preseasonSettings.topScorerOfficial", resultsConfirmedAt: "preseasonSettings.resultsConfirmedAt" } as any;
+const preseasonSettings = { leagueId: "preseasonSettings.leagueId", lockAt: "preseasonSettings.lockAt", locked: "preseasonSettings.locked", winnerOfficial: "preseasonSettings.winnerOfficial", bottomOfficial: "preseasonSettings.bottomOfficial", topScorerOfficial: "preseasonSettings.topScorerOfficial", resultsConfirmedAt: "preseasonSettings.resultsConfirmedAt", lockedAt: "preseasonSettings.lockedAt", updatedAt: "preseasonSettings.updatedAt" } as any;
 
 // Mock db object (replace with actual db import)
 const db = {
@@ -554,7 +554,7 @@ export class MemStorage implements IStorage {
     const key = `${leagueId}-${userId}`;
     const bet = this.preseasonBets.get(key);
     if (!bet) return null;
-    
+
     return {
       id: randomUUID(),
       leagueId: bet.leagueId,
@@ -605,15 +605,19 @@ export class MemStorage implements IStorage {
   async getPreseasonSettings(leagueId: string): Promise<any | null> {
     const settings = this.preseasonSettings.get(leagueId);
     if (!settings) return null;
-    
+
     // Auto-lock if deadline has passed
-    if (settings.lockAt && new Date() > new Date(settings.lockAt) && !settings.locked) {
-      console.log(`Auto-locking preseason for league ${leagueId} - deadline passed`);
+    const now = new Date();
+    const lockDate = new Date(settings.lockAt);
+
+    if (settings.lockAt && now > lockDate && !settings.locked) {
+      console.log(`Auto-locking preseason for league ${leagueId} - deadline passed. Now: ${now.toISOString()}, Lock date: ${lockDate.toISOString()}`);
       settings.locked = true;
-      settings.updatedAt = new Date();
+      settings.lockedAt = now;
+      settings.updatedAt = now;
       this.preseasonSettings.set(leagueId, settings);
     }
-    
+
     return settings;
   }
 

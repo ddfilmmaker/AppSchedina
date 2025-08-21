@@ -137,7 +137,7 @@ export default function League() {
             </div>
           </Link>
         </CardContent>
-      </Card>rd>
+      </Card>
 
       {/* Matchdays */}
       <div>

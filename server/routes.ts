@@ -666,29 +666,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Non sei membro di questa lega" });
       }
 
-      const userBet = await storage.getPreseasonBet(leagueId, req.session.userId);
       const settings = await storage.getPreseasonSettings(leagueId); // This will auto-lock if deadline passed
-      
+      const userBet = await storage.getPreseasonBet(leagueId, req.session.userId);
+
       // Show all bets if locked OR if deadline has passed
       let allBets = [];
-      const isLocked = settings?.locked || (settings?.lockAt && new Date() > new Date(settings.lockAt));
-      
+      const now = new Date();
+      const lockDate = settings?.lockAt ? new Date(settings.lockAt) : null;
+      const isLocked = settings?.locked || (lockDate && now > lockDate);
+
+      console.log(`Preseason check - League: ${leagueId}, Locked: ${settings?.locked}, Lock date: ${settings?.lockAt}, Now: ${now.toISOString()}, Should show bets: ${isLocked}`);
+
       if (isLocked) {
         allBets = await storage.getAllPreseasonBets(leagueId);
-        console.log(`Returning ${allBets.length} preseason bets for league ${leagueId}:`, allBets);
+        console.log(`Returning ${allBets.length} preseason bets for league ${leagueId}:`, allBets.map(b => ({ userId: b.userId, predictions: Object.keys(b.predictions) })));
       }
-
-      console.log(`Preseason data for league ${leagueId}:`, {
-        userBet: userBet ? 'found' : 'not found',
-        settings: settings ? 'found' : 'not found',
-        isLocked,
-        allBetsCount: allBets.length
-      });
 
       res.json({ 
         userBet,
         settings,
-        allBets
+        allBets,
+        isLocked
       });
     } catch (error) {
       console.error("Get preseason bet error:", error);
@@ -794,7 +792,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       await storage.setPreseasonResults(leagueId, results);
-      
+
       // Calculate and assign points to users
       await storage.computePreseasonPoints(leagueId);
 

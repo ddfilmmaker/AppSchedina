@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams, useLocation } from "wouter";
-import { ArrowLeft, Calendar, Save, Lock, Settings, Trophy } from "lucide-react";
+import { ArrowLeft, Calendar, Save, Lock, Settings, Trophy, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,6 +16,20 @@ const SERIE_A_TEAMS = [
   "Fiorentina", "Genoa", "Inter", "Juventus", "Lazio", "Lecce",
   "Napoli", "Parma", "Pisa", "Roma", "Sassuolo", "Torino", "Udinese", "Verona"
 ];
+
+// Helper function to format date and time
+function formatDateTime(dateTimeString) {
+  if (!dateTimeString) return "";
+  const date = new Date(dateTimeString);
+  return date.toLocaleDateString("it-IT", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  }) + " alle " + date.toLocaleTimeString("it-IT", {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
 
 export default function PreSeasonPredictions() {
   const { leagueId } = useParams();
@@ -192,7 +206,7 @@ export default function PreSeasonPredictions() {
       </div>
 
       {/* Status Badge */}
-      <div className="flex flex-col items-center mb-4 space-y-2">
+      <div className="flex items-center mb-4 space-y-2">
         {isLocked ? (
           <Badge variant="destructive" className="flex items-center space-x-1">
             <Lock className="w-3 h-3" />
@@ -206,7 +220,7 @@ export default function PreSeasonPredictions() {
         ) : (
           <Badge variant="default">Aperto</Badge>
         )}
-        
+
         {/* Show lock date/time */}
         {settings?.lockAt && (
           <div className="text-center">
@@ -214,16 +228,7 @@ export default function PreSeasonPredictions() {
               {isLocked || hasDeadlinePassed ? "Bloccato il:" : "Scadenza:"}
             </p>
             <p className="text-sm font-medium text-gray-700">
-              {new Date(settings.lockAt).toLocaleDateString("it-IT", {
-                day: "2-digit",
-                month: "2-digit", 
-                year: "numeric"
-              })}{" "}
-              alle{" "}
-              {new Date(settings.lockAt).toLocaleTimeString("it-IT", {
-                hour: "2-digit",
-                minute: "2-digit"
-              })}
+              {formatDateTime(settings.lockAt)}
             </p>
           </div>
         )}
@@ -383,36 +388,61 @@ export default function PreSeasonPredictions() {
       </Card>
 
       {/* All Predictions (visible after lock or deadline passed) */}
-      {shouldShowAllBets && (
+      {shouldShowAllBets && allBets && allBets.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Trophy className="w-5 h-5" />
-              <span>Tutti i Pronostici</span>
+              <Users className="w-5 h-5" />
+              <span>Tutti i Pronostici ({allBets.length})</span>
             </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {allBets && allBets.length > 0 ? (
-              <div className="space-y-4">
-                {allBets.map((bet: any, index: number) => (
-                  <div key={bet.id || `bet-${index}`} className="border rounded-lg p-3 space-y-2">
-                    <h4 className="font-medium">{bet.user?.nickname || 'Partecipante'}</h4>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      <div><strong>Vincitrice:</strong> {bet.winner || 'Non specificato'}</div>
-                      <div><strong>Ultima:</strong> {bet.bottom || 'Non specificato'}</div>
-                      <div><strong>Capocannoniere:</strong> {bet.topScorer || 'Non specificato'}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-center py-4">
-                Nessun pronostico ancora inserito
+            {settings?.lockAt && (
+              <p className="text-sm text-gray-500">
+                Bloccato il {formatDateTime(settings.lockAt)}
               </p>
             )}
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {allBets.map((bet: any, index: number) => (
+                <div key={bet.userId || index} className="p-4 border rounded-lg bg-gray-50">
+                  <h4 className="font-semibold mb-2 text-primary">
+                    {bet.userNickname || `Partecipante ${index + 1}`}
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Vincitore:</span>
+                      <span className="text-gray-900">{bet.predictions?.winner || "Non specificato"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Ultima:</span>
+                      <span className="text-gray-900">{bet.predictions?.lastPlace || "Non specificato"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium text-gray-700">Capocannoniere:</span>
+                      <span className="text-gray-900">{bet.predictions?.topScorer || "Non specificato"}</span>
+                    </div>
+                  </div>
+                  {bet.submittedAt && (
+                    <div className="mt-2 text-xs text-gray-500">
+                      Inviato: {formatDateTime(bet.submittedAt)}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
+
+      {shouldShowAllBets && (!allBets || allBets.length === 0) && (
+        <Card>
+          <CardContent className="p-6 text-center text-gray-500">
+            <Users className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+            <p>Nessun pronostico inviato ancora</p>
+          </CardContent>
+        </Card>
+      )}
+
 
       {/* Back Button */}
       <div className="flex justify-center">
