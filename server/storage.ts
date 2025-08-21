@@ -794,7 +794,7 @@ export class MemStorage implements IStorage {
             .find(p => p.matchId === match.id && p.userId === member.userId);
 
           if (pick && pick.pick === match.result) {
-            matchdayPoints += 3;
+            matchdayPoints += 1;
             correctPicks += 1;
           }
         }
