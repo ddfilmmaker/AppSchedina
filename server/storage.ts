@@ -888,7 +888,7 @@ export class MemStorage implements IStorage {
   }
 
   async upsertSuipercoppaBet(data: { leagueId: string, userId: string, finalist1: string, finalist2: string, winner: string }): Promise<void> {
-    const key = `${leagueId}-${userId}`;
+    const key = `${data.leagueId}-${data.userId}`;
     this.supercoppaBets.set(key, {
       ...data,
       updatedAt: new Date()
