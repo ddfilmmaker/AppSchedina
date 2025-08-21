@@ -61,11 +61,11 @@ export default function Matchday() {
   // Create a map of all picks grouped by match (for expired matchdays)
   const allPicksMap = new Map();
   if (isExpired && allPicks.length > 0) {
-    allPicks.forEach((pick: any) => {
-      if (!allPicksMap.has(pick.matchId)) {
-        allPicksMap.set(pick.matchId, []);
+    allPicks.forEach((item: any) => {
+      if (!allPicksMap.has(item.matchId)) {
+        allPicksMap.set(item.matchId, []);
       }
-      allPicksMap.get(pick.matchId).push(pick);
+      allPicksMap.get(item.matchId).push(item);
     });
   }
 
