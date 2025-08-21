@@ -262,6 +262,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     let allPicks = [];
     if (now > new Date(matchday.deadline)) {
       allPicks = await storage.getAllPicksForMatchday(matchday.id);
+      console.log(`Deadline passed for matchday ${matchday.id}. User: ${req.session.userId}. AllPicks count: ${allPicks.length}`);
+      console.log(`AllPicks data:`, allPicks.slice(0, 3)); // Log first 3 for debugging
+    } else {
+      console.log(`Deadline NOT passed for matchday ${matchday.id}. Now: ${now.toISOString()}, Deadline: ${matchday.deadline}`);
     }
 
     res.json({ matchday, matches, userPicks, allPicks });
