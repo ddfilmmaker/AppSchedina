@@ -165,16 +165,20 @@ export default function MatchCard({ match, userPick, isLocked, user, matchdayDea
         </div>
       )}
 
-      {/* Admin Result Update - only show for admins when deadline passed and no result yet */}
-      {isDeadlinePassed && user?.isAdmin && !match.result && (
+      {/* Admin Result Update - show for admins at any time */}
+      {user?.isAdmin && (
         <div className="mt-4">
           <div className="text-sm text-gray-500 text-center mb-3">
-            Inserisci il risultato finale:
+            {match.result ? "Modifica il risultato:" : "Inserisci il risultato finale:"}
           </div>
           <div className="grid grid-cols-3 gap-2">
             <Button
               variant="outline"
-              className="py-2 px-4 font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
+              className={`py-2 px-4 font-semibold ${
+                match.result === "1" 
+                  ? "bg-blue-600 text-white border-blue-600" 
+                  : "bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
+              }`}
               onClick={() => handleResultUpdate("1")}
               disabled={updateResultMutation.isPending}
               data-testid={`result-1-${match.id}`}
@@ -184,7 +188,11 @@ export default function MatchCard({ match, userPick, isLocked, user, matchdayDea
 
             <Button
               variant="outline"
-              className="py-2 px-4 font-semibold bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200"
+              className={`py-2 px-4 font-semibold ${
+                match.result === "X" 
+                  ? "bg-gray-600 text-white border-gray-600" 
+                  : "bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200"
+              }`}
               onClick={() => handleResultUpdate("X")}
               disabled={updateResultMutation.isPending}
               data-testid={`result-x-${match.id}`}
@@ -194,7 +202,11 @@ export default function MatchCard({ match, userPick, isLocked, user, matchdayDea
 
             <Button
               variant="outline"
-              className="py-2 px-4 font-semibold bg-red-50 text-red-700 hover:bg-red-100 border-red-200"
+              className={`py-2 px-4 font-semibold ${
+                match.result === "2" 
+                  ? "bg-red-600 text-white border-red-600" 
+                  : "bg-red-50 text-red-700 hover:bg-red-100 border-red-200"
+              }`}
               onClick={() => handleResultUpdate("2")}
               disabled={updateResultMutation.isPending}
               data-testid={`result-2-${match.id}`}

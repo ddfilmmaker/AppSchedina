@@ -348,7 +348,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(400).json({ error: "Risultato non valido" });
     }
 
-    // Check admin permissions
+    // Check admin permissions - admins can update results at any time
     const user = await storage.getUser(req.session.userId);
     if (!user?.isAdmin) {
       return res.status(403).json({ error: "Solo gli admin possono inserire risultati" });
