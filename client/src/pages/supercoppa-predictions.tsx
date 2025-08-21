@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Trophy, Users, Calendar, Lock, Save, CheckCircle } from "lucide-react";
-import { apiRequest } from "@/lib/api";
+import { apiRequest } from "@/lib/queryClient";
 
 // Teams for semifinals
 const SEMIFINALE_1_TEAMS = ["Napoli", "Milan"];
