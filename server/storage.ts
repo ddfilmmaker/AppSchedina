@@ -739,25 +739,38 @@ export class MemStorage implements IStorage {
     }
 
     const leagueMembers = await this.getLeagueMembers(leagueId);
-    const predictions = await this.getPreseasonPredictionsForLeague(leagueId);
-
+    
     console.log(`Computing Preseason Points for League: ${leagueId}`);
+    console.log(`Official results: Winner=${settings.winnerOfficial}, Bottom=${settings.bottomOfficial}, TopScorer=${settings.topScorerOfficial}`);
+    
     for (const member of leagueMembers) {
-      const userPick = predictions.find(p => p.user.id === member.userId);
-      if (!userPick) continue;
+      const userBet = await this.getPreseasonBet(leagueId, member.userId);
+      if (!userBet) {
+        console.log(`No preseason bet found for user ${member.user.nickname} (${member.userId})`);
+        continue;
+      }
 
       let points = 0;
-      if (userPick.winner === settings.winnerOfficial) points += 10;
-      if (userPick.bottom === settings.bottomOfficial) points += 5;
-      if (userPick.topScorer === settings.topScorerOfficial) points += 5;
+      console.log(`Checking predictions for ${member.user.nickname}: Winner=${userBet.winner}, Bottom=${userBet.bottom}, TopScorer=${userBet.topScorer}`);
+      
+      if (userBet.winner === settings.winnerOfficial) {
+        points += 10;
+        console.log(`${member.user.nickname} got winner correct (+10 points)`);
+      }
+      if (userBet.bottom === settings.bottomOfficial) {
+        points += 5;
+        console.log(`${member.user.nickname} got bottom correct (+5 points)`);
+      }
+      if (userBet.topScorer === settings.topScorerOfficial) {
+        points += 5;
+        console.log(`${member.user.nickname} got top scorer correct (+5 points)`);
+      }
 
       // Store points for leaderboard integration
       const pointsKey = `${leagueId}-${member.userId}`;
       this.preseasonPoints.set(pointsKey, points);
 
-      if (points > 0) {
-        console.log(`User ${userPick.user.nickname} (${member.userId}) earned ${points} preseason points.`);
-      }
+      console.log(`User ${member.user.nickname} (${member.userId}) earned ${points} total preseason points.`);
     }
   }
 
