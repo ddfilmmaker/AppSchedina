@@ -136,32 +136,38 @@ export default function Matchday() {
               />
 
               {/* Show all participants' picks if deadline has passed */}
-              {isExpired && matchPicks.length > 0 && (
+              {isExpired && (
                 <Card className="mt-2 bg-gray-50">
                   <CardContent className="p-4">
                     <h4 className="text-sm font-semibold text-gray-700 mb-3">Pronostici dei partecipanti:</h4>
                     <div className="space-y-2">
-                      {matchPicks.map((item: any) => (
-                        <div key={item.user.id} className="flex items-center justify-between text-sm">
-                          <span className="font-medium text-gray-600">{item.user.nickname}</span>
-                          <div className="flex items-center space-x-2">
-                            <span className={`px-2 py-1 rounded text-xs font-bold ${
-                              item.pick.pick === "1" ? "bg-blue-100 text-blue-800" :
-                              item.pick.pick === "X" ? "bg-gray-100 text-gray-800" :
-                              "bg-red-100 text-red-800"
-                            }`}>
-                              {item.pick.pick === "1" ? "1" : item.pick.pick === "X" ? "X" : "2"}
-                            </span>
-                            {match.result && (
-                              <span className={`text-xs ${
-                                item.pick.pick === match.result ? "text-green-600 font-semibold" : "text-red-500"
+                      {matchPicks.length > 0 ? (
+                        matchPicks.map((item: any) => (
+                          <div key={item.user.id} className="flex items-center justify-between text-sm">
+                            <span className="font-medium text-gray-600">{item.user.nickname}</span>
+                            <div className="flex items-center space-x-2">
+                              <span className={`px-2 py-1 rounded text-xs font-bold ${
+                                item.pick.pick === "1" ? "bg-blue-100 text-blue-800" :
+                                item.pick.pick === "X" ? "bg-gray-100 text-gray-800" :
+                                "bg-red-100 text-red-800"
                               }`}>
-                                {item.pick.pick === match.result ? "✓" : "✗"}
+                                {item.pick.pick === "1" ? "1" : item.pick.pick === "X" ? "X" : "2"}
                               </span>
-                            )}
+                              {match.result && (
+                                <span className={`text-xs ${
+                                  item.pick.pick === match.result ? "text-green-600 font-semibold" : "text-red-500"
+                                }`}>
+                                  {item.pick.pick === match.result ? "✓" : "✗"}
+                                </span>
+                              )}
+                            </div>
                           </div>
+                        ))
+                      ) : (
+                        <div className="text-sm text-gray-500 text-center">
+                          Nessun pronostico trovato per questa partita
                         </div>
-                      ))}
+                      )}
                     </div>
                   </CardContent>
                 </Card>
