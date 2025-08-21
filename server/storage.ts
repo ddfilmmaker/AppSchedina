@@ -168,6 +168,10 @@ export class MemStorage implements IStorage {
   // In-memory storage for preseason bets and settings
   private preseasonBets: Map<string, InsertPreSeasonPrediction> = new Map(); // Key: `${leagueId}-${userId}`
   private preseasonSettings: Map<string, PreSeasonSetting> = new Map(); // Key: leagueId
+  
+  // In-memory storage for supercoppa bets and settings
+  private supercoppaBets: Map<string, any> = new Map(); // Key: `${leagueId}-${userId}`
+  private supercoppaSettings: Map<string, any> = new Map(); // Key: leagueId
 
   constructor() {
     // Removed initialization of global special tournaments as they are now league-specific.
@@ -234,6 +238,9 @@ export class MemStorage implements IStorage {
 
     // Initialize preseason settings for the new league
     await this.initializePreseasonSettings(id);
+
+    // Initialize supercoppa settings for the new league
+    await this.initializeSupercoppaSettings(id);
 
     return league;
   }
@@ -723,6 +730,22 @@ export class MemStorage implements IStorage {
     });
   }
 
+  private async initializeSupercoppaSettings(leagueId: string): Promise<void> {
+    const currentYear = new Date().getFullYear();
+    const nextYear = currentYear + 1;
+    const defaultDeadline = new Date(`${nextYear}-01-05T20:00:00.000Z`);
+
+    this.supercoppaSettings.set(leagueId, {
+      leagueId,
+      lockAt: defaultDeadline,
+      locked: false,
+      officialFinalist1: null,
+      officialFinalist2: null,
+      officialWinner: null,
+      resultsConfirmedAt: null,
+    });
+  }
+
   async lockPreseason(leagueId: string): Promise<void> {
     const settings = this.preseasonSettings.get(leagueId);
     if (settings) {
@@ -776,74 +799,83 @@ export class MemStorage implements IStorage {
 
   // Supercoppa methods
   async getSupercoppaSettings(leagueId: string): Promise<any> {
-    const results = await db.select()
-      .from(supercoppaSettings)
-      .where(eq(supercoppaSettings.leagueId, leagueId))
-      .limit(1);
-
-    if (results.length === 0) return null;
-
-    const settings = results[0];
+    const settings = this.supercoppaSettings.get(leagueId);
+    if (!settings) return null;
 
     // Auto-lock if deadline has passed
     const now = new Date();
-    if (settings.lockAt && now > settings.lockAt && !settings.locked) {
-      await this.lockSupercoppa(leagueId);
-      return { ...settings, locked: true };
+    const lockDate = new Date(settings.lockAt);
+
+    if (settings.lockAt && now > lockDate && !settings.locked) {
+      console.log(`Auto-locking supercoppa for league ${leagueId} - deadline passed. Now: ${now.toISOString()}, Lock date: ${lockDate.toISOString()}`);
+      settings.locked = true;
+      settings.lockedAt = now;
+      settings.updatedAt = now;
+      this.supercoppaSettings.set(leagueId, settings);
     }
 
     return settings;
   }
 
   async upsertSupercoppaSettings(leagueId: string, updates: { lockAt?: Date }): Promise<void> {
-    const existing = await db.select()
-      .from(supercoppaSettings)
-      .where(eq(supercoppaSettings.leagueId, leagueId))
-      .limit(1);
-
-    if (existing.length === 0) {
-      await db.insert(supercoppaSettings).values({
+    const currentSettings = this.supercoppaSettings.get(leagueId);
+    if (currentSettings) {
+      const updatedSettings = {
+        ...currentSettings,
+        ...updates,
+        updatedAt: new Date()
+      };
+      this.supercoppaSettings.set(leagueId, updatedSettings);
+      console.log(`Updated supercoppa settings for league ${leagueId}:`, updatedSettings);
+    } else {
+      const newSettings = {
         leagueId,
         lockAt: updates.lockAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default: 1 week from now
         locked: false,
+        officialFinalist1: null,
+        officialFinalist2: null,
+        officialWinner: null,
+        resultsConfirmedAt: null,
+        lockedAt: null,
         createdAt: new Date(),
-        updatedAt: new Date()
-      });
-    } else {
-      await db.update(supercoppaSettings)
-        .set({ ...updates, updatedAt: new Date() })
-        .where(eq(supercoppaSettings.leagueId, leagueId));
+        updatedAt: new Date(),
+        ...updates
+      };
+      this.supercoppaSettings.set(leagueId, newSettings);
+      console.log(`Created supercoppa settings for league ${leagueId}:`, newSettings);
     }
   }
 
   async lockSupercoppa(leagueId: string): Promise<void> {
-    await db.update(supercoppaSettings)
-      .set({ locked: true, updatedAt: new Date() })
-      .where(eq(supercoppaSettings.leagueId, leagueId));
+    const settings = this.supercoppaSettings.get(leagueId);
+    if (settings) {
+      settings.locked = true;
+      settings.lockedAt = new Date();
+      settings.updatedAt = new Date();
+      this.supercoppaSettings.set(leagueId, settings);
+      console.log(`Supercoppa locked for league ${leagueId} at ${settings.lockedAt}`);
+    }
   }
 
   async setSupercoppaResults(leagueId: string, results: { officialFinalist1: string, officialFinalist2: string, officialWinner: string }): Promise<void> {
-    await db.update(supercoppaSettings)
-      .set({
-        ...results,
+    const settings = this.supercoppaSettings.get(leagueId);
+    if (settings) {
+      this.supercoppaSettings.set(leagueId, {
+        ...settings,
+        officialFinalist1: results.officialFinalist1,
+        officialFinalist2: results.officialFinalist2,
+        officialWinner: results.officialWinner,
         resultsConfirmedAt: new Date(),
         updatedAt: new Date()
-      })
-      .where(eq(supercoppaSettings.leagueId, leagueId));
+      });
+    }
   }
 
   async getSuipercoppaBet(leagueId: string, userId: string): Promise<any> {
-    const results = await db.select()
-      .from(supercoppaBegs)
-      .where(and(
-        eq(supercoppaBegs.leagueId, leagueId),
-        eq(supercoppaBegs.userId, userId)
-      ))
-      .limit(1);
+    const key = `${leagueId}-${userId}`;
+    const bet = this.supercoppaBets.get(key);
+    if (!bet) return null;
 
-    if (results.length === 0) return null;
-
-    const bet = results[0];
     return {
       userId: bet.userId,
       predictions: {
@@ -856,62 +888,36 @@ export class MemStorage implements IStorage {
   }
 
   async upsertSuipercoppaBet(data: { leagueId: string, userId: string, finalist1: string, finalist2: string, winner: string }): Promise<void> {
-    const existing = await db.select()
-      .from(supercoppaBegs)
-      .where(and(
-        eq(supercoppaBegs.leagueId, data.leagueId),
-        eq(supercoppaBegs.userId, data.userId)
-      ))
-      .limit(1);
-
-    if (existing.length === 0) {
-      await db.insert(supercoppaBegs).values({
-        id: crypto.randomUUID(),
-        leagueId: data.leagueId,
-        userId: data.userId,
-        finalist1: data.finalist1,
-        finalist2: data.finalist2,
-        winner: data.winner,
-        updatedAt: new Date()
-      });
-    } else {
-      await db.update(supercoppaBegs)
-        .set({
-          finalist1: data.finalist1,
-          finalist2: data.finalist2,
-          winner: data.winner,
-          updatedAt: new Date()
-        })
-        .where(and(
-          eq(supercoppaBegs.leagueId, data.leagueId),
-          eq(supercoppaBegs.userId, data.userId)
-        ));
-    }
+    const key = `${leagueId}-${userId}`;
+    this.supercoppaBets.set(key, {
+      ...data,
+      updatedAt: new Date()
+    });
   }
 
   async getAllSuipercoppaBets(leagueId: string): Promise<any[]> {
-    const results = await db.select({
-      userId: supercoppaBegs.userId,
-      finalist1: supercoppaBegs.finalist1,
-      finalist2: supercoppaBegs.finalist2,
-      winner: supercoppaBegs.winner,
-      updatedAt: supercoppaBegs.updatedAt,
-      userNickname: users.nickname
-    })
-    .from(supercoppaBegs)
-    .leftJoin(users, eq(users.id, supercoppaBegs.userId))
-    .where(eq(supercoppaBegs.leagueId, leagueId));
-
-    return results.map(bet => ({
-      userId: bet.userId,
-      userNickname: bet.userNickname,
-      predictions: {
-        finalist1: bet.finalist1,
-        finalist2: bet.finalist2,
-        winner: bet.winner
-      },
-      updatedAt: bet.updatedAt
-    }));
+    const bets: any[] = [];
+    for (const [key, bet] of this.supercoppaBets.entries()) {
+      if (key.startsWith(`${leagueId}-`)) {
+        // Extract userId by removing the leagueId prefix and the dash
+        const userId = key.substring(`${leagueId}-`.length);
+        const user = this.users.get(userId);
+        if (user) {
+          bets.push({
+            userId: userId,
+            userNickname: user.nickname,
+            predictions: {
+              finalist1: bet.finalist1,
+              finalist2: bet.finalist2,
+              winner: bet.winner
+            },
+            updatedAt: bet.updatedAt
+          });
+        }
+      }
+    }
+    console.log(`getAllSuipercoppaBets for league ${leagueId}: found ${bets.length} bets`);
+    return bets;
   }
 
   async computeSuipercoppaiPoints(leagueId: string): Promise<void> {
