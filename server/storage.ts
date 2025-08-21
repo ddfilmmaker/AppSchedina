@@ -593,8 +593,10 @@ export class MemStorage implements IStorage {
     if (!settings) return null;
     
     // Auto-lock if deadline has passed
-    if (settings.lockAt && new Date() > settings.lockAt && !settings.locked) {
+    if (settings.lockAt && new Date() > new Date(settings.lockAt) && !settings.locked) {
+      console.log(`Auto-locking preseason for league ${leagueId} - deadline passed`);
       settings.locked = true;
+      settings.updatedAt = new Date();
       this.preseasonSettings.set(leagueId, settings);
     }
     

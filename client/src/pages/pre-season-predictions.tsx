@@ -48,14 +48,18 @@ export default function PreSeasonPredictions() {
   const { data: preseasonData, isLoading } = useQuery({
     queryKey: [`/api/extras/preseason/${leagueId}`],
     enabled: !!leagueId,
+    refetchInterval: 30000, // Refetch every 30 seconds to check for auto-lock
   });
 
   const userBet = (preseasonData as any)?.userBet;
   const settings = (preseasonData as any)?.settings;
   const allBets = (preseasonData as any)?.allBets || [];
 
+  console.log("Preseason data:", { userBet, settings, allBetsCount: allBets.length });
+
   const isLocked = settings?.locked || false;
   const hasDeadlinePassed = settings?.lockAt && new Date() > new Date(settings.lockAt);
+  const shouldShowAllBets = isLocked || hasDeadlinePassed;
 
   // Initialize form data
   useEffect(() => {
@@ -195,7 +199,10 @@ export default function PreSeasonPredictions() {
             <span>Bloccato</span>
           </Badge>
         ) : hasDeadlinePassed ? (
-          <Badge variant="secondary">Scaduto</Badge>
+          <Badge variant="secondary" className="flex items-center space-x-1">
+            <Lock className="w-3 h-3" />
+            <span>Scaduto</span>
+          </Badge>
         ) : (
           <Badge variant="default">Aperto</Badge>
         )}
@@ -354,8 +361,8 @@ export default function PreSeasonPredictions() {
         </CardContent>
       </Card>
 
-      {/* All Predictions (visible after lock) */}
-      {isLocked && allBets.length > 0 && (
+      {/* All Predictions (visible after lock or deadline passed) */}
+      {shouldShowAllBets && allBets && allBets.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">

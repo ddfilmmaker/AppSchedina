@@ -669,16 +669,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userBet = await storage.getPreseasonBet(leagueId, req.session.userId);
       const settings = await storage.getPreseasonSettings(leagueId); // This will auto-lock if deadline passed
       
-      // Only show all bets if locked
+      // Show all bets if locked OR if deadline has passed
       let allBets = [];
-      if (settings && settings.locked) {
+      const isLocked = settings?.locked || (settings?.lockAt && new Date() > new Date(settings.lockAt));
+      
+      if (isLocked) {
         allBets = await storage.getAllPreseasonBets(leagueId);
+        console.log(`Returning ${allBets.length} preseason bets for league ${leagueId}`);
       }
 
       res.json({ 
         userBet,
         settings,
-        allBets: settings && settings.locked ? allBets : []
+        allBets
       });
     } catch (error) {
       console.error("Get preseason bet error:", error);
