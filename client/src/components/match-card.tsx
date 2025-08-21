@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Match, Pick, User } from "@/lib/api";
 import { Link } from "wouter";
+import { Badge } from "@/components/ui/badge";
 
 interface MatchCardProps {
   match: Match;
@@ -73,8 +74,7 @@ export default function MatchCard({ match, userPick, isLocked, user }: MatchCard
   });
 
   const handlePickSelect = (pick: string) => {
-    if (isLocked) return;
-
+    // Removed isLocked check here as we rely on canEditPick
     setSelectedPick(pick);
     submitPickMutation.mutate(pick);
   };
@@ -92,10 +92,18 @@ export default function MatchCard({ match, userPick, isLocked, user }: MatchCard
     });
   };
 
+  // Define deadline and related states
+  const deadline = match.kickoff; // Assuming kickoff is the deadline
+  const isDeadlinePassed = new Date() > new Date(deadline);
+  const canSubmitPicks = !isDeadlinePassed;
+  const hasUserPick = userPick !== undefined;
+  const showResult = isDeadlinePassed && match.result;
+  const canEditPick = !isDeadlinePassed; // Users can always edit until deadline passes
+
   const cardContent = (
     <div
       className={`bg-white rounded-lg border border-gray-200 p-4 ${
-        isLocked ? "opacity-75" : ""
+        isDeadlinePassed ? "opacity-75" : ""
       }`}
       data-testid={`match-card-${match.id}`}
     >
@@ -103,8 +111,8 @@ export default function MatchCard({ match, userPick, isLocked, user }: MatchCard
         <div className="text-xs text-gray-500" data-testid={`match-time-${match.id}`}>
           {formatTime(match.kickoff)}
         </div>
-        <div className={`text-xs font-medium ${isLocked ? "text-red-600" : "text-primary"}`}>
-          {isLocked ? "Chiuso" : "Aperto"}
+        <div className={`text-xs font-medium ${isDeadlinePassed ? "text-red-600" : "text-primary"}`}>
+          {isDeadlinePassed ? "Chiuso" : "Aperto"}
         </div>
       </div>
 
@@ -115,70 +123,35 @@ export default function MatchCard({ match, userPick, isLocked, user }: MatchCard
         <div className="text-sm text-gray-500">Serie A</div>
       </div>
 
-      {/* Pick Selection - only show when not locked */}
-      {!isLocked && (
-        <>
-          <div className="grid grid-cols-3 gap-2 mt-4">
-            <Button
-              variant={selectedPick === "1" ? "default" : "outline"}
-              className={`py-3 px-4 font-semibold transition-all ${
-                selectedPick === "1"
-                  ? "bg-primary text-white hover:bg-green-700"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-              onClick={() => handlePickSelect("1")}
-              disabled={submitPickMutation.isPending}
-              data-testid={`pick-1-${match.id}`}
-            >
-              <div className="text-lg">1</div>
-            </Button>
-
-            <Button
-              variant={selectedPick === "X" ? "default" : "outline"}
-              className={`py-3 px-4 font-semibold transition-all ${
-                selectedPick === "X"
-                  ? "bg-primary text-white hover:bg-green-700"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-              onClick={() => handlePickSelect("X")}
-              disabled={submitPickMutation.isPending}
-              data-testid={`pick-X-${match.id}`}
-            >
-              <div className="text-lg">X</div>
-            </Button>
-
-            <Button
-              variant={selectedPick === "2" ? "default" : "outline"}
-              className={`py-3 px-4 font-semibold transition-all ${
-                selectedPick === "2"
-                  ? "bg-primary text-white hover:bg-green-700"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-              onClick={() => handlePickSelect("2")}
-              disabled={submitPickMutation.isPending}
-              data-testid={`pick-2-${match.id}`}
-            >
-              <div className="text-lg">2</div>
-            </Button>
+      {/* Pick Selection - only show when canEditPick is true */}
+      {canEditPick && (
+          <div className="flex space-x-1">
+            {["1", "X", "2"].map((option) => (
+              <Button
+                key={option}
+                variant={hasUserPick && userPick.pick === option ? "default" : "outline"}
+                size="sm"
+                onClick={() => handlePickSelect(option)}
+                disabled={submitPickMutation.isPending}
+                className="flex-1 text-xs"
+              >
+                {option}
+              </Button>
+            ))}
           </div>
+        )}
 
-          {userPick && (
-            <div className="mt-2 text-center">
-              <span className="text-xs text-gray-500">
-                Ultima modifica: {new Date(userPick.lastModified).toLocaleDateString("it-IT", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  hour: "2-digit",
-                  minute: "2-digit"
-                })}
-              </span>
-            </div>
-          )}
-        </>
-      )}
+        {/* Display user's pick if they made one and deadline has passed */}
+        {hasUserPick && isDeadlinePassed && (
+          <div className="text-center">
+            <Badge variant="secondary" className="text-xs">
+              Hai scelto: {userPick.pick}
+            </Badge>
+          </div>
+        )}
 
-      {/* Current Result Display - show when locked */}
-      {isLocked && match.result && (
+      {/* Current Result Display - show when deadline passed and result exists */}
+      {showResult && (
         <div className="mt-4 text-center">
           <div className="text-sm text-gray-500 mb-2">Risultato finale:</div>
           <div className={`inline-block px-3 py-2 rounded text-lg font-bold ${
@@ -191,8 +164,8 @@ export default function MatchCard({ match, userPick, isLocked, user }: MatchCard
         </div>
       )}
 
-      {/* Admin Result Update - only show for admins when locked and no result yet */}
-      {isLocked && user?.isAdmin && !match.result && (
+      {/* Admin Result Update - only show for admins when deadline passed and no result yet */}
+      {isDeadlinePassed && user?.isAdmin && !match.result && (
         <div className="mt-4">
           <div className="text-sm text-gray-500 text-center mb-3">
             Inserisci il risultato finale:
@@ -233,7 +206,7 @@ export default function MatchCard({ match, userPick, isLocked, user }: MatchCard
     </div>
   );
 
-  return isLocked ? (
+  return isDeadlinePassed ? (
     <Link href={`/matches/${match.id}`} passHref>
       {cardContent}
     </Link>
