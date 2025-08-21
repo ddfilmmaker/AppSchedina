@@ -142,6 +142,15 @@ export interface IStorage {
   setPreseasonOfficialResults(leagueId: string, results: { winnerOfficial: string; bottomOfficial: string; topScorerOfficial: string }): Promise<void>;
   computePreseasonPoints(leagueId: string): Promise<void>;
 
+  // Supercoppa
+  getSupercoppaSettings(leagueId: string): Promise<any>;
+  upsertSupercoppaSettings(leagueId: string, updates: { lockAt?: Date }): Promise<void>;
+  lockSupercoppa(leagueId: string): Promise<void>;
+  setSupercoppaResults(leagueId: string, results: { officialFinalist1: string, officialFinalist2: string, officialWinner: string }): Promise<void>;
+  getSuipercoppaBet(leagueId: string, userId: string): Promise<any>;
+  upsertSuipercoppaBet(data: { leagueId: string, userId: string, finalist1: string, finalist2: string, winner: string }): Promise<void>;
+  getAllSuipercoppaBets(leagueId: string): Promise<any[]>;
+  computeSuipercoppaiPoints(leagueId: string): Promise<void>;
 
   // Leaderboard
   getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number }[]>;
@@ -649,7 +658,7 @@ export class MemStorage implements IStorage {
     } else {
       const newSettings = {
         leagueId,
-        lockAt: settings.lockAt || null,
+        lockAt: settings.lockAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default: 1 week from now
         locked: false,
         winnerOfficial: null,
         bottomOfficial: null,
@@ -741,45 +750,196 @@ export class MemStorage implements IStorage {
   private preseasonPoints: Map<string, number> = new Map(); // Key: `${leagueId}-${userId}`
 
   async computePreseasonPoints(leagueId: string): Promise<void> {
-    const settings = await this.getPreseasonSettings(leagueId);
-    if (!settings || !settings.resultsConfirmedAt || !settings.winnerOfficial || !settings.bottomOfficial || !settings.topScorerOfficial) {
-      console.warn(`Cannot compute preseason points for league ${leagueId}: settings or official results not set.`);
+    const results = await this.getPreseasonSettings(leagueId);
+    if (!results?.winnerOfficial || !results?.bottomOfficial || !results?.topScorerOfficial) {
       return;
     }
 
-    const leagueMembers = await this.getLeagueMembers(leagueId);
+    const allBets = await this.getAllPreseasonBets(leagueId);
 
-    console.log(`Computing Preseason Points for League: ${leagueId}`);
-    console.log(`Official results: Winner=${settings.winnerOfficial}, Bottom=${settings.bottomOfficial}, TopScorer=${settings.topScorerOfficial}`);
-
-    for (const member of leagueMembers) {
-      const userBet = await this.getPreseasonBet(leagueId, member.userId);
-      if (!userBet) {
-        console.log(`No preseason bet found for user ${member.user.nickname} (${member.userId})`);
-        continue;
-      }
-
+    for (const bet of allBets) {
       let points = 0;
-      console.log(`Checking predictions for ${member.user.nickname}: Winner=${userBet.winner}, Bottom=${userBet.bottom}, TopScorer=${userBet.topScorer}`);
 
-      if (userBet.winner === settings.winnerOfficial) {
-        points += 10;
-        console.log(`${member.user.nickname} got winner correct (+10 points)`);
-      }
-      if (userBet.bottom === settings.bottomOfficial) {
+      if (bet.predictions.winner === results.winnerOfficial) points += 5;
+      if (bet.predictions.bottom === results.bottomOfficial) points += 5;
+      if (bet.predictions.topScorer === results.topScorerOfficial) points += 5;
+
+      // Update the bet with calculated points
+      await db.update(preseasonBegs)
+        .set({ points })
+        .where(and(
+          eq(preseasonBegs.leagueId, leagueId),
+          eq(preseasonBegs.userId, bet.userId)
+        ));
+    }
+  }
+
+  // Supercoppa methods
+  async getSupercoppaSettings(leagueId: string): Promise<any> {
+    const results = await db.select()
+      .from(supercoppaSettings)
+      .where(eq(supercoppaSettings.leagueId, leagueId))
+      .limit(1);
+
+    if (results.length === 0) return null;
+
+    const settings = results[0];
+
+    // Auto-lock if deadline has passed
+    const now = new Date();
+    if (settings.lockAt && now > settings.lockAt && !settings.locked) {
+      await this.lockSupercoppa(leagueId);
+      return { ...settings, locked: true };
+    }
+
+    return settings;
+  }
+
+  async upsertSupercoppaSettings(leagueId: string, updates: { lockAt?: Date }): Promise<void> {
+    const existing = await db.select()
+      .from(supercoppaSettings)
+      .where(eq(supercoppaSettings.leagueId, leagueId))
+      .limit(1);
+
+    if (existing.length === 0) {
+      await db.insert(supercoppaSettings).values({
+        leagueId,
+        lockAt: updates.lockAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default: 1 week from now
+        locked: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+    } else {
+      await db.update(supercoppaSettings)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(supercoppaSettings.leagueId, leagueId));
+    }
+  }
+
+  async lockSupercoppa(leagueId: string): Promise<void> {
+    await db.update(supercoppaSettings)
+      .set({ locked: true, updatedAt: new Date() })
+      .where(eq(supercoppaSettings.leagueId, leagueId));
+  }
+
+  async setSupercoppaResults(leagueId: string, results: { officialFinalist1: string, officialFinalist2: string, officialWinner: string }): Promise<void> {
+    await db.update(supercoppaSettings)
+      .set({
+        ...results,
+        resultsConfirmedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(supercoppaSettings.leagueId, leagueId));
+  }
+
+  async getSuipercoppaBet(leagueId: string, userId: string): Promise<any> {
+    const results = await db.select()
+      .from(supercoppaBegs)
+      .where(and(
+        eq(supercoppaBegs.leagueId, leagueId),
+        eq(supercoppaBegs.userId, userId)
+      ))
+      .limit(1);
+
+    if (results.length === 0) return null;
+
+    const bet = results[0];
+    return {
+      userId: bet.userId,
+      predictions: {
+        finalist1: bet.finalist1,
+        finalist2: bet.finalist2,
+        winner: bet.winner
+      },
+      updatedAt: bet.updatedAt
+    };
+  }
+
+  async upsertSuipercoppaBet(data: { leagueId: string, userId: string, finalist1: string, finalist2: string, winner: string }): Promise<void> {
+    const existing = await db.select()
+      .from(supercoppaBegs)
+      .where(and(
+        eq(supercoppaBegs.leagueId, data.leagueId),
+        eq(supercoppaBegs.userId, data.userId)
+      ))
+      .limit(1);
+
+    if (existing.length === 0) {
+      await db.insert(supercoppaBegs).values({
+        id: crypto.randomUUID(),
+        leagueId: data.leagueId,
+        userId: data.userId,
+        finalist1: data.finalist1,
+        finalist2: data.finalist2,
+        winner: data.winner,
+        updatedAt: new Date()
+      });
+    } else {
+      await db.update(supercoppaBegs)
+        .set({
+          finalist1: data.finalist1,
+          finalist2: data.finalist2,
+          winner: data.winner,
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(supercoppaBegs.leagueId, data.leagueId),
+          eq(supercoppaBegs.userId, data.userId)
+        ));
+    }
+  }
+
+  async getAllSuipercoppaBets(leagueId: string): Promise<any[]> {
+    const results = await db.select({
+      userId: supercoppaBegs.userId,
+      finalist1: supercoppaBegs.finalist1,
+      finalist2: supercoppaBegs.finalist2,
+      winner: supercoppaBegs.winner,
+      updatedAt: supercoppaBegs.updatedAt,
+      userNickname: users.nickname
+    })
+    .from(supercoppaBegs)
+    .leftJoin(users, eq(users.id, supercoppaBegs.userId))
+    .where(eq(supercoppaBegs.leagueId, leagueId));
+
+    return results.map(bet => ({
+      userId: bet.userId,
+      userNickname: bet.userNickname,
+      predictions: {
+        finalist1: bet.finalist1,
+        finalist2: bet.finalist2,
+        winner: bet.winner
+      },
+      updatedAt: bet.updatedAt
+    }));
+  }
+
+  async computeSuipercoppaiPoints(leagueId: string): Promise<void> {
+    const results = await this.getSupercoppaSettings(leagueId);
+    if (!results?.officialFinalist1 || !results?.officialFinalist2 || !results?.officialWinner) {
+      return;
+    }
+
+    const allBets = await this.getAllSuipercoppaBets(leagueId);
+    const officialFinalists = new Set([results.officialFinalist1, results.officialFinalist2]);
+
+    for (const bet of allBets) {
+      let points = 0;
+
+      // Check if user's finalists match official finalists (order-independent)
+      const userFinalists = new Set([bet.predictions.finalist1, bet.predictions.finalist2]);
+      if (userFinalists.size === 2 && [...userFinalists].every(f => officialFinalists.has(f))) {
         points += 5;
-        console.log(`${member.user.nickname} got bottom correct (+5 points)`);
       }
-      if (userBet.topScorer === settings.topScorerOfficial) {
+
+      // Check if winner is correct
+      if (bet.predictions.winner === results.officialWinner) {
         points += 5;
-        console.log(`${member.user.nickname} got top scorer correct (+5 points)`);
       }
 
-      // Store points for leaderboard integration
-      const pointsKey = `${leagueId}-${member.userId}`;
-      this.preseasonPoints.set(pointsKey, points);
-
-      console.log(`User ${member.user.nickname} (${member.userId}) earned ${points} total preseason points.`);
+      // Add points to user's total (this would integrate with your existing leaderboard system)
+      // For now, we'll just log it - you'll need to integrate this with your points system
+      console.log(`User ${bet.userId} scored ${points} points for Supercoppa`);
     }
   }
 

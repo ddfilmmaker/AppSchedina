@@ -87,6 +87,7 @@ function AppContent() {
             path="/leagues/:leagueId/pre-season-predictions"
             component={PreSeasonPredictions}
           />
+          <Route path="/leagues/:leagueId/supercoppa-predictions" component={SupercoppaPredictions} />
 
           <Route component={NotFound} />
         </Switch>

@@ -13,7 +13,10 @@ import {
   insertSpecialTournamentSchema,
   preseasonBetSchema,
   preseasonSettingsSchema,
-  preseasonResultsSchema
+  preseasonResultsSchema,
+  supercoppaBetSchema,
+  supercoppaSettingsSchema,
+  supercoppaResultsSchema
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { db } from "./db";
@@ -805,6 +808,160 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       console.error("Preseason results error:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  // Supercoppa endpoints
+  app.get("/api/extras/supercoppa/:leagueId", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    try {
+      const { leagueId } = req.params;
+
+      // Check if user is member of the league
+      const isMember = await storage.isUserInLeague(leagueId, req.session.userId);
+      if (!isMember) {
+        return res.status(403).json({ error: "Non sei membro di questa lega" });
+      }
+
+      const settings = await storage.getSupercoppaSettings(leagueId); // This will auto-lock if deadline passed
+      const userBet = await storage.getSuipercoppaBet(leagueId, req.session.userId);
+
+      // Show all bets if locked OR if deadline has passed
+      let allBets = [];
+      const now = new Date();
+      const lockDate = settings?.lockAt ? new Date(settings.lockAt) : null;
+      const isLocked = settings?.locked || (lockDate && now > lockDate);
+
+      console.log(`Supercoppa check - League: ${leagueId}, Locked: ${settings?.locked}, Lock date: ${settings?.lockAt}, Now: ${now.toISOString()}, Should show bets: ${isLocked}`);
+
+      if (isLocked) {
+        allBets = await storage.getAllSuipercoppaBets(leagueId);
+        console.log(`Returning ${allBets.length} supercoppa bets for league ${leagueId}:`, allBets.map(b => ({ userId: b.userId, predictions: Object.keys(b.predictions) })));
+      }
+
+      res.json({ 
+        userBet,
+        settings,
+        allBets,
+        isLocked
+      });
+    } catch (error) {
+      console.error("Get supercoppa bet error:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  app.post("/api/extras/supercoppa", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    try {
+      const { leagueId, finalist1, finalist2, winner } = supercoppaBetSchema.extend({
+        leagueId: z.string()
+      }).parse(req.body);
+
+      // Check if user is member of the league
+      const isMember = await storage.isUserInLeague(leagueId, req.session.userId);
+      if (!isMember) {
+        return res.status(403).json({ error: "Non sei membro di questa lega" });
+      }
+
+      // Check if still unlocked
+      const settings = await storage.getSupercoppaSettings(leagueId);
+      if (settings && settings.locked) {
+        return res.status(400).json({ error: "Pronostici bloccati" });
+      }
+
+      // Check deadline if set
+      if (settings && settings.lockAt && new Date() > settings.lockAt) {
+        return res.status(400).json({ error: "Scadenza superata" });
+      }
+
+      // Upsert the supercoppa bet
+      await storage.upsertSuipercoppaBet({
+        leagueId,
+        userId: req.session.userId,
+        finalist1,
+        finalist2,
+        winner
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Supercoppa bet error:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  app.post("/api/extras/supercoppa/lock", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    try {
+      const { leagueId } = req.body;
+
+      // Check if user is admin of the league
+      const league = await storage.getLeague(leagueId);
+      if (!league || league.adminId !== req.session.userId) {
+        return res.status(403).json({ error: "Solo l'admin può gestire le impostazioni" });
+      }
+
+      const { lockAt } = req.body;
+
+      if (lockAt) {
+        // Update deadline - ensure proper date conversion
+        const lockAtDate = new Date(lockAt);
+        console.log(`Admin setting lock time for supercoppa league ${leagueId}: ${lockAt} -> ${lockAtDate.toISOString()}`);
+        await storage.upsertSupercoppaSettings(leagueId, { lockAt: lockAtDate });
+      } else {
+        // Force lock now
+        console.log(`Admin forcing lock now for supercoppa league ${leagueId}`);
+        await storage.lockSupercoppa(leagueId);
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Supercoppa lock error:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  app.post("/api/extras/supercoppa/results", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    try {
+      const { leagueId, ...results } = supercoppaResultsSchema.extend({
+        leagueId: z.string()
+      }).parse(req.body);
+
+      // Check if user is admin of the league
+      const league = await storage.getLeague(leagueId);
+      if (!league || league.adminId !== req.session.userId) {
+        return res.status(403).json({ error: "Solo l'admin può impostare i risultati" });
+      }
+
+      // Check if locked
+      const settings = await storage.getSupercoppaSettings(leagueId);
+      if (!settings || !settings.locked) {
+        return res.status(400).json({ error: "Deve essere prima bloccato" });
+      }
+
+      await storage.setSupercoppaResults(leagueId, results);
+
+      // Calculate and assign points to users
+      await storage.computeSuipercoppaiPoints(leagueId);
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Supercoppa results error:", error);
       res.status(500).json({ error: "Errore interno del server" });
     }
   });

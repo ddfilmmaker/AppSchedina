@@ -111,6 +111,30 @@ export const preseasonSettings = pgTable("preseason_settings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const supercoppaSettings = pgTable("supercoppa_settings", {
+  leagueId: varchar("league_id").primaryKey().references(() => leagues.id).notNull(),
+  lockAt: timestamp("lock_at").notNull(),
+  locked: boolean("locked").default(false).notNull(),
+  officialFinalist1: text("official_finalist1"),
+  officialFinalist2: text("official_finalist2"),
+  officialWinner: text("official_winner"),
+  resultsConfirmedAt: timestamp("results_confirmed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const supercoppaBegs = pgTable("supercoppa_bet", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  leagueId: varchar("league_id").references(() => leagues.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  finalist1: text("finalist1").notNull(),
+  finalist2: text("finalist2").notNull(),
+  winner: text("winner").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  unq: sql`unique(${table.leagueId}, ${table.userId})`
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -204,4 +228,20 @@ export const preseasonResultsSchema = z.object({
   winnerOfficial: z.string().min(1),
   bottomOfficial: z.string().min(1),
   topScorerOfficial: z.string().min(1),
+});
+
+export const supercoppaSettingsSchema = z.object({
+  lockAt: z.string().datetime().transform(val => new Date(val)),
+});
+
+export const supercoppaResultsSchema = z.object({
+  officialFinalist1: z.string().min(1),
+  officialFinalist2: z.string().min(1),
+  officialWinner: z.string().min(1),
+});
+
+export const supercoppaBetSchema = z.object({
+  finalist1: z.string().min(1),
+  finalist2: z.string().min(1),
+  winner: z.string().min(1),
 });
