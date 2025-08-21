@@ -83,7 +83,10 @@ export default function PreSeasonPredictions() {
       setTopScorer(userBet.topScorer || "");
     }
     if (settings?.lockAt) {
-      setLockAt(new Date(settings.lockAt).toISOString().slice(0, 16));
+      // Convert UTC time to local time for the datetime-local input
+      const lockDate = new Date(settings.lockAt);
+      const localISOTime = new Date(lockDate.getTime() - lockDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      setLockAt(localISOTime);
     }
     if (settings) {
       setWinnerOfficial(settings.winnerOfficial || "");
@@ -116,7 +119,9 @@ export default function PreSeasonPredictions() {
   // Save deadline mutation
   const saveDeadlineMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("POST", `/api/extras/preseason/lock`, { leagueId, lockAt });
+      // Convert local time to UTC for server storage
+      const lockAtUTC = new Date(lockAt).toISOString();
+      return apiRequest("POST", `/api/extras/preseason/lock`, { leagueId, lockAt: lockAtUTC });
     },
     onSuccess: () => {
       toast({

@@ -754,11 +754,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { lockAt } = req.body;
 
       if (lockAt) {
-        // Update deadline - convert datetime-local format to ISO string
+        // Update deadline - ensure proper date conversion
         const lockAtDate = new Date(lockAt);
+        console.log(`Admin setting lock time for league ${leagueId}: ${lockAt} -> ${lockAtDate.toISOString()}`);
         await storage.upsertPreseasonSettings(leagueId, { lockAt: lockAtDate });
       } else {
         // Force lock now
+        console.log(`Admin forcing lock now for league ${leagueId}`);
         await storage.lockPreseason(leagueId);
       }
 

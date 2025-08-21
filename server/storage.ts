@@ -585,20 +585,26 @@ export class MemStorage implements IStorage {
     const bets: any[] = [];
     for (const [key, bet] of this.preseasonBets.entries()) {
       if (key.startsWith(`${leagueId}-`)) {
-        const userId = key.split('-').slice(1).join('-'); // Handle UUIDs with dashes
+        // Extract userId by removing the leagueId prefix and the dash
+        const userId = key.substring(`${leagueId}-`.length);
         const user = this.users.get(userId);
         if (user) {
           bets.push({
             id: randomUUID(),
-            winner: bet.winner,
-            bottom: bet.bottom,
-            topScorer: bet.topScorer,
+            userId: userId,
+            userNickname: user.nickname,
+            predictions: {
+              winner: bet.winner,
+              lastPlace: bet.bottom,
+              topScorer: bet.topScorer
+            },
             submittedAt: new Date(),
             user: { id: user.id, nickname: user.nickname }
           });
         }
       }
     }
+    console.log(`getAllPreseasonBets for league ${leagueId}: found ${bets.length} bets`);
     return bets;
   }
 
@@ -624,9 +630,15 @@ export class MemStorage implements IStorage {
   async upsertPreseasonSettings(leagueId: string, settings: any): Promise<void> {
     const currentSettings = this.preseasonSettings.get(leagueId);
     if (currentSettings) {
-      this.preseasonSettings.set(leagueId, { ...currentSettings, ...settings, updatedAt: new Date() });
+      const updatedSettings = { 
+        ...currentSettings, 
+        ...settings, 
+        updatedAt: new Date() 
+      };
+      this.preseasonSettings.set(leagueId, updatedSettings);
+      console.log(`Updated preseason settings for league ${leagueId}:`, updatedSettings);
     } else {
-      this.preseasonSettings.set(leagueId, {
+      const newSettings = {
         leagueId,
         lockAt: settings.lockAt || null,
         locked: false,
@@ -634,10 +646,13 @@ export class MemStorage implements IStorage {
         bottomOfficial: null,
         topScorerOfficial: null,
         resultsConfirmedAt: null,
+        lockedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         ...settings
-      });
+      };
+      this.preseasonSettings.set(leagueId, newSettings);
+      console.log(`Created preseason settings for league ${leagueId}:`, newSettings);
     }
   }
 
@@ -694,7 +709,10 @@ export class MemStorage implements IStorage {
     const settings = this.preseasonSettings.get(leagueId);
     if (settings) {
       settings.locked = true;
+      settings.lockedAt = new Date();
+      settings.updatedAt = new Date();
       this.preseasonSettings.set(leagueId, settings);
+      console.log(`Preseason locked for league ${leagueId} at ${settings.lockedAt}`);
     }
   }
 
