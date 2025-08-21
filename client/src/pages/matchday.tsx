@@ -131,7 +131,8 @@ export default function Matchday() {
                 match={match}
                 userPick={userPick}
                 isLocked={isMatchLocked || isExpired}
-                user={user} // Pass user prop here
+                user={user}
+                matchdayDeadline={matchday?.deadline}
               />
 
               {/* Show all participants' picks if deadline has passed */}

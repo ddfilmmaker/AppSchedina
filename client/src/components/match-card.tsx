@@ -12,9 +12,10 @@ interface MatchCardProps {
   userPick?: Pick;
   isLocked: boolean;
   user?: User;
+  matchdayDeadline?: string;
 }
 
-export default function MatchCard({ match, userPick, isLocked, user }: MatchCardProps) {
+export default function MatchCard({ match, userPick, isLocked, user, matchdayDeadline }: MatchCardProps) {
   const [selectedPick, setSelectedPick] = useState(userPick?.pick || "");
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -93,12 +94,12 @@ export default function MatchCard({ match, userPick, isLocked, user }: MatchCard
   };
 
   // Define deadline and related states
-  const deadline = match.kickoff; // Assuming kickoff is the deadline
+  const deadline = matchdayDeadline || match.kickoff;
   const isDeadlinePassed = new Date() > new Date(deadline);
   const canSubmitPicks = !isDeadlinePassed;
   const hasUserPick = userPick !== undefined;
   const showResult = isDeadlinePassed && match.result;
-  const canEditPick = !isDeadlinePassed; // Users can always edit until deadline passes
+  const canEditPick = !isDeadlinePassed; // Users can edit until matchday deadline passes
 
   const cardContent = (
     <div
