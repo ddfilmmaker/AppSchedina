@@ -85,7 +85,7 @@ export default function Leaderboard() {
                 <div className="text-sm text-gray-600">{leaderboardArray?.[1]?.points} punti</div>
               </div>
             )}
-            
+
             {/* 1st Place */}
             <div className="text-center" data-testid="podium-1st">
               <div className="w-20 h-20 bg-accent rounded-full mx-auto mb-2 flex items-center justify-center">
@@ -94,7 +94,7 @@ export default function Leaderboard() {
               <div className="font-bold text-gray-900">{leaderboardArray?.[0]?.user?.nickname}</div>
               <div className="text-sm text-gray-600">{leaderboardArray?.[0]?.points} punti</div>
             </div>
-            
+
             {/* 3rd Place */}
             {leaderboardArray?.[2] && (
               <div className="text-center" data-testid="podium-3rd">
