@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { Home, Users, Calendar, User } from "lucide-react";
+import { Home, Users, User } from "lucide-react";
 import { Link } from "wouter";
 
 export default function BottomNavigation() {
@@ -14,7 +14,7 @@ export default function BottomNavigation() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2" data-testid="bottom-navigation">
       <div className="max-w-md mx-auto">
-        <div className="grid grid-cols-4 gap-1">
+        <div className="grid grid-cols-3 gap-1">
           <Link href="/">
             <button 
               className={`flex flex-col items-center py-2 px-1 ${
@@ -36,18 +36,6 @@ export default function BottomNavigation() {
             >
               <Users className="w-6 h-6 mb-1" />
               <span className="text-xs">Leghe</span>
-            </button>
-          </Link>
-          
-          <Link href="/matchdays">
-            <button 
-              className={`flex flex-col items-center py-2 px-1 ${
-                isActive("/matchdays") ? "text-primary" : "text-gray-400"
-              }`}
-              data-testid="nav-matchdays"
-            >
-              <Calendar className="w-6 h-6 mb-1" />
-              <span className="text-xs">Pronostici</span>
             </button>
           </Link>
           

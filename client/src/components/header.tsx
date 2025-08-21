@@ -65,14 +65,11 @@ export default function Header({ user }: HeaderProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="text-white relative"
+            className="text-white"
             onClick={handleNotifications}
             data-testid="button-notifications"
           >
             <Bell className="w-6 h-6" />
-            <span className="absolute -top-1 -right-1 bg-secondary text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-              3
-            </span>
           </Button>
 
           <DropdownMenu>
