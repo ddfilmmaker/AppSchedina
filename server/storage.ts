@@ -765,47 +765,46 @@ export class MemStorage implements IStorage {
     const members = await this.getLeagueMembers(leagueId);
     const matchdays = await this.getLeagueMatchdays(leagueId);
 
-    const leaderboard = await Promise.all(
-      members.map(async (member) => {
-        let totalPoints = 0;
-        let totalCorrectPicks = 0;
+    const leaderboard = members.map(member => {
+      let matchdayPoints = 0;
+      let correctPicks = 0;
 
-        // Calculate points from all completed matchdays
-        for (const matchday of matchdays) {
-          if (matchday.isCompleted) {
-            const matches = await this.getMatchdayMatches(matchday.id);
-            const userPicks = await this.getUserPicks(member.userId, matchday.id);
+      // Calculate points from regular matches
+      for (const matchday of matchdays) {
+        const matches = Array.from(this.matches.values())
+          .filter(match => match.matchdayId === matchday.id);
 
-            for (const match of matches) {
-              if (match.result) {
-                const userPick = userPicks.find(pick => pick.matchId === match.id);
-                if (userPick && userPick.pick === match.result) {
-                  totalPoints += 3;
-                  totalCorrectPicks += 1;
-                }
-              }
-            }
+        for (const match of matches) {
+          if (!match.result) continue;
+
+          const pick = Array.from(this.picks.values())
+            .find(p => p.matchId === match.id && p.userId === member.userId);
+
+          if (pick && pick.pick === match.result) {
+            matchdayPoints += 3;
+            correctPicks += 1;
           }
         }
+      }
 
-        // Add preseason points if available
-        const preseasonPointsKey = `${leagueId}-${member.userId}`;
-        const preseasonPoints = this.preseasonPoints.get(preseasonPointsKey) || 0;
-        totalPoints += preseasonPoints;
+      // Add preseason points to total
+      const preseasonPointsKey = `${leagueId}-${member.userId}`;
+      const preseasonPoints = this.preseasonPoints.get(preseasonPointsKey) || 0;
+      const totalPoints = matchdayPoints + preseasonPoints;
 
-        return {
-          user: member.user,
-          totalPoints,
-          correctPicks: totalCorrectPicks,
-          matchdaysPlayed: matchdays.filter(m => m.isCompleted).length,
-          preseasonPoints
-        };
-      })
-    );
+      console.log(`Leaderboard calculation for ${member.user.nickname}: matchday points: ${matchdayPoints}, preseason points: ${preseasonPoints}, total: ${totalPoints}`);
+
+      return {
+        user: member.user,
+        points: totalPoints,
+        correctPicks,
+        preseasonPoints: preseasonPoints > 0 ? preseasonPoints : undefined
+      };
+    });
 
     return leaderboard.sort((a, b) => {
-      if (b.totalPoints !== a.totalPoints) {
-        return b.totalPoints - a.totalPoints;
+      if (b.points !== a.points) {
+        return b.points - a.points;
       }
       return b.correctPicks - a.correctPicks;
     });
