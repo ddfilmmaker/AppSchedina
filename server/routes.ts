@@ -258,15 +258,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Solo l'admin può creare partite" });
       }
 
-      const data = insertMatchSchema.parse({
-        ...req.body,
+      console.log("Match creation request body:", req.body);
+      console.log("Matchday ID:", req.params.id);
+      
+      const data = insertMatchSchema.parse(req.body);
+      console.log("Parsed match data:", data);
+      
+      const match = await storage.createMatch({
+        ...data,
         matchdayId: req.params.id
       });
-      
-      const match = await storage.createMatch(data);
+      console.log("Created match:", match);
       res.json(match);
     } catch (error) {
       console.error("Match creation error:", error);
+      if (error instanceof Error && 'issues' in error) {
+        console.error("Validation issues:", error.issues);
+      }
       res.status(400).json({ error: "Dati non validi", details: error instanceof Error ? error.message : "Unknown error" });
     }
   });

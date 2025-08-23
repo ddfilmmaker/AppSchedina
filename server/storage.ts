@@ -346,13 +346,17 @@ export class MemStorage implements IStorage {
       createdAt: new Date(),
     };
     this.matches.set(id, match);
+    console.log(`Created match ${id} for matchday ${insertMatch.matchdayId}:`, match);
     return match;
   }
 
-  async getMatchdayMatches(matchdayId: string): Promise<Match[]>{
-    return Array.from(this.matches.values())
+  async getMatchdayMatches(matchdayId: string): Promise<Match[]> {
+    const matches = Array.from(this.matches.values())
       .filter(match => match.matchdayId === matchdayId)
       .sort((a, b) => a.kickoff.getTime() - b.kickoff.getTime());
+    
+    console.log(`Retrieved ${matches.length} matches for matchday ${matchdayId}`);
+    return matches;
   }
 
   async updateMatchResult(matchId: string, result: string): Promise<Match | undefined> {
