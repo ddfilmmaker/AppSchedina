@@ -242,6 +242,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/matchdays/:id/matches", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    try {
+      const matchday = await storage.getMatchday(req.params.id);
+      if (!matchday) {
+        return res.status(404).json({ error: "Giornata non trovata" });
+      }
+
+      const isAdmin = await storage.isUserAdminOfLeague(matchday.leagueId, req.session.userId);
+      if (!isAdmin) {
+        return res.status(403).json({ error: "Solo l'admin può creare partite" });
+      }
+
+      const data = insertMatchSchema.parse({
+        ...req.body,
+        matchdayId: req.params.id
+      });
+      
+      const match = await storage.createMatch(data);
+      res.json(match);
+    } catch (error) {
+      console.error("Match creation error:", error);
+      res.status(400).json({ error: "Dati non validi", details: error instanceof Error ? error.message : "Unknown error" });
+    }
+  });
+
   app.get("/api/matchdays/:id", async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ error: "Non autenticato" });

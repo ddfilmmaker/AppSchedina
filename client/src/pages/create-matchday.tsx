@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
 import { createMatchday, createMatch } from "@/lib/api";
@@ -40,11 +40,11 @@ export default function CreateMatchday() {
     return nextSunday.toISOString().slice(0, 16);
   };
 
-  useState(() => {
-    // Set default deadline for all matches
+  // Initialize matches with default deadline using useEffect
+  React.useEffect(() => {
     const defaultDeadline = getDefaultDeadline();
     setMatches(prev => prev.map(match => ({ ...match, deadline: defaultDeadline })));
-  });
+  }, []);
 
   const updateMatch = (index: number, field: keyof MatchInput, value: string) => {
     setMatches(prev => prev.map((match, i) =>
@@ -114,6 +114,12 @@ export default function CreateMatchday() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent multiple submissions
+    if (createMatchdayMutation.isPending) {
+      return;
+    }
+    
     if (!name.trim()) {
       toast({
         title: "Errore",
