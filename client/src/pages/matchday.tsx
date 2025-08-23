@@ -118,6 +118,8 @@ export default function Matchday() {
           const isMatchExpired = now > matchDeadline;
           const userPick = pickMap.get(match.id);
           const matchPicks = allPicksMap.get(match.id) || [];
+          
+          console.log(`Match ${match.homeTeam} vs ${match.awayTeam}: expired=${isMatchExpired}, picks=${matchPicks.length}`);
 
           return (
             <div key={match.id}>
@@ -165,7 +167,7 @@ export default function Matchday() {
                     </div>
                   </CardContent>
                 </Card>
-              )}
+              )}</div>
             </div>
           );
         })}

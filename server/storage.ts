@@ -449,13 +449,24 @@ export class MemStorage implements IStorage {
     const matchdayMatches = await this.getMatchdayMatches(matchdayId);
     const now = new Date();
 
+    console.log(`Getting all picks for matchday ${matchdayId}. Current time: ${now.toISOString()}`);
+
     // Only include picks for matches where deadline has passed
     const expiredMatchIds = matchdayMatches
-      .filter(match => now > new Date(match.deadline))
+      .filter(match => {
+        const matchDeadline = new Date(match.deadline);
+        const isExpired = now > matchDeadline;
+        console.log(`Match ${match.homeTeam} vs ${match.awayTeam}: deadline ${matchDeadline.toISOString()}, expired: ${isExpired}`);
+        return isExpired;
+      })
       .map(m => m.id);
+
+    console.log(`Found ${expiredMatchIds.length} expired matches out of ${matchdayMatches.length} total matches`);
 
     const picks = Array.from(this.picks.values())
       .filter(pick => expiredMatchIds.includes(pick.matchId));
+
+    console.log(`Found ${picks.length} picks for expired matches`);
 
     // Return picks with user information in the format expected by the client
     const allPicks = [];
@@ -470,6 +481,7 @@ export class MemStorage implements IStorage {
       }
     }
 
+    console.log(`Returning ${allPicks.length} formatted picks`);
     return allPicks;
   }
 
