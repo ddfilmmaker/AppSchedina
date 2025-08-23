@@ -161,7 +161,7 @@ export const insertMatchSchema = createInsertSchema(matches).omit({
 }).extend({
   kickoff: z.string().datetime().transform(val => new Date(val)),
   deadline: z.string().datetime().transform(val => new Date(val)),
-}).
+});
 
 export const insertPickSchema = createInsertSchema(picks).omit({
   id: true,
