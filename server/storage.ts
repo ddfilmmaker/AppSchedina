@@ -168,7 +168,7 @@ export class MemStorage implements IStorage {
   // In-memory storage for preseason bets and settings
   private preseasonBets: Map<string, InsertPreSeasonPrediction> = new Map(); // Key: `${leagueId}-${userId}`
   private preseasonSettings: Map<string, PreSeasonSetting> = new Map(); // Key: leagueId
-  
+
   // In-memory storage for supercoppa bets and settings
   private supercoppaBets: Map<string, any> = new Map(); // Key: `${leagueId}-${userId}`
   private supercoppaSettings: Map<string, any> = new Map(); // Key: leagueId
@@ -331,13 +331,13 @@ export class MemStorage implements IStorage {
     return this.matchdays.get(id);
   }
 
-  async createMatch(insertMatch: InsertMatch): Promise<Match> {
+  async createMatch(insertMatch: InsertMatch & { matchdayId: string }): Promise<Match> {
     const id = randomUUID();
     const match: Match = {
       ...insertMatch,
       id,
+      kickoff: insertMatch.deadline, // Use deadline as kickoff time since we removed the kickoff field
       createdAt: new Date(),
-      result: insertMatch.result ?? null,
     };
     this.matches.set(id, match);
     return match;
@@ -438,7 +438,7 @@ export class MemStorage implements IStorage {
   async getAllPicksForMatchday(matchdayId: string): Promise<any[]> {
     const matchdayMatches = await this.getMatchdayMatches(matchdayId);
     const now = new Date();
-    
+
     // Only include picks for matches where deadline has passed
     const expiredMatchIds = matchdayMatches
       .filter(match => now > new Date(match.deadline))
@@ -748,6 +748,9 @@ export class MemStorage implements IStorage {
       officialFinalist2: null,
       officialWinner: null,
       resultsConfirmedAt: null,
+      lockedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
   }
 
@@ -911,7 +914,7 @@ export class MemStorage implements IStorage {
           // Get calculated points if available
           const pointsKey = `${leagueId}-${userId}`;
           const points = this.supercoppaPoints.get(pointsKey) || 0;
-          
+
           bets.push({
             userId: userId,
             userNickname: user.nickname,
@@ -992,11 +995,11 @@ export class MemStorage implements IStorage {
       // Add preseason points to total
       const preseasonPointsKey = `${leagueId}-${member.userId}`;
       const preseasonPoints = this.preseasonPoints.get(preseasonPointsKey) || 0;
-      
+
       // Add supercoppa points to total
       const supercoppaPointsKey = `${leagueId}-${member.userId}`;
       const supercoppaPoints = this.supercoppaPoints.get(supercoppaPointsKey) || 0;
-      
+
       const totalPoints = matchdayPoints + preseasonPoints + supercoppaPoints;
 
       console.log(`Leaderboard calculation for ${member.user.nickname}: matchday points: ${matchdayPoints}, preseason points: ${preseasonPoints}, supercoppa points: ${supercoppaPoints}, total: ${totalPoints}`);

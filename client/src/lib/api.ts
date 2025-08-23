@@ -54,13 +54,10 @@ export async function submitPick(matchId: string, pick: string): Promise<Pick> {
 }
 
 export async function createMatchday(leagueId: string, name: string) {
-  const response = await apiRequest(`/api/leagues/${leagueId}/matchdays`, {
-    method: 'POST',
-    body: JSON.stringify({
-      name,
-    }),
+  const response = await apiRequest("POST", `/api/leagues/${leagueId}/matchdays`, {
+    name,
   });
-  return response;
+  return response.json();
 }
 
 export async function createMatch(matchdayId: string, homeTeam: string, awayTeam: string, deadline: Date) {
