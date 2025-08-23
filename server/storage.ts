@@ -102,6 +102,7 @@ export interface IStorage {
   joinLeague(leagueId: string, userId: string): Promise<LeagueMember>;
   getLeagueMembers(leagueId: string): Promise<(LeagueMember & { user: User })[]>;
   isUserInLeague(leagueId: string, userId: string): Promise<boolean>;
+  isUserAdminOfLeague(leagueId: string, userId: string): Promise<boolean>;
 
   // Matchdays
   createMatchday(matchday: InsertMatchday, leagueId: string): Promise<Matchday>;
@@ -306,6 +307,11 @@ export class MemStorage implements IStorage {
   async isUserInLeague(leagueId: string, userId: string): Promise<boolean> {
     return Array.from(this.leagueMembers.values())
       .some(member => member.leagueId === leagueId && member.userId === userId);
+  }
+
+  async isUserAdminOfLeague(leagueId: string, userId: string): Promise<boolean> {
+    const league = this.leagues.get(leagueId);
+    return league ? league.adminId === userId : false;
   }
 
   async createMatchday(insertMatchday: InsertMatchday, leagueId: string): Promise<Matchday> {
