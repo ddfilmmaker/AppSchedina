@@ -50,6 +50,9 @@ export default function Matchday() {
   const allPicks = (data as any)?.allPicks || [];
   const now = new Date();
 
+  // Check if matchday is expired (all matches have passed their deadline)
+  const isExpired = matches.length > 0 && matches.every((match: any) => now > new Date(match.deadline));
+
   // Create a map of user picks for easy lookup
   const pickMap = new Map();
   userPicks?.forEach((pick: any) => {
