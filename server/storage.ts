@@ -451,22 +451,12 @@ export class MemStorage implements IStorage {
 
     console.log(`Getting all picks for matchday ${matchdayId}. Current time: ${now.toISOString()}`);
 
-    // Only include picks for matches where deadline has passed
-    const expiredMatchIds = matchdayMatches
-      .filter(match => {
-        const matchDeadline = new Date(match.deadline);
-        const isExpired = now > matchDeadline;
-        console.log(`Match ${match.homeTeam} vs ${match.awayTeam}: deadline ${matchDeadline.toISOString()}, expired: ${isExpired}`);
-        return isExpired;
-      })
-      .map(m => m.id);
-
-    console.log(`Found ${expiredMatchIds.length} expired matches out of ${matchdayMatches.length} total matches`);
-
+    // Get ALL picks for this matchday, we'll filter by deadline on the client side per match
+    const matchIds = matchdayMatches.map(m => m.id);
     const picks = Array.from(this.picks.values())
-      .filter(pick => expiredMatchIds.includes(pick.matchId));
+      .filter(pick => matchIds.includes(pick.matchId));
 
-    console.log(`Found ${picks.length} picks for expired matches`);
+    console.log(`Found ${picks.length} total picks for matchday ${matchdayId}`);
 
     // Return picks with user information in the format expected by the client
     const allPicks = [];

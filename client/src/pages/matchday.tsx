@@ -59,14 +59,24 @@ export default function Matchday() {
     pickMap.set(pick.matchId, pick);
   });
 
-  // Create a map of all picks grouped by match (for expired matchdays)
+  // Create a map of all picks grouped by match (filter by individual match deadlines)
   const allPicksMap = new Map();
-  if (isExpired && allPicks.length > 0) {
+  if (allPicks.length > 0) {
     allPicks.forEach((item: any) => {
-      if (!allPicksMap.has(item.matchId)) {
-        allPicksMap.set(item.matchId, []);
+      // Find the match for this pick
+      const match = matches.find((m: any) => m.id === item.matchId);
+      if (match) {
+        const matchDeadline = new Date(match.deadline);
+        const isMatchExpired = now > matchDeadline;
+        
+        // Only include picks for matches where deadline has passed
+        if (isMatchExpired) {
+          if (!allPicksMap.has(item.matchId)) {
+            allPicksMap.set(item.matchId, []);
+          }
+          allPicksMap.get(item.matchId).push(item);
+        }
       }
-      allPicksMap.get(item.matchId).push(item);
     });
   }
 
@@ -119,7 +129,7 @@ export default function Matchday() {
           const userPick = pickMap.get(match.id);
           const matchPicks = allPicksMap.get(match.id) || [];
           
-          console.log(`Match ${match.homeTeam} vs ${match.awayTeam}: expired=${isMatchExpired}, picks=${matchPicks.length}`);
+          console.log(`Match ${match.homeTeam} vs ${match.awayTeam}: deadline=${match.deadline}, expired=${isMatchExpired}, picks=${matchPicks.length}, allPicks total=${allPicks.length}`);
 
           return (
             <div key={match.id}>
@@ -128,42 +138,48 @@ export default function Matchday() {
                 userPick={userPick}
                 isLocked={isMatchExpired}
                 user={user}
-                matchDeadline={match.deadline}
+                deadline={match.deadline}
               />
 
               {/* Show all participants' picks if match deadline has passed */}
-              {isMatchExpired && (
+              {isMatchExpired && matchPicks.length > 0 && (
                 <Card className="mt-2 bg-gray-50">
                   <CardContent className="p-4">
                     <h4 className="text-sm font-semibold text-gray-700 mb-3">Pronostici dei partecipanti:</h4>
                     <div className="space-y-2">
-                      {matchPicks.length > 0 ? (
-                        matchPicks.map((item: any) => (
-                          <div key={item.user.id} className="flex items-center justify-between text-sm">
-                            <span className="font-medium text-gray-600">{item.user.nickname}</span>
-                            <div className="flex items-center space-x-2">
-                              <span className={`px-2 py-1 rounded text-xs font-bold ${
-                                item.pick.pick === "1" ? "bg-blue-100 text-blue-800" :
-                                item.pick.pick === "X" ? "bg-gray-100 text-gray-800" :
-                                "bg-red-100 text-red-800"
+                      {matchPicks.map((item: any) => (
+                        <div key={item.user.id} className="flex items-center justify-between text-sm">
+                          <span className="font-medium text-gray-600">{item.user.nickname}</span>
+                          <div className="flex items-center space-x-2">
+                            <span className={`px-2 py-1 rounded text-xs font-bold ${
+                              item.pick.pick === "1" ? "bg-blue-100 text-blue-800" :
+                              item.pick.pick === "X" ? "bg-gray-100 text-gray-800" :
+                              "bg-red-100 text-red-800"
+                            }`}>
+                              {item.pick.pick === "1" ? "1" : item.pick.pick === "X" ? "X" : "2"}
+                            </span>
+                            {match.result && (
+                              <span className={`text-xs ${
+                                item.pick.pick === match.result ? "text-green-600 font-semibold" : "text-red-500"
                               }`}>
-                                {item.pick.pick === "1" ? "1" : item.pick.pick === "X" ? "X" : "2"}
+                                {item.pick.pick === match.result ? "✓" : "✗"}
                               </span>
-                              {match.result && (
-                                <span className={`text-xs ${
-                                  item.pick.pick === match.result ? "text-green-600 font-semibold" : "text-red-500"
-                                }`}>
-                                  {item.pick.pick === match.result ? "✓" : "✗"}
-                                </span>
-                              )}
-                            </div>
+                            )}
                           </div>
-                        ))
-                      ) : (
-                        <div className="text-sm text-gray-500 text-center">
-                          Nessun pronostico trovato per questa partita
                         </div>
-                      )}
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Show message if match is expired but no picks */}
+              {isMatchExpired && matchPicks.length === 0 && (
+                <Card className="mt-2 bg-gray-50">
+                  <CardContent className="p-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3">Pronostici dei partecipanti:</h4>
+                    <div className="text-sm text-gray-500 text-center">
+                      Nessun pronostico trovato per questa partita
                     </div>
                   </CardContent>
                 </Card>

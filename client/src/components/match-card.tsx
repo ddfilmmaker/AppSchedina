@@ -13,9 +13,10 @@ interface MatchCardProps {
   isLocked: boolean;
   user?: User;
   matchDeadline?: string;
+  deadline?: string;
 }
 
-export default function MatchCard({ match, userPick, isLocked, user, matchDeadline }: MatchCardProps) {
+export default function MatchCard({ match, userPick, isLocked, user, matchDeadline, deadline }: MatchCardProps) {
   const [selectedPick, setSelectedPick] = useState(userPick?.pick || "");
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -94,14 +95,14 @@ export default function MatchCard({ match, userPick, isLocked, user, matchDeadli
   };
 
   // Define deadline and related states
-  const deadline = matchDeadline || match.deadline || match.kickoff;
-  const isDeadlinePassed = new Date() > new Date(deadline);
+  const effectiveDeadline = deadline || matchDeadline || match.deadline || match.kickoff;
+  const isDeadlinePassed = new Date() > new Date(effectiveDeadline);
   const canSubmitPicks = !isDeadlinePassed;
   const hasUserPick = userPick !== undefined;
   const showResult = isDeadlinePassed && match.result;
   const canEditPick = !isDeadlinePassed; // Users can edit until match deadline passes
   
-  console.log(`MatchCard ${match.homeTeam} vs ${match.awayTeam}: deadline=${deadline}, isDeadlinePassed=${isDeadlinePassed}, showResult=${showResult}`);
+  console.log(`MatchCard ${match.homeTeam} vs ${match.awayTeam}: deadline=${effectiveDeadline}, isDeadlinePassed=${isDeadlinePassed}, showResult=${showResult}, hasUserPick=${hasUserPick}`);
 
   const cardContent = (
     <div
