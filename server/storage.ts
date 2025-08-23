@@ -330,7 +330,7 @@ export class MemStorage implements IStorage {
   async getLeagueMatchdays(leagueId: string): Promise<Matchday[]> {
     return Array.from(this.matchdays.values())
       .filter(matchday => matchday.leagueId === leagueId)
-      .sort((a, b) => b.deadline.getTime() - a.deadline.getTime());
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
   async getMatchday(id: string): Promise<Matchday | undefined> {
