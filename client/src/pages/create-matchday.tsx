@@ -13,7 +13,6 @@ import { Link } from "wouter";
 interface MatchInput {
   homeTeam: string;
   awayTeam: string;
-  kickoff: string;
   deadline: string;
 }
 
@@ -24,7 +23,6 @@ export default function CreateMatchday() {
     Array.from({ length: 10 }, () => ({
       homeTeam: "",
       awayTeam: "",
-      kickoff: "",
       deadline: "",
     }))
   );
@@ -42,21 +40,10 @@ export default function CreateMatchday() {
     return nextSunday.toISOString().slice(0, 16);
   };
 
-  // Set default kickoff time
-  const getDefaultDateTime = () => {
-    const now = new Date();
-    const nextSunday = new Date(now);
-    const daysUntilSunday = (7 - now.getDay()) % 7 || 7;
-    nextSunday.setDate(now.getDate() + daysUntilSunday);
-    nextSunday.setHours(15, 0, 0, 0);
-    return nextSunday.toISOString().slice(0, 16);
-  };
-
   useState(() => {
-    // Set default kickoff times for all matches
-    const defaultKickoff = getDefaultDateTime();
+    // Set default deadline for all matches
     const defaultDeadline = getDefaultDeadline();
-    setMatches(prev => prev.map(match => ({ ...match, kickoff: defaultKickoff, deadline: defaultDeadline })));
+    setMatches(prev => prev.map(match => ({ ...match, deadline: defaultDeadline })));
   });
 
   const updateMatch = (index: number, field: keyof MatchInput, value: string) => {
@@ -66,12 +53,10 @@ export default function CreateMatchday() {
   };
 
   const addMatch = () => {
-    const defaultKickoff = getDefaultDateTime();
     const defaultDeadline = getDefaultDeadline();
     setMatches(prev => [...prev, {
       homeTeam: "",
       awayTeam: "",
-      kickoff: defaultKickoff,
       deadline: defaultDeadline
     }]);
   };
@@ -91,7 +76,7 @@ export default function CreateMatchday() {
 
       // Then create all the matches
       const validMatches = matches.filter(match =>
-        match.homeTeam.trim() && match.awayTeam.trim() && match.kickoff && match.deadline
+        match.homeTeam.trim() && match.awayTeam.trim() && match.deadline
       );
 
       if (validMatches.length === 0) {
@@ -104,7 +89,6 @@ export default function CreateMatchday() {
           matchday.id,
           match.homeTeam.trim(),
           match.awayTeam.trim(),
-          new Date(match.kickoff),
           new Date(match.deadline)
         )
       ));
@@ -140,7 +124,7 @@ export default function CreateMatchday() {
     }
 
     const validMatches = matches.filter(match =>
-      match.homeTeam.trim() && match.awayTeam.trim() && match.kickoff && match.deadline
+      match.homeTeam.trim() && match.awayTeam.trim() && match.deadline
     );
 
     if (validMatches.length === 0) {
@@ -212,7 +196,7 @@ export default function CreateMatchday() {
           <CardContent>
             <div className="space-y-4">
               {matches.map((match, index) => (
-                <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end p-4 border rounded-lg bg-gray-50">
+                <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end p-4 border rounded-lg bg-gray-50">
                   <div className="space-y-2">
                     <Label htmlFor={`home-team-${index}`}>Squadra Casa</Label>
                     <Input
@@ -232,16 +216,6 @@ export default function CreateMatchday() {
                       placeholder="es. Milan"
                       value={match.awayTeam}
                       onChange={(e) => updateMatch(index, "awayTeam", e.target.value)}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor={`kickoff-${index}`}>Calcio d'Inizio</Label>
-                    <Input
-                      id={`kickoff-${index}`}
-                      type="datetime-local"
-                      value={match.kickoff}
-                      onChange={(e) => updateMatch(index, "kickoff", e.target.value)}
                     />
                   </div>
 

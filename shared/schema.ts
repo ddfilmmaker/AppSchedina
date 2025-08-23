@@ -156,10 +156,9 @@ export const insertMatchdaySchema = createInsertSchema(matchdays).omit({
 
 export const insertMatchSchema = createInsertSchema(matches).omit({
   id: true,
-  matchdayId: true,
   createdAt: true,
+  matchdayId: true,
 }).extend({
-  kickoff: z.string().datetime().transform(val => new Date(val)),
   deadline: z.string().datetime().transform(val => new Date(val)),
 });
 

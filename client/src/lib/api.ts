@@ -63,13 +63,12 @@ export async function createMatchday(leagueId: string, name: string) {
   return response;
 }
 
-export async function createMatch(matchdayId: string, homeTeam: string, awayTeam: string, kickoff: Date, deadline: Date) {
+export async function createMatch(matchdayId: string, homeTeam: string, awayTeam: string, deadline: Date) {
   const response = await apiRequest(`/api/matchdays/${matchdayId}/matches`, {
     method: 'POST',
     body: JSON.stringify({
       homeTeam,
       awayTeam,
-      kickoff: kickoff.toISOString(),
       deadline: deadline.toISOString(),
     }),
   });
