@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
@@ -15,6 +14,7 @@ interface MatchInput {
   homeTeam: string;
   awayTeam: string;
   kickoff: string;
+  deadline: string;
 }
 
 export default function CreateMatchday() {
@@ -26,6 +26,7 @@ export default function CreateMatchday() {
       homeTeam: "",
       awayTeam: "",
       kickoff: "",
+      deadline: "",
     }))
   );
   const [, setLocation] = useLocation();
@@ -43,7 +44,7 @@ export default function CreateMatchday() {
   };
 
   // Set default kickoff time
-  const getDefaultKickoff = () => {
+  const getDefaultDateTime = () => {
     const now = new Date();
     const nextSunday = new Date(now);
     const daysUntilSunday = (7 - now.getDay()) % 7 || 7;
@@ -57,21 +58,25 @@ export default function CreateMatchday() {
       setDeadline(getDefaultDeadline());
     }
     // Set default kickoff times for all matches
-    const defaultKickoff = getDefaultKickoff();
-    setMatches(prev => prev.map(match => ({ ...match, kickoff: defaultKickoff })));
+    const defaultKickoff = getDefaultDateTime();
+    const defaultDeadline = getDefaultDeadline();
+    setMatches(prev => prev.map(match => ({ ...match, kickoff: defaultKickoff, deadline: defaultDeadline })));
   });
 
   const updateMatch = (index: number, field: keyof MatchInput, value: string) => {
-    setMatches(prev => prev.map((match, i) => 
+    setMatches(prev => prev.map((match, i) =>
       i === index ? { ...match, [field]: value } : match
     ));
   };
 
   const addMatch = () => {
+    const defaultKickoff = getDefaultDateTime();
+    const defaultDeadline = getDefaultDeadline();
     setMatches(prev => [...prev, {
       homeTeam: "",
       awayTeam: "",
-      kickoff: getDefaultKickoff(),
+      kickoff: defaultKickoff,
+      deadline: defaultDeadline
     }]);
   };
 
@@ -84,29 +89,30 @@ export default function CreateMatchday() {
   const createMatchdayMutation = useMutation({
     mutationFn: async () => {
       if (!leagueId) throw new Error("League ID not found");
-      
+
       // Create the matchday first
       const matchday = await createMatchday(leagueId, name, new Date(deadline));
-      
+
       // Then create all the matches
-      const validMatches = matches.filter(match => 
-        match.homeTeam.trim() && match.awayTeam.trim() && match.kickoff
+      const validMatches = matches.filter(match =>
+        match.homeTeam.trim() && match.awayTeam.trim() && match.kickoff && match.deadline
       );
-      
+
       if (validMatches.length === 0) {
         throw new Error("Devi inserire almeno una partita valida");
       }
-      
+
       // Create all matches
-      await Promise.all(validMatches.map(match => 
+      await Promise.all(validMatches.map(match =>
         createMatch(
-          matchday.id, 
-          match.homeTeam.trim(), 
-          match.awayTeam.trim(), 
-          new Date(match.kickoff)
+          matchday.id,
+          match.homeTeam.trim(),
+          match.awayTeam.trim(),
+          new Date(match.kickoff),
+          new Date(match.deadline)
         )
       ));
-      
+
       return { matchday, matchesCount: validMatches.length };
     },
     onSuccess: ({ matchday, matchesCount }) => {
@@ -144,11 +150,11 @@ export default function CreateMatchday() {
       });
       return;
     }
-    
-    const validMatches = matches.filter(match => 
-      match.homeTeam.trim() && match.awayTeam.trim() && match.kickoff
+
+    const validMatches = matches.filter(match =>
+      match.homeTeam.trim() && match.awayTeam.trim() && match.kickoff && match.deadline
     );
-    
+
     if (validMatches.length === 0) {
       toast({
         title: "Errore",
@@ -157,7 +163,7 @@ export default function CreateMatchday() {
       });
       return;
     }
-    
+
     createMatchdayMutation.mutate();
   };
 
@@ -231,50 +237,46 @@ export default function CreateMatchday() {
           <CardContent>
             <div className="space-y-4">
               {matches.map((match, index) => (
-                <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
-                      {index + 1}
-                    </span>
-                    <div className="flex-1">
-                      <Label htmlFor={`home-team-${index}`} className="text-xs text-gray-500">
-                        Squadra Casa
-                      </Label>
-                      <Input
-                        id={`home-team-${index}`}
-                        type="text"
-                        placeholder="es. Juventus"
-                        value={match.homeTeam}
-                        onChange={(e) => updateMatch(index, 'homeTeam', e.target.value)}
-                        className="mt-1"
-                      />
-                    </div>
+                <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end p-4 border rounded-lg bg-gray-50">
+                  <div className="space-y-2">
+                    <Label htmlFor={`home-team-${index}`}>Squadra Casa</Label>
+                    <Input
+                      id={`home-team-${index}`}
+                      type="text"
+                      placeholder="es. Juventus"
+                      value={match.homeTeam}
+                      onChange={(e) => updateMatch(index, "homeTeam", e.target.value)}
+                    />
                   </div>
 
-                  <div>
-                    <Label htmlFor={`away-team-${index}`} className="text-xs text-gray-500">
-                      Squadra Trasferta
-                    </Label>
+                  <div className="space-y-2">
+                    <Label htmlFor={`away-team-${index}`}>Squadra Trasferta</Label>
                     <Input
                       id={`away-team-${index}`}
                       type="text"
                       placeholder="es. Milan"
                       value={match.awayTeam}
-                      onChange={(e) => updateMatch(index, 'awayTeam', e.target.value)}
-                      className="mt-1"
+                      onChange={(e) => updateMatch(index, "awayTeam", e.target.value)}
                     />
                   </div>
 
-                  <div>
-                    <Label htmlFor={`kickoff-${index}`} className="text-xs text-gray-500">
-                      Data e Ora
-                    </Label>
+                  <div className="space-y-2">
+                    <Label htmlFor={`kickoff-${index}`}>Calcio d'Inizio</Label>
                     <Input
                       id={`kickoff-${index}`}
                       type="datetime-local"
                       value={match.kickoff}
-                      onChange={(e) => updateMatch(index, 'kickoff', e.target.value)}
-                      className="mt-1"
+                      onChange={(e) => updateMatch(index, "kickoff", e.target.value)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor={`deadline-${index}`}>Scadenza Pronostici</Label>
+                    <Input
+                      id={`deadline-${index}`}
+                      type="datetime-local"
+                      value={match.deadline}
+                      onChange={(e) => updateMatch(index, "deadline", e.target.value)}
                     />
                   </div>
 
@@ -304,9 +306,9 @@ export default function CreateMatchday() {
               Annulla
             </Button>
           </Link>
-          <Button 
-            type="submit" 
-            className="flex-1" 
+          <Button
+            type="submit"
+            className="flex-1"
             disabled={createMatchdayMutation.isPending}
             data-testid="button-create-matchday"
           >

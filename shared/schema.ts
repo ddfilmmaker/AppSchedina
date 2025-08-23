@@ -30,7 +30,6 @@ export const matchdays = pgTable("matchdays", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   leagueId: varchar("league_id").references(() => leagues.id).notNull(),
   name: text("name").notNull(),
-  deadline: timestamp("deadline").notNull(),
   isCompleted: boolean("is_completed").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -41,6 +40,7 @@ export const matches = pgTable("matches", {
   homeTeam: text("home_team").notNull(),
   awayTeam: text("away_team").notNull(),
   kickoff: timestamp("kickoff").notNull(),
+  deadline: timestamp("deadline").notNull(),
   result: text("result"), // "1", "X", "2", or null if not finished
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -152,8 +152,6 @@ export const insertMatchdaySchema = createInsertSchema(matchdays).omit({
   id: true,
   leagueId: true,
   createdAt: true,
-}).extend({
-  deadline: z.string().datetime().transform(val => new Date(val)),
 });
 
 export const insertMatchSchema = createInsertSchema(matches).omit({
@@ -162,7 +160,8 @@ export const insertMatchSchema = createInsertSchema(matches).omit({
   createdAt: true,
 }).extend({
   kickoff: z.string().datetime().transform(val => new Date(val)),
-});
+  deadline: z.string().datetime().transform(val => new Date(val)),
+}).
 
 export const insertPickSchema = createInsertSchema(picks).omit({
   id: true,

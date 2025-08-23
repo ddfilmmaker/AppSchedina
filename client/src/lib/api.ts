@@ -53,20 +53,25 @@ export async function submitPick(matchId: string, pick: string): Promise<Pick> {
   return response.json();
 }
 
-export async function createMatchday(leagueId: string, name: string, deadline: Date): Promise<Matchday> {
-  const response = await apiRequest("POST", `/api/leagues/${leagueId}/matchdays`, {
-    name,
-    deadline: deadline.toISOString(),
-    isCompleted: false
+export async function createMatchday(leagueId: string, name: string) {
+  const response = await apiRequest(`/api/leagues/${leagueId}/matchdays`, {
+    method: 'POST',
+    body: JSON.stringify({
+      name,
+    }),
   });
-  return response.json();
+  return response;
 }
 
-export async function createMatch(matchdayId: string, homeTeam: string, awayTeam: string, kickoff: Date): Promise<Match> {
-  const response = await apiRequest("POST", `/api/matchdays/${matchdayId}/matches`, {
-    homeTeam,
-    awayTeam,
-    kickoff: kickoff.toISOString()
+export async function createMatch(matchdayId: string, homeTeam: string, awayTeam: string, kickoff: Date, deadline: Date) {
+  const response = await apiRequest(`/api/matchdays/${matchdayId}/matches`, {
+    method: 'POST',
+    body: JSON.stringify({
+      homeTeam,
+      awayTeam,
+      kickoff: kickoff.toISOString(),
+      deadline: deadline.toISOString(),
+    }),
   });
-  return response.json();
+  return response;
 }

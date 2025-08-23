@@ -12,10 +12,10 @@ interface MatchCardProps {
   userPick?: Pick;
   isLocked: boolean;
   user?: User;
-  matchdayDeadline?: string;
+  matchDeadline?: string;
 }
 
-export default function MatchCard({ match, userPick, isLocked, user, matchdayDeadline }: MatchCardProps) {
+export default function MatchCard({ match, userPick, isLocked, user, matchDeadline }: MatchCardProps) {
   const [selectedPick, setSelectedPick] = useState(userPick?.pick || "");
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -94,7 +94,7 @@ export default function MatchCard({ match, userPick, isLocked, user, matchdayDea
   };
 
   // Define deadline and related states
-  const deadline = matchdayDeadline || match.kickoff;
+  const deadline = matchDeadline || match.kickoff;
   const isDeadlinePassed = new Date() > new Date(deadline);
   const canSubmitPicks = !isDeadlinePassed;
   const hasUserPick = userPick !== undefined;
@@ -175,8 +175,8 @@ export default function MatchCard({ match, userPick, isLocked, user, matchdayDea
             <Button
               variant="outline"
               className={`py-2 px-4 font-semibold ${
-                match.result === "1" 
-                  ? "bg-blue-600 text-white border-blue-600" 
+                match.result === "1"
+                  ? "bg-blue-600 text-white border-blue-600"
                   : "bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
               }`}
               onClick={() => handleResultUpdate("1")}
@@ -189,8 +189,8 @@ export default function MatchCard({ match, userPick, isLocked, user, matchdayDea
             <Button
               variant="outline"
               className={`py-2 px-4 font-semibold ${
-                match.result === "X" 
-                  ? "bg-gray-600 text-white border-gray-600" 
+                match.result === "X"
+                  ? "bg-gray-600 text-white border-gray-600"
                   : "bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200"
               }`}
               onClick={() => handleResultUpdate("X")}
@@ -203,8 +203,8 @@ export default function MatchCard({ match, userPick, isLocked, user, matchdayDea
             <Button
               variant="outline"
               className={`py-2 px-4 font-semibold ${
-                match.result === "2" 
-                  ? "bg-red-600 text-white border-red-600" 
+                match.result === "2"
+                  ? "bg-red-600 text-white border-red-600"
                   : "bg-red-50 text-red-700 hover:bg-red-100 border-red-200"
               }`}
               onClick={() => handleResultUpdate("2")}

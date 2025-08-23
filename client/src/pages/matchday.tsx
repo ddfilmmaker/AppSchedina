@@ -49,8 +49,6 @@ export default function Matchday() {
   const userPicks = (data as any)?.userPicks || [];
   const allPicks = (data as any)?.allPicks || [];
   const now = new Date();
-  const deadline = new Date(matchday?.deadline || new Date());
-  const isExpired = now > deadline;
 
   // Create a map of user picks for easy lookup
   const pickMap = new Map();
@@ -93,13 +91,6 @@ export default function Matchday() {
               <h2 className="text-xl font-bold text-gray-900">{matchday.name}</h2>
               <p className="text-sm text-gray-500">Giornata di campionato</p>
             </div>
-            <div className="text-right">
-              <div className="text-sm font-medium text-gray-900">Scadenza</div>
-              <CountdownTimer 
-                deadline={matchday.deadline} 
-                className="text-lg font-bold"
-              />
-            </div>
           </div>
 
           {/* Progress indicator */}
@@ -120,8 +111,8 @@ export default function Matchday() {
       {/* Matches List */}
       <div className="space-y-4">
         {matches.map((match: any) => {
-          const matchKickoff = new Date(match.kickoff);
-          const isMatchLocked = now > new Date(matchKickoff.getTime() - 60000); // 1 minute before kickoff
+          const matchDeadline = new Date(match.deadline);
+          const isMatchExpired = now > matchDeadline;
           const userPick = pickMap.get(match.id);
           const matchPicks = allPicksMap.get(match.id) || [];
 
@@ -130,13 +121,13 @@ export default function Matchday() {
               <MatchCard
                 match={match}
                 userPick={userPick}
-                isLocked={isMatchLocked || isExpired}
+                isLocked={isMatchExpired}
                 user={user}
-                matchdayDeadline={matchday?.deadline}
+                matchDeadline={match.deadline}
               />
 
-              {/* Show all participants' picks if deadline has passed */}
-              {isExpired && (
+              {/* Show all participants' picks if match deadline has passed */}
+              {isMatchExpired && (
                 <Card className="mt-2 bg-gray-50">
                   <CardContent className="p-4">
                     <h4 className="text-sm font-semibold text-gray-700 mb-3">Pronostici dei partecipanti:</h4>
@@ -186,7 +177,7 @@ export default function Matchday() {
       )}
 
       {/* Matchday Leaderboard */}
-      {matches.length > 0 && isExpired && (
+      {matches.length > 0 && matches.some((match: any) => now > new Date(match.deadline)) && (
         <Card>
           <CardContent className="p-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Classifica Giornata</h3>

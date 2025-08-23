@@ -26,19 +26,7 @@ export default function Matchdays() {
     new Date(a.deadline).getTime() - new Date(b.deadline).getTime()
   );
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('it-IT', {
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const isExpired = (deadline: string) => {
-    return new Date(deadline) < new Date();
-  };
+  // Helper functions removed since deadlines are now per-match
 
   return (
     <div className="max-w-md mx-auto px-4 py-6">
@@ -60,8 +48,8 @@ export default function Matchdays() {
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{matchday.name}</CardTitle>
-                    <Badge variant={isExpired(matchday.deadline) ? "secondary" : "default"}>
-                      {matchday.isCompleted ? "Completata" : isExpired(matchday.deadline) ? "Scaduta" : "Attiva"}
+                    <Badge variant={matchday.isCompleted ? "secondary" : "default"}>
+                      {matchday.isCompleted ? "Completata" : "Attiva"}
                     </Badge>
                   </div>
                   <p className="text-sm text-gray-500">{matchday.leagueName}</p>
@@ -69,7 +57,7 @@ export default function Matchdays() {
                 <CardContent>
                   <div className="flex items-center text-sm text-gray-600">
                     <Clock className="w-4 h-4 mr-1" />
-                    <span>Scadenza: {formatDate(matchday.deadline)}</span>
+                    <span>Scadenze per singola partita</span>
                   </div>
                 </CardContent>
               </Card>

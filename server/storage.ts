@@ -437,10 +437,15 @@ export class MemStorage implements IStorage {
 
   async getAllPicksForMatchday(matchdayId: string): Promise<any[]> {
     const matchdayMatches = await this.getMatchdayMatches(matchdayId);
-    const matchIds = matchdayMatches.map(m => m.id);
+    const now = new Date();
+    
+    // Only include picks for matches where deadline has passed
+    const expiredMatchIds = matchdayMatches
+      .filter(match => now > new Date(match.deadline))
+      .map(m => m.id);
 
     const picks = Array.from(this.picks.values())
-      .filter(pick => matchIds.includes(pick.matchId));
+      .filter(pick => expiredMatchIds.includes(pick.matchId));
 
     // Return picks with user information in the format expected by the client
     const allPicks = [];

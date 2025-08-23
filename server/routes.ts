@@ -260,16 +260,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const matches = await storage.getMatchdayMatches(matchday.id);
     const userPicks = await storage.getUserPicks(req.session.userId, matchday.id);
 
-    // If deadline has passed, include all picks from all participants
-    const now = new Date();
-    let allPicks = [];
-    if (now > new Date(matchday.deadline)) {
-      allPicks = await storage.getAllPicksForMatchday(matchday.id);
-      console.log(`Deadline passed for matchday ${matchday.id}. User: ${req.session.userId}. AllPicks count: ${allPicks.length}`);
-      console.log(`AllPicks data:`, allPicks.slice(0, 3)); // Log first 3 for debugging
-    } else {
-      console.log(`Deadline NOT passed for matchday ${matchday.id}. Now: ${now.toISOString()}, Deadline: ${matchday.deadline}`);
-    }
+    // Always include all picks since deadline logic is now per-match
+    const allPicks = await storage.getAllPicksForMatchday(matchday.id);
+    console.log(`Matchday ${matchday.id}. User: ${req.session.userId}. AllPicks count: ${allPicks.length}`);
 
     res.json({ matchday, matches, userPicks, allPicks });
   });
@@ -378,10 +371,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const data = pickUpdateSchema.parse(req.body);
 
-      // Check if deadline has passed
+      // Check if match deadline has passed
       const match = await storage.getMatchById(data.matchId);
       if (!match) {
         return res.status(404).json({ error: "Partita non trovata" });
+      }
+
+      const now = new Date();
+      if (now > new Date(match.deadline)) {
+        return res.status(400).json({ error: "Scadenza per questa partita è già passata" });
       }
 
       const pick = await storage.submitPick({

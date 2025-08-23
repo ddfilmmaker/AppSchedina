@@ -173,14 +173,7 @@ export default function League() {
                       </Badge>
                     </div>
                     <div className="flex items-center justify-between text-sm text-gray-600">
-                      <span>
-                        Scadenza: {new Date(matchday.deadline).toLocaleDateString("it-IT", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          hour: "2-digit",
-                          minute: "2-digit"
-                        })}
-                      </span>
+                      <span className="text-gray-500">Clicca per vedere le partite</span>
                       <span className="text-primary font-medium">Visualizza →</span>
                     </div>
                   </CardContent>
