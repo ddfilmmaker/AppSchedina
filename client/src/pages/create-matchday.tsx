@@ -20,7 +20,6 @@ interface MatchInput {
 export default function CreateMatchday() {
   const { leagueId } = useParams<{ leagueId: string }>();
   const [name, setName] = useState("");
-  const [deadline, setDeadline] = useState("");
   const [matches, setMatches] = useState<MatchInput[]>(
     Array.from({ length: 10 }, () => ({
       homeTeam: "",
@@ -54,9 +53,6 @@ export default function CreateMatchday() {
   };
 
   useState(() => {
-    if (!deadline) {
-      setDeadline(getDefaultDeadline());
-    }
     // Set default kickoff times for all matches
     const defaultKickoff = getDefaultDateTime();
     const defaultDeadline = getDefaultDeadline();
@@ -91,7 +87,7 @@ export default function CreateMatchday() {
       if (!leagueId) throw new Error("League ID not found");
 
       // Create the matchday first
-      const matchday = await createMatchday(leagueId, name, new Date(deadline));
+      const matchday = await createMatchday(leagueId, name);
 
       // Then create all the matches
       const validMatches = matches.filter(match =>
@@ -142,14 +138,6 @@ export default function CreateMatchday() {
       });
       return;
     }
-    if (!deadline) {
-      toast({
-        title: "Errore",
-        description: "La scadenza è obbligatoria",
-        variant: "destructive",
-      });
-      return;
-    }
 
     const validMatches = matches.filter(match =>
       match.homeTeam.trim() && match.awayTeam.trim() && match.kickoff && match.deadline
@@ -191,29 +179,16 @@ export default function CreateMatchday() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="matchday-name">Nome della Giornata</Label>
-                <Input
-                  id="matchday-name"
-                  type="text"
-                  placeholder="es. Giornata 1, Semifinale..."
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  data-testid="input-matchday-name"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="matchday-deadline">Scadenza Pronostici</Label>
-                <Input
-                  id="matchday-deadline"
-                  type="datetime-local"
-                  value={deadline}
-                  onChange={(e) => setDeadline(e.target.value)}
-                  data-testid="input-matchday-deadline"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="matchday-name">Nome della Giornata</Label>
+              <Input
+                id="matchday-name"
+                type="text"
+                placeholder="es. Giornata 1, Semifinale..."
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                data-testid="input-matchday-name"
+              />
             </div>
           </CardContent>
         </Card>
