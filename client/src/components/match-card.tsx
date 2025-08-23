@@ -101,7 +101,7 @@ export default function MatchCard({ match, userPick, isLocked, user, matchDeadli
   const showResult = isDeadlinePassed && match.result;
   const canEditPick = !isDeadlinePassed; // Users can edit until match deadline passes
   
-  console.log(`MatchCard ${match.homeTeam} vs ${match.awayTeam}: deadline=${deadline}, isDeadlinePassed=${isDeadlinePassed}, showResult=${showResult}`);es
+  console.log(`MatchCard ${match.homeTeam} vs ${match.awayTeam}: deadline=${deadline}, isDeadlinePassed=${isDeadlinePassed}, showResult=${showResult}`);
 
   const cardContent = (
     <div
