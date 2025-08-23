@@ -855,7 +855,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const settings = await storage.getSupercoppaSettings(leagueId); // This will auto-lock if deadline passed
-      const userBet = await storage.getSuipercoppaBet(leagueId, req.session.userId);
+      const userBet = await storage.getSupercoppaBet(leagueId, req.session.userId);
 
       // Show all bets if locked OR if deadline has passed
       let allBets = [];
@@ -866,7 +866,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Supercoppa check - League: ${leagueId}, Locked: ${settings?.locked}, Lock date: ${settings?.lockAt}, Now: ${now.toISOString()}, Should show bets: ${isLocked}`);
 
       if (isLocked) {
-        allBets = await storage.getAllSuipercoppaBets(leagueId);
+        allBets = await storage.getAllSupercoppaBets(leagueId);
         console.log(`Returning ${allBets.length} supercoppa bets for league ${leagueId}:`, allBets.map(b => ({ userId: b.userId, predictions: Object.keys(b.predictions) })));
       }
 
@@ -910,7 +910,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Upsert the supercoppa bet
-      await storage.upsertSuipercoppaBet({
+      await storage.upsertSupercoppaBet({
         leagueId,
         userId: req.session.userId,
         finalist1,

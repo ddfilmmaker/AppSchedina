@@ -148,10 +148,10 @@ export interface IStorage {
   upsertSupercoppaSettings(leagueId: string, updates: { lockAt?: Date }): Promise<void>;
   lockSupercoppa(leagueId: string): Promise<void>;
   setSupercoppaResults(leagueId: string, results: { officialFinalist1: string, officialFinalist2: string, officialWinner: string }): Promise<void>;
-  getSuipercoppaBet(leagueId: string, userId: string): Promise<any>;
-  upsertSuipercoppaBet(data: { leagueId: string, userId: string, finalist1: string, finalist2: string, winner: string }): Promise<void>;
-  getAllSuipercoppaBets(leagueId: string): Promise<any[]>;
-  computeSuipercoppaiPoints(leagueId: string): Promise<void>;
+  getSupercoppaBet(leagueId: string, userId: string): Promise<any>;
+  upsertSupercoppaBet(data: { leagueId: string, userId: string, finalist1: string, finalist2: string, winner: string }): Promise<void>;
+  getAllSupercoppaBets(leagueId: string): Promise<any[]>;
+  computeSupercoppaPoints(leagueId: string): Promise<void>;
 
   // Leaderboard
   getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number }[]>;
@@ -349,7 +349,7 @@ export class MemStorage implements IStorage {
     return match;
   }
 
-  async getMatchdayMatches(matchdayId: string): Promise<Match[]> {
+  async getMatchdayMatches(matchdayId: string): Promise<Match[]>{
     return Array.from(this.matches.values())
       .filter(match => match.matchdayId === matchdayId)
       .sort((a, b) => a.kickoff.getTime() - b.kickoff.getTime());
@@ -622,7 +622,7 @@ export class MemStorage implements IStorage {
     for (const [key, bet] of this.preseasonBets.entries()) {
       if (key.startsWith(`${leagueId}-`)) {
         // Extract userId by removing the leagueId prefix and the dash
-        const userId = key.substring(`${leagueId}-`.length);
+        const userId = key.split('-')[1];
         const user = this.users.get(userId);
         if (user) {
           bets.push({
@@ -885,7 +885,7 @@ export class MemStorage implements IStorage {
     }
   }
 
-  async getSuipercoppaBet(leagueId: string, userId: string): Promise<any> {
+  async getSupercoppaBet(leagueId: string, userId: string): Promise<any> {
     const key = `${leagueId}-${userId}`;
     const bet = this.supercoppaBets.get(key);
     if (!bet) return null;
@@ -901,7 +901,7 @@ export class MemStorage implements IStorage {
     };
   }
 
-  async upsertSuipercoppaBet(data: { leagueId: string, userId: string, finalist1: string, finalist2: string, winner: string }): Promise<void> {
+  async upsertSupercoppaBet(data: { leagueId: string, userId: string, finalist1: string, finalist2: string, winner: string }): Promise<void> {
     const key = `${data.leagueId}-${data.userId}`;
     this.supercoppaBets.set(key, {
       ...data,
@@ -909,7 +909,7 @@ export class MemStorage implements IStorage {
     });
   }
 
-  async getAllSuipercoppaBets(leagueId: string): Promise<any[]> {
+  async getAllSupercoppaBets(leagueId: string): Promise<any[]> {
     const bets: any[] = [];
     for (const [key, bet] of this.supercoppaBets.entries()) {
       if (key.startsWith(`${leagueId}-`)) {
@@ -935,7 +935,7 @@ export class MemStorage implements IStorage {
         }
       }
     }
-    console.log(`getAllSuipercoppaBets for league ${leagueId}: found ${bets.length} bets`);
+    console.log(`getAllSupercoppaBets for league ${leagueId}: found ${bets.length} bets`);
     return bets;
   }
 
@@ -948,7 +948,7 @@ export class MemStorage implements IStorage {
       return;
     }
 
-    const allBets = await this.getAllSuipercoppaBets(leagueId);
+    const allBets = await this.getAllSupercoppaBets(leagueId);
     const officialFinalists = new Set([results.officialFinalist1, results.officialFinalist2]);
 
     for (const bet of allBets) {
