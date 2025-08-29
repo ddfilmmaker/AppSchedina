@@ -206,6 +206,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(403).json({ error: "Non sei membro di questa lega" });
     }
 
+    // Ensure preseason points are computed if results are set
+    const preseasonSettings = await storage.getPreseasonSettings(league.id);
+    if (preseasonSettings?.resultsConfirmedAt) {
+      await storage.computePreseasonPoints(league.id);
+    }
+
+    // Ensure supercoppa points are computed if results are set
+    const supercoppaSettings = await storage.getSupercoppaSettings(league.id);
+    if (supercoppaSettings?.resultsConfirmedAt) {
+      await storage.computeSupercoppaPoints(league.id);
+    }
+
     const leaderboard = await storage.getLeagueLeaderboard(league.id);
     res.json(leaderboard);
   });

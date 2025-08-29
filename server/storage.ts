@@ -154,7 +154,7 @@ export interface IStorage {
   computeSupercoppaPoints(leagueId: string): Promise<void>;
 
   // Leaderboard
-  getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number }[]>;
+  getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number; supercoppaPoints?: number }[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -354,7 +354,7 @@ export class MemStorage implements IStorage {
     const matches = Array.from(this.matches.values())
       .filter(match => match.matchdayId === matchdayId)
       .sort((a, b) => a.kickoff.getTime() - b.kickoff.getTime());
-    
+
     console.log(`Retrieved ${matches.length} matches for matchday ${matchdayId}`);
     return matches;
   }
@@ -1009,13 +1009,13 @@ export class MemStorage implements IStorage {
         }
       }
 
-      // Add preseason points to total
+      // Get preseason points
       const preseasonPointsKey = `${leagueId}-${member.userId}`;
-      const preseasonPoints = this.preseasonPoints.get(preseasonPointsKey) || 0;
+      let preseasonPoints = this.preseasonPoints.get(preseasonPointsKey) || 0;
 
-      // Add supercoppa points to total
+      // Get supercoppa points
       const supercoppaPointsKey = `${leagueId}-${member.userId}`;
-      const supercoppaPoints = this.supercoppaPoints.get(supercoppaPointsKey) || 0;
+      let supercoppaPoints = this.supercoppaPoints.get(supercoppaPointsKey) || 0;
 
       const totalPoints = matchdayPoints + preseasonPoints + supercoppaPoints;
 
