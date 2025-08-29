@@ -145,7 +145,17 @@ export default function Leaderboard() {
                   <div className={`text-xs ${
                     player.points === 0 ? "text-gray-400" : "text-gray-500"
                   }`}>
-                    {player.points === 0 ? "Nessun pronostico" : `${player.correctPicks} giusti`}
+                    {player.points === 0 ? "Nessun pronostico" : (
+                      <div className="space-y-0.5">
+                        <div>{player.correctPicks} giusti</div>
+                        {player.preseasonPoints && (
+                          <div className="text-green-600">+{player.preseasonPoints} preseason</div>
+                        )}
+                        {player.supercoppaPoints && (
+                          <div className="text-blue-600">+{player.supercoppaPoints} supercoppa</div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
