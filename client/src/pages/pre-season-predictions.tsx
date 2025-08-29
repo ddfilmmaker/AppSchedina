@@ -451,13 +451,20 @@ export default function PreSeasonPredictions() {
                   {/* Show points earned if official results are confirmed */}
                   {settings?.resultsConfirmedAt && (
                     <div className="mt-2 pt-2 border-t border-gray-200">
-                      <div className="text-xs text-gray-600">
-                        Punti guadagnati: 
-                        <span className="font-semibold ml-1">
-                          {(bet.predictions?.winner === settings.winnerOfficial ? 10 : 0) +
-                           (bet.predictions?.lastPlace === settings.bottomOfficial ? 5 : 0) +
-                           (bet.predictions?.topScorer === settings.topScorerOfficial ? 5 : 0)}
-                        </span>
+                      <div className="flex justify-between items-center">
+                        <div className="text-xs text-gray-600">
+                          Punti guadagnati: 
+                          <span className="font-semibold ml-1">
+                            {(bet.predictions?.winner === settings.winnerOfficial ? 5 : 0) +
+                             (bet.predictions?.lastPlace === settings.bottomOfficial ? 5 : 0) +
+                             (bet.predictions?.topScorer === settings.topScorerOfficial ? 5 : 0)}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {bet.predictions?.winner === settings.winnerOfficial && "✓ Vincitore (+5) "}
+                          {bet.predictions?.lastPlace === settings.bottomOfficial && "✓ Ultima (+5) "}
+                          {bet.predictions?.topScorer === settings.topScorerOfficial && "✓ Capocannoniere (+5)"}
+                        </div>
                       </div>
                     </div>
                   )}

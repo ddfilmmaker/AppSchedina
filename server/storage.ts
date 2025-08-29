@@ -586,10 +586,16 @@ export class MemStorage implements IStorage {
 
   async upsertPreseasonBet(data: InsertPreSeasonPrediction): Promise<any> {
     const key = `${data.leagueId}-${data.userId}`;
-    this.preseasonBets.set(key, data);
+    const betData = {
+      ...data,
+      submittedAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.preseasonBets.set(key, betData);
+    console.log(`Stored preseason bet for league ${data.leagueId}, user ${data.userId}:`, betData);
     // In a real DB scenario, this would return inserted/updated row info.
     // For mock, returning the data itself.
-    return data;
+    return betData;
   }
 
   async getPreseasonBet(leagueId: string, userId: string): Promise<PreSeasonPrediction | null> {
@@ -628,7 +634,7 @@ export class MemStorage implements IStorage {
     for (const [key, bet] of this.preseasonBets.entries()) {
       if (key.startsWith(`${leagueId}-`)) {
         // Extract userId by removing the leagueId prefix and the dash
-        const userId = key.split('-')[1];
+        const userId = key.substring(`${leagueId}-`.length);
         const user = this.users.get(userId);
         if (user) {
           bets.push({
@@ -640,7 +646,7 @@ export class MemStorage implements IStorage {
               lastPlace: bet.bottom,
               topScorer: bet.topScorer
             },
-            submittedAt: new Date(),
+            submittedAt: bet.submittedAt || new Date(),
             user: { id: user.id, nickname: user.nickname }
           });
         }
@@ -795,25 +801,24 @@ export class MemStorage implements IStorage {
   async computePreseasonPoints(leagueId: string): Promise<void> {
     const results = await this.getPreseasonSettings(leagueId);
     if (!results?.winnerOfficial || !results?.bottomOfficial || !results?.topScorerOfficial) {
+      console.log(`Cannot compute preseason points - missing official results for league ${leagueId}`);
       return;
     }
 
     const allBets = await this.getAllPreseasonBets(leagueId);
+    console.log(`Computing preseason points for ${allBets.length} bets in league ${leagueId}`);
 
     for (const bet of allBets) {
       let points = 0;
 
       if (bet.predictions.winner === results.winnerOfficial) points += 5;
-      if (bet.predictions.bottom === results.bottomOfficial) points += 5;
+      if (bet.predictions.lastPlace === results.bottomOfficial) points += 5;
       if (bet.predictions.topScorer === results.topScorerOfficial) points += 5;
 
-      // Update the bet with calculated points
-      await db.update(preseasonBegs)
-        .set({ points })
-        .where(and(
-          eq(preseasonBegs.leagueId, leagueId),
-          eq(preseasonBegs.userId, bet.userId)
-        ));
+      // Store points for leaderboard integration
+      const pointsKey = `${leagueId}-${bet.userId}`;
+      this.preseasonPoints.set(pointsKey, points);
+      console.log(`User ${bet.userId} scored ${points} points for preseason predictions`);
     }
   }
 
