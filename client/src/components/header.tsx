@@ -47,16 +47,12 @@ export default function Header({ user }: HeaderProps) {
       <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center relative shadow-md border border-gray-800">
-            {/* Mini soccer ball */}
-            <svg className="w-7 h-7" viewBox="0 0 100 100" fill="none">
-              <circle cx="50" cy="50" r="48" fill="white" stroke="#000" strokeWidth="3"/>
-              <path d="M50 20 L65 32 L59 52 L41 52 L35 32 Z" fill="#000"/>
-              <path d="M50 20 L35 32 L25 28 L30 12 L45 12 Z" fill="white" stroke="#000" strokeWidth="2"/>
-              <path d="M50 20 L65 32 L75 28 L70 12 L55 12 Z" fill="white" stroke="#000" strokeWidth="2"/>
-              <path d="M35 32 L41 52 L26 66 L12 58 L18 42 L25 28 Z" fill="white" stroke="#000" strokeWidth="2"/>
-              <path d="M65 32 L75 28 L82 42 L88 58 L74 66 L59 52 Z" fill="white" stroke="#000" strokeWidth="2"/>
-              <path d="M41 52 L59 52 L50 80 L35 68 Z" fill="white" stroke="#000" strokeWidth="2"/>
-            </svg>
+            {/* Soccer ball logo */}
+            <img 
+              src="/logo.png" 
+              alt="Soccer Ball Logo" 
+              className="w-7 h-7 object-contain rounded-full"
+            />
           </div>
           <h1 className="text-white font-bold text-lg">La Schedina</h1>
         </div>

@@ -67,7 +67,7 @@ export default function Auth() {
                 <div className="w-full h-full bg-white rounded-full flex items-center justify-center shadow-inner">
                   {/* Soccer ball logo */}
                   <img 
-                    src="/soccer-ball.svg" 
+                    src="/logo.png" 
                     alt="Soccer Ball Logo" 
                     className="w-20 h-20 object-contain"
                   />
