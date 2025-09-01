@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff } from "lucide-react";
+import logoImage from "@assets/Black & White illustrative  Sports football  club logo (1)_1756740778737.png";
 
 export default function Auth() {
   const [loginData, setLoginData] = useState({ nickname: "", password: "" });
@@ -65,9 +66,9 @@ export default function Auth() {
             <div className="w-28 h-28 mx-auto relative">
               <div className="absolute inset-0 totocalcio-gradient rounded-full p-1">
                 <div className="w-full h-full bg-white rounded-full flex items-center justify-center shadow-inner">
-                  {/* Soccer ball logo */}
+                  {/* Custom soccer ball logo */}
                   <img 
-                    src="/logo.png" 
+                    src={logoImage} 
                     alt="Soccer Ball Logo" 
                     className="w-20 h-20 object-contain"
                     onError={(e) => {

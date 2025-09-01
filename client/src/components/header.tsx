@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLocation } from "wouter";
+import logoImage from "@assets/Black & White illustrative  Sports football  club logo (1)_1756740778737.png";
 
 interface HeaderProps {
   user: {
@@ -49,7 +50,7 @@ export default function Header({ user }: HeaderProps) {
           <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center relative shadow-md">
             {/* Custom soccer ball logo */}
             <img 
-              src="/logo.png" 
+              src={logoImage} 
               alt="Soccer Ball Logo" 
               className="w-7 h-7 object-contain"
               onError={(e) => {
