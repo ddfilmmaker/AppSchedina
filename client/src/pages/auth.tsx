@@ -77,9 +77,7 @@ export default function Auth() {
                   />
                 </div>
               </div>
-              {/* Floating accent dots */}
-              <div className="absolute -top-2 -right-2 w-4 h-4 bg-accent rounded-full animate-pulse"></div>
-              <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-secondary rounded-full animate-pulse delay-500"></div>
+
             </div>
           </div>
           

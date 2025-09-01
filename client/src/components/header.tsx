@@ -46,12 +46,12 @@ export default function Header({ user }: HeaderProps) {
     <header className="bg-primary shadow-lg sticky top-0 z-50" data-testid="header">
       <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center relative shadow-md border border-gray-800">
-            {/* Soccer ball logo */}
+          <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center relative shadow-md">
+            {/* Custom soccer ball logo */}
             <img 
               src="/logo.png" 
               alt="Soccer Ball Logo" 
-              className="w-7 h-7 object-contain rounded-full"
+              className="w-7 h-7 object-contain"
               onError={(e) => {
                 console.error('Header logo failed to load');
                 e.currentTarget.style.display = 'none';
