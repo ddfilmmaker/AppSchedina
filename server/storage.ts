@@ -153,6 +153,16 @@ export interface IStorage {
   getAllSupercoppaBets(leagueId: string): Promise<any[]>;
   computeSupercoppaPoints(leagueId: string): Promise<void>;
 
+  // Coppa Italia
+  getCoppaSettings(leagueId: string): Promise<any>;
+  upsertCoppaSettings(leagueId: string, updates: { lockAt?: Date }): Promise<void>;
+  lockCoppa(leagueId: string): Promise<void>;
+  setCoppaResults(leagueId: string, results: { officialWinner: string }): Promise<void>;
+  getCoppaBet(leagueId: string, userId: string): Promise<any>;
+  upsertCoppaBet(data: { leagueId: string, userId: string, winner: string }): Promise<void>;
+  getAllCoppaBets(leagueId: string): Promise<any[]>;
+  computeCoppaPoints(leagueId: string): Promise<void>;
+
   // Leaderboard
   getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number; supercoppaPoints?: number }[]>;
 }
@@ -173,6 +183,10 @@ export class MemStorage implements IStorage {
   // In-memory storage for supercoppa bets and settings
   private supercoppaBets: Map<string, any> = new Map(); // Key: `${leagueId}-${userId}`
   private supercoppaSettings: Map<string, any> = new Map(); // Key: leagueId
+
+  // In-memory storage for coppa bets and settings
+  private coppaBets: Map<string, any> = new Map(); // Key: `${leagueId}-${userId}`
+  private coppaSettings: Map<string, any> = new Map(); // Key: leagueId
 
   constructor() {
     // Removed initialization of global special tournaments as they are now league-specific.
@@ -242,6 +256,9 @@ export class MemStorage implements IStorage {
 
     // Initialize supercoppa settings for the new league
     await this.initializeSupercoppaSettings(id);
+
+    // Initialize coppa settings for the new league
+    await this.initializeCoppaSettings(id);
 
     return league;
   }
@@ -772,6 +789,23 @@ export class MemStorage implements IStorage {
     });
   }
 
+  private async initializeCoppaSettings(leagueId: string): Promise<void> {
+    const currentYear = new Date().getFullYear();
+    const nextYear = currentYear + 1;
+    const defaultDeadline = new Date(`${nextYear}-05-10T20:00:00.000Z`);
+
+    this.coppaSettings.set(leagueId, {
+      leagueId,
+      lockAt: defaultDeadline,
+      locked: false,
+      officialWinner: null,
+      resultsConfirmedAt: null,
+      lockedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+
   async lockPreseason(leagueId: string): Promise<void> {
     const settings = this.preseasonSettings.get(leagueId);
     if (settings) {
@@ -952,6 +986,9 @@ export class MemStorage implements IStorage {
 
   // Store supercoppa points separately to integrate with leaderboard
   private supercoppaPoints: Map<string, number> = new Map(); // Key: `${leagueId}-${userId}`
+  
+  // Store coppa points separately to integrate with leaderboard
+  private coppaPoints: Map<string, number> = new Map(); // Key: `${leagueId}-${userId}`
 
   async computeSupercoppaPoints(leagueId: string): Promise<void> {
     const results = await this.getSupercoppaSettings(leagueId);
@@ -980,6 +1017,149 @@ export class MemStorage implements IStorage {
       const pointsKey = `${leagueId}-${bet.userId}`;
       this.supercoppaPoints.set(pointsKey, points);
       console.log(`User ${bet.userId} scored ${points} points for Supercoppa`);
+    }
+  }
+
+  // Coppa Italia methods
+  async getCoppaSettings(leagueId: string): Promise<any> {
+    const settings = this.coppaSettings.get(leagueId);
+    if (!settings) return null;
+
+    // Auto-lock if deadline has passed
+    const now = new Date();
+    const lockDate = new Date(settings.lockAt);
+
+    if (settings.lockAt && now > lockDate && !settings.locked) {
+      console.log(`Auto-locking coppa for league ${leagueId} - deadline passed. Now: ${now.toISOString()}, Lock date: ${lockDate.toISOString()}`);
+      settings.locked = true;
+      settings.lockedAt = now;
+      settings.updatedAt = now;
+      this.coppaSettings.set(leagueId, settings);
+    }
+
+    return settings;
+  }
+
+  async upsertCoppaSettings(leagueId: string, updates: { lockAt?: Date }): Promise<void> {
+    const currentSettings = this.coppaSettings.get(leagueId);
+    if (currentSettings) {
+      const updatedSettings = {
+        ...currentSettings,
+        ...updates,
+        updatedAt: new Date()
+      };
+      this.coppaSettings.set(leagueId, updatedSettings);
+      console.log(`Updated coppa settings for league ${leagueId}:`, updatedSettings);
+    } else {
+      const newSettings = {
+        leagueId,
+        lockAt: updates.lockAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default: 1 week from now
+        locked: false,
+        officialWinner: null,
+        resultsConfirmedAt: null,
+        lockedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        ...updates
+      };
+      this.coppaSettings.set(leagueId, newSettings);
+      console.log(`Created coppa settings for league ${leagueId}:`, newSettings);
+    }
+  }
+
+  async lockCoppa(leagueId: string): Promise<void> {
+    const settings = this.coppaSettings.get(leagueId);
+    if (settings) {
+      settings.locked = true;
+      settings.lockedAt = new Date();
+      settings.updatedAt = new Date();
+      this.coppaSettings.set(leagueId, settings);
+      console.log(`Coppa locked for league ${leagueId} at ${settings.lockedAt}`);
+    }
+  }
+
+  async setCoppaResults(leagueId: string, results: { officialWinner: string }): Promise<void> {
+    const settings = this.coppaSettings.get(leagueId);
+    if (settings) {
+      this.coppaSettings.set(leagueId, {
+        ...settings,
+        officialWinner: results.officialWinner,
+        resultsConfirmedAt: new Date(),
+        updatedAt: new Date()
+      });
+    }
+  }
+
+  async getCoppaBet(leagueId: string, userId: string): Promise<any> {
+    const key = `${leagueId}-${userId}`;
+    const bet = this.coppaBets.get(key);
+    if (!bet) return null;
+
+    return {
+      userId: bet.userId,
+      predictions: {
+        winner: bet.winner
+      },
+      updatedAt: bet.updatedAt
+    };
+  }
+
+  async upsertCoppaBet(data: { leagueId: string, userId: string, winner: string }): Promise<void> {
+    const key = `${data.leagueId}-${data.userId}`;
+    this.coppaBets.set(key, {
+      ...data,
+      updatedAt: new Date()
+    });
+  }
+
+  async getAllCoppaBets(leagueId: string): Promise<any[]> {
+    const bets: any[] = [];
+    for (const [key, bet] of this.coppaBets.entries()) {
+      if (key.startsWith(`${leagueId}-`)) {
+        // Extract userId by removing the leagueId prefix and the dash
+        const userId = key.substring(`${leagueId}-`.length);
+        const user = this.users.get(userId);
+        if (user) {
+          // Get calculated points if available
+          const pointsKey = `${leagueId}-${userId}`;
+          const points = this.coppaPoints.get(pointsKey) || 0;
+
+          bets.push({
+            userId: userId,
+            userNickname: user.nickname,
+            predictions: {
+              winner: bet.winner
+            },
+            points: points,
+            updatedAt: bet.updatedAt
+          });
+        }
+      }
+    }
+    console.log(`getAllCoppaBets for league ${leagueId}: found ${bets.length} bets`);
+    return bets;
+  }
+
+  async computeCoppaPoints(leagueId: string): Promise<void> {
+    const results = await this.getCoppaSettings(leagueId);
+    if (!results?.officialWinner) {
+      return;
+    }
+
+    const allBets = await this.getAllCoppaBets(leagueId);
+
+    for (const bet of allBets) {
+      let points = 0;
+
+      // Check if winner is correct
+      if (bet.predictions.winner === results.officialWinner) {
+        points += 5;
+      }
+
+      // Store points for leaderboard integration
+      const pointsKey = `${leagueId}-${bet.userId}`;
+      this.coppaPoints.set(pointsKey, points);
+      console.log(`User ${bet.userId} scored ${points} points for Coppa Italia`);
     }
   }
 
@@ -1017,9 +1197,13 @@ export class MemStorage implements IStorage {
       const supercoppaPointsKey = `${leagueId}-${member.userId}`;
       let supercoppaPoints = this.supercoppaPoints.get(supercoppaPointsKey) || 0;
 
-      const totalPoints = matchdayPoints + preseasonPoints + supercoppaPoints;
+      // Get coppa points
+      const coppaPointsKey = `${leagueId}-${member.userId}`;
+      let coppaPoints = this.coppaPoints.get(coppaPointsKey) || 0;
 
-      console.log(`Leaderboard calculation for ${member.user.nickname}: matchday points: ${matchdayPoints}, preseason points: ${preseasonPoints}, supercoppa points: ${supercoppaPoints}, total: ${totalPoints}`);
+      const totalPoints = matchdayPoints + preseasonPoints + supercoppaPoints + coppaPoints;
+
+      console.log(`Leaderboard calculation for ${member.user.nickname}: matchday points: ${matchdayPoints}, preseason points: ${preseasonPoints}, supercoppa points: ${supercoppaPoints}, coppa points: ${coppaPoints}, total: ${totalPoints}`);
 
       return {
         user: member.user,

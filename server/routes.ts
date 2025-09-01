@@ -16,7 +16,10 @@ import {
   preseasonResultsSchema,
   supercoppaBetSchema,
   supercoppaSettingsSchema,
-  supercoppaResultsSchema
+  supercoppaResultsSchema,
+  coppaSettingsSchema,
+  coppaResultsSchema,
+  coppaBetSchema
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { db } from "./db";
@@ -216,6 +219,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const supercoppaSettings = await storage.getSupercoppaSettings(league.id);
     if (supercoppaSettings?.resultsConfirmedAt) {
       await storage.computeSupercoppaPoints(league.id);
+    }
+
+    // Ensure coppa points are computed if results are set
+    const coppaSettings = await storage.getCoppaSettings(league.id);
+    if (coppaSettings?.resultsConfirmedAt) {
+      await storage.computeCoppaPoints(league.id);
     }
 
     const leaderboard = await storage.getLeagueLeaderboard(league.id);
@@ -1005,6 +1014,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       console.error("Supercoppa results error:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  // Coppa Italia endpoints
+  app.get("/api/extras/coppa/:leagueId", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    try {
+      const { leagueId } = req.params;
+
+      // Check if user is member of the league
+      const isMember = await storage.isUserInLeague(leagueId, req.session.userId);
+      if (!isMember) {
+        return res.status(403).json({ error: "Non sei membro di questa lega" });
+      }
+
+      const settings = await storage.getCoppaSettings(leagueId); // This will auto-lock if deadline passed
+      const userBet = await storage.getCoppaBet(leagueId, req.session.userId);
+
+      // Show all bets if locked OR if deadline has passed
+      let allBets = [];
+      const now = new Date();
+      const lockDate = settings?.lockAt ? new Date(settings.lockAt) : null;
+      const isLocked = settings?.locked || (lockDate && now > lockDate);
+
+      console.log(`Coppa check - League: ${leagueId}, Locked: ${settings?.locked}, Lock date: ${settings?.lockAt}, Now: ${now.toISOString()}, Should show bets: ${isLocked}`);
+
+      if (isLocked) {
+        allBets = await storage.getAllCoppaBets(leagueId);
+        console.log(`Returning ${allBets.length} coppa bets for league ${leagueId}:`, allBets.map(b => ({ userId: b.userId, predictions: Object.keys(b.predictions) })));
+      }
+
+      res.json({ 
+        userBet,
+        settings,
+        allBets,
+        isLocked
+      });
+    } catch (error) {
+      console.error("Get coppa bet error:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  app.post("/api/extras/coppa", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    try {
+      const { leagueId, winner } = coppaBetSchema.extend({
+        leagueId: z.string()
+      }).parse(req.body);
+
+      // Check if user is member of the league
+      const isMember = await storage.isUserInLeague(leagueId, req.session.userId);
+      if (!isMember) {
+        return res.status(403).json({ error: "Non sei membro di questa lega" });
+      }
+
+      // Check if still unlocked
+      const settings = await storage.getCoppaSettings(leagueId);
+      if (settings && settings.locked) {
+        return res.status(400).json({ error: "Pronostici bloccati" });
+      }
+
+      // Check deadline if set
+      if (settings && settings.lockAt && new Date() > settings.lockAt) {
+        return res.status(400).json({ error: "Scadenza superata" });
+      }
+
+      // Upsert the coppa bet
+      await storage.upsertCoppaBet({
+        leagueId,
+        userId: req.session.userId,
+        winner
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Coppa bet error:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  app.post("/api/extras/coppa/lock", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    try {
+      const { leagueId } = req.body;
+
+      // Check if user is admin of the league
+      const league = await storage.getLeague(leagueId);
+      if (!league || league.adminId !== req.session.userId) {
+        return res.status(403).json({ error: "Solo l'admin può gestire le impostazioni" });
+      }
+
+      const { lockAt } = req.body;
+
+      if (lockAt) {
+        // Update deadline - ensure proper date conversion
+        const lockAtDate = new Date(lockAt);
+        console.log(`Admin setting lock time for coppa league ${leagueId}: ${lockAt} -> ${lockAtDate.toISOString()}`);
+        await storage.upsertCoppaSettings(leagueId, { lockAt: lockAtDate });
+      } else {
+        // Force lock now
+        console.log(`Admin forcing lock now for coppa league ${leagueId}`);
+        await storage.lockCoppa(leagueId);
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Coppa lock error:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  app.post("/api/extras/coppa/results", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    try {
+      const { leagueId, ...results } = coppaResultsSchema.extend({
+        leagueId: z.string()
+      }).parse(req.body);
+
+      // Check if user is admin of the league
+      const league = await storage.getLeague(leagueId);
+      if (!league || league.adminId !== req.session.userId) {
+        return res.status(403).json({ error: "Solo l'admin può impostare i risultati" });
+      }
+
+      // Admin can set results anytime, no lock restriction needed
+
+      await storage.setCoppaResults(leagueId, results);
+
+      // Calculate and assign points to users
+      await storage.computeCoppaPoints(leagueId);
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Coppa results error:", error);
       res.status(500).json({ error: "Errore interno del server" });
     }
   });

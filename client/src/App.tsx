@@ -20,6 +20,7 @@ import JoinLeague from "@/pages/join-league";
 import CreateMatchday from "@/pages/create-matchday";
 import PreSeasonPredictions from "./pages/pre-season-predictions";
 import SupercoppaPredictions from "./pages/supercoppa-predictions";
+import CoppaItaliaPredictions from "./pages/coppa-italia-predictions"; // Import the new page
 import NotFound from "@/pages/not-found";
 
 import Header from "@/components/header";
@@ -88,6 +89,7 @@ function AppContent() {
             component={PreSeasonPredictions}
           />
           <Route path="/leagues/:leagueId/supercoppa-predictions" component={SupercoppaPredictions} />
+          <Route path="/leagues/:leagueId/coppa-italia-predictions" component={CoppaItaliaPredictions} />
 
           <Route component={NotFound} />
         </Switch>

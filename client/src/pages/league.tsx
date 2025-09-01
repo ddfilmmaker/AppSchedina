@@ -157,6 +157,24 @@ export default function League() {
         </CardContent>
       </Card>
 
+      {/* Coppa Italia Card */}
+      <Card className="mb-4">
+        <CardContent className="p-4">
+          <Link href={`/leagues/${leagueId}/coppa-italia-predictions`}>
+            <div className="flex items-center justify-between cursor-pointer hover:bg-gray-50 rounded-lg p-2">
+              <div className="flex items-center space-x-3">
+                <Trophy className="w-5 h-5 text-green-500" />
+                <div>
+                  <h4 className="font-medium text-gray-900">Coppa Italia</h4>
+                  <p className="text-sm text-gray-500">Vincitrice finale</p>
+                </div>
+              </div>
+              <div className="text-primary font-medium text-sm">→</div>
+            </div>
+          </Link>
+        </CardContent>
+      </Card>
+
       {/* Matchdays */}
       <div>
         <h3 className="text-lg font-bold text-gray-900 mb-4">Giornate</h3>

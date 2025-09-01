@@ -135,6 +135,26 @@ export const supercoppaBegs = pgTable("supercoppa_bet", {
   unq: sql`unique(${table.leagueId}, ${table.userId})`
 }));
 
+export const coppaSettings = pgTable("coppa_settings", {
+  leagueId: varchar("league_id").primaryKey().references(() => leagues.id).notNull(),
+  lockAt: timestamp("lock_at").notNull(),
+  locked: boolean("locked").default(false).notNull(),
+  officialWinner: text("official_winner"),
+  resultsConfirmedAt: timestamp("results_confirmed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const coppaBets = pgTable("coppa_bet", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  leagueId: varchar("league_id").references(() => leagues.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  winner: text("winner").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  unq: sql`unique(${table.leagueId}, ${table.userId})`
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -242,5 +262,17 @@ export const supercoppaResultsSchema = z.object({
 export const supercoppaBetSchema = z.object({
   finalist1: z.string().min(1),
   finalist2: z.string().min(1),
+  winner: z.string().min(1),
+});
+
+export const coppaSettingsSchema = z.object({
+  lockAt: z.string().datetime().transform(val => new Date(val)),
+});
+
+export const coppaResultsSchema = z.object({
+  officialWinner: z.string().min(1),
+});
+
+export const coppaBetSchema = z.object({
   winner: z.string().min(1),
 });
