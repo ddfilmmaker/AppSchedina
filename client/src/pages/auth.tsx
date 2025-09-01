@@ -101,14 +101,14 @@ export default function Auth() {
             <TabsTrigger 
               value="login" 
               data-testid="tab-login"
-              className="rounded-xl font-semibold text-sm py-3 data-[state=active]:retro-green-gradient data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
+              className="rounded-xl font-semibold text-sm py-3 retro-green-gradient text-white shadow-lg transition-all duration-300 opacity-60 data-[state=active]:opacity-100"
             >
               Accedi
             </TabsTrigger>
             <TabsTrigger 
               value="register" 
               data-testid="tab-register"
-              className="rounded-xl font-semibold text-sm py-3 data-[state=active]:retro-red-gradient data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
+              className="rounded-xl font-semibold text-sm py-3 retro-red-gradient text-white shadow-lg transition-all duration-300 opacity-60 data-[state=active]:opacity-100"
             >
               Registrati
             </TabsTrigger>
