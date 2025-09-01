@@ -97,18 +97,18 @@ export default function Auth() {
 
         {/* Modern tabs with retro colors */}
         <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 retro-card rounded-2xl p-1 mb-6 border-0">
+          <TabsList className="grid w-full grid-cols-2 rounded-2xl p-1 mb-6 border-0 bg-transparent">
             <TabsTrigger 
               value="login" 
               data-testid="tab-login"
-              className="rounded-xl font-semibold text-sm py-3 retro-green-gradient text-white shadow-lg transition-all duration-300 opacity-60 data-[state=active]:opacity-100"
+              className="rounded-xl font-semibold text-sm py-3 retro-green-gradient text-white shadow-lg transition-all duration-300"
             >
               Accedi
             </TabsTrigger>
             <TabsTrigger 
               value="register" 
               data-testid="tab-register"
-              className="rounded-xl font-semibold text-sm py-3 retro-red-gradient text-white shadow-lg transition-all duration-300 opacity-60 data-[state=active]:opacity-100"
+              className="rounded-xl font-semibold text-sm py-3 retro-red-gradient text-white shadow-lg transition-all duration-300"
             >
               Registrati
             </TabsTrigger>
