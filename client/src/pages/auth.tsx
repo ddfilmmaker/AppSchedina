@@ -65,21 +65,12 @@ export default function Auth() {
             <div className="w-28 h-28 mx-auto relative">
               <div className="absolute inset-0 totocalcio-gradient rounded-full p-1">
                 <div className="w-full h-full bg-white rounded-full flex items-center justify-center shadow-inner">
-                  {/* Modern minimalist soccer ball SVG */}
-                  <svg className="w-20 h-20" viewBox="0 0 100 100" fill="none">
-                    {/* Clean white base circle */}
-                    <circle cx="50" cy="50" r="46" fill="white" stroke="#0F4C3A" strokeWidth="2"/>
-                    
-                    {/* Simplified modern pentagon pattern */}
-                    <path d="M50 25 L62 35 L57 50 L43 50 L38 35 Z" fill="#0F4C3A"/>
-                    
-                    {/* Modern curved lines instead of complex hexagons */}
-                    <path d="M50 25 L38 35 L28 32" fill="none" stroke="#0F4C3A" strokeWidth="2" strokeLinecap="round"/>
-                    <path d="M50 25 L62 35 L72 32" fill="none" stroke="#0F4C3A" strokeWidth="2" strokeLinecap="round"/>
-                    <path d="M38 35 L43 50 L30 62" fill="none" stroke="#0F4C3A" strokeWidth="2" strokeLinecap="round"/>
-                    <path d="M62 35 L57 50 L70 62" fill="none" stroke="#0F4C3A" strokeWidth="2" strokeLinecap="round"/>
-                    <path d="M43 50 L57 50 L50 68" fill="none" stroke="#0F4C3A" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
+                  {/* Soccer ball logo */}
+                  <img 
+                    src="/soccer-ball.svg" 
+                    alt="Soccer Ball Logo" 
+                    className="w-20 h-20 object-contain"
+                  />
                 </div>
               </div>
               {/* Floating accent dots */}
