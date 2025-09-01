@@ -50,53 +50,83 @@ export default function Auth() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-4 relative shadow-lg border-2 border-gray-800">
-            {/* Soccer ball SVG */}
-            <svg className="w-20 h-20" viewBox="0 0 100 100" fill="none">
-              {/* White base circle */}
-              <circle cx="50" cy="50" r="48" fill="white" stroke="#000" strokeWidth="2"/>
-              
-              {/* Central pentagon (black) */}
-              <path d="M50 20 L65 32 L59 52 L41 52 L35 32 Z" fill="#000"/>
-              
-              {/* Top hexagons */}
-              <path d="M50 20 L35 32 L25 28 L30 12 L45 12 Z" fill="white" stroke="#000" strokeWidth="1.5"/>
-              <path d="M50 20 L65 32 L75 28 L70 12 L55 12 Z" fill="white" stroke="#000" strokeWidth="1.5"/>
-              
-              {/* Side hexagons */}
-              <path d="M35 32 L41 52 L26 66 L12 58 L18 42 L25 28 Z" fill="white" stroke="#000" strokeWidth="1.5"/>
-              <path d="M65 32 L75 28 L82 42 L88 58 L74 66 L59 52 Z" fill="white" stroke="#000" strokeWidth="1.5"/>
-              
-              {/* Bottom hexagon */}
-              <path d="M41 52 L59 52 L65 68 L50 80 L35 68 Z" fill="white" stroke="#000" strokeWidth="1.5"/>
-              <path d="M26 66 L41 52 L35 68 L20 76 L12 58 Z" fill="white" stroke="#000" strokeWidth="1.5"/>
-              <path d="M59 52 L74 66 L88 58 L80 76 L65 68 Z" fill="white" stroke="#000" strokeWidth="1.5"/>
-            </svg>
+    <div className="min-h-screen paper-texture flex items-center justify-center px-4 py-8">
+      {/* Background decorative elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-10 left-10 w-32 h-32 totocalcio-gradient rounded-full opacity-10 blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-40 h-40 retro-red-gradient rounded-full opacity-10 blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/4 w-24 h-24 retro-green-gradient rounded-full opacity-10 blur-2xl"></div>
+      </div>
+      
+      <div className="w-full max-w-sm relative z-10">
+        {/* Header with modern soccer ball logo */}
+        <div className="text-center mb-10">
+          <div className="relative mx-auto mb-6">
+            <div className="w-28 h-28 mx-auto relative">
+              <div className="absolute inset-0 totocalcio-gradient rounded-full p-1">
+                <div className="w-full h-full bg-white rounded-full flex items-center justify-center shadow-inner">
+                  {/* Modern minimalist soccer ball SVG */}
+                  <svg className="w-20 h-20" viewBox="0 0 100 100" fill="none">
+                    {/* Clean white base circle */}
+                    <circle cx="50" cy="50" r="46" fill="white" stroke="#0F4C3A" strokeWidth="2"/>
+                    
+                    {/* Simplified modern pentagon pattern */}
+                    <path d="M50 25 L62 35 L57 50 L43 50 L38 35 Z" fill="#0F4C3A"/>
+                    
+                    {/* Modern curved lines instead of complex hexagons */}
+                    <path d="M50 25 L38 35 L28 32" fill="none" stroke="#0F4C3A" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M50 25 L62 35 L72 32" fill="none" stroke="#0F4C3A" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M38 35 L43 50 L30 62" fill="none" stroke="#0F4C3A" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M62 35 L57 50 L70 62" fill="none" stroke="#0F4C3A" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M43 50 L57 50 L50 68" fill="none" stroke="#0F4C3A" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </div>
+              </div>
+              {/* Floating accent dots */}
+              <div className="absolute -top-2 -right-2 w-4 h-4 bg-accent rounded-full animate-pulse"></div>
+              <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-secondary rounded-full animate-pulse delay-500"></div>
+            </div>
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">La Schedina</h1>
-          <p className="text-gray-600 mt-2">Totocalcio con gli amici</p>
+          
+          <h1 className="text-5xl font-bold retro-title mb-2 bg-gradient-to-r from-primary via-success to-accent bg-clip-text text-transparent">
+            La Schedina
+          </h1>
+          <p className="text-lg text-muted-foreground font-medium">Totocalcio con gli amici</p>
+          <div className="w-16 h-1 retro-green-gradient rounded-full mx-auto mt-3"></div>
         </div>
 
+        {/* Modern tabs with retro colors */}
         <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login" data-testid="tab-login">Accedi</TabsTrigger>
-            <TabsTrigger value="register" data-testid="tab-register">Registrati</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 retro-card rounded-2xl p-1 mb-6 border-0">
+            <TabsTrigger 
+              value="login" 
+              data-testid="tab-login"
+              className="rounded-xl font-semibold text-sm py-3 data-[state=active]:retro-green-gradient data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
+            >
+              Accedi
+            </TabsTrigger>
+            <TabsTrigger 
+              value="register" 
+              data-testid="tab-register"
+              className="rounded-xl font-semibold text-sm py-3 data-[state=active]:retro-red-gradient data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
+            >
+              Registrati
+            </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="login">
-            <Card>
-              <CardHeader>
-                <CardTitle>Accedi</CardTitle>
-                <CardDescription>
-                  Inserisci le tue credenziali per accedere
+          <TabsContent value="login" className="mt-0">
+            <Card className="retro-card border-0 rounded-3xl overflow-hidden">
+              <CardHeader className="pb-4 pt-8 px-8">
+                <CardTitle className="text-2xl font-bold text-center text-primary">Bentornato!</CardTitle>
+                <CardDescription className="text-center text-muted-foreground">
+                  Accedi per continuare a giocare
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-nickname">Nickname</Label>
+              <CardContent className="space-y-6 px-8 pb-8">
+                <div className="space-y-3">
+                  <Label htmlFor="login-nickname" className="text-sm font-semibold text-primary">
+                    Nickname
+                  </Label>
                   <Input
                     id="login-nickname"
                     type="text"
@@ -104,10 +134,13 @@ export default function Auth() {
                     onChange={(e) => setLoginData({ ...loginData, nickname: e.target.value })}
                     placeholder="Il tuo nickname"
                     data-testid="input-login-nickname"
+                    className="retro-input rounded-xl h-12 text-base border-0"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="login-password">Password</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="login-password" className="text-sm font-semibold text-primary">
+                    Password
+                  </Label>
                   <div className="relative">
                     <Input
                       id="login-password"
@@ -116,26 +149,26 @@ export default function Auth() {
                       onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                       placeholder="La tua password"
                       data-testid="input-login-password"
-                      className="pr-10"
+                      className="retro-input rounded-xl h-12 text-base border-0 pr-12"
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      className="absolute right-1 top-1 h-10 w-10 rounded-lg hover:bg-primary/10 text-primary"
                       onClick={() => setShowLoginPassword(!showLoginPassword)}
                     >
                       {showLoginPassword ? (
-                        <EyeOff className="h-4 w-4" />
+                        <EyeOff className="h-5 w-5" />
                       ) : (
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-5 w-5" />
                       )}
                     </Button>
                   </div>
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-primary hover:bg-green-700"
+                  className="w-full retro-green-gradient retro-button rounded-xl h-14 text-base font-bold text-white border-0 mt-8"
                   onClick={() => loginMutation.mutate()}
                   disabled={loginMutation.isPending}
                   data-testid="button-login"
@@ -146,17 +179,19 @@ export default function Auth() {
             </Card>
           </TabsContent>
           
-          <TabsContent value="register">
-            <Card>
-              <CardHeader>
-                <CardTitle>Registrati</CardTitle>
-                <CardDescription>
-                  Crea un nuovo account per iniziare a giocare
+          <TabsContent value="register" className="mt-0">
+            <Card className="retro-card border-0 rounded-3xl overflow-hidden">
+              <CardHeader className="pb-4 pt-8 px-8">
+                <CardTitle className="text-2xl font-bold text-center text-secondary">Iniziamo!</CardTitle>
+                <CardDescription className="text-center text-muted-foreground">
+                  Crea il tuo account per giocare
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="register-nickname">Nickname</Label>
+              <CardContent className="space-y-6 px-8 pb-8">
+                <div className="space-y-3">
+                  <Label htmlFor="register-nickname" className="text-sm font-semibold text-secondary">
+                    Nickname
+                  </Label>
                   <Input
                     id="register-nickname"
                     type="text"
@@ -164,10 +199,13 @@ export default function Auth() {
                     onChange={(e) => setRegisterData({ ...registerData, nickname: e.target.value })}
                     placeholder="Scegli un nickname"
                     data-testid="input-register-nickname"
+                    className="retro-input rounded-xl h-12 text-base border-0"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="register-password">Password</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="register-password" className="text-sm font-semibold text-secondary">
+                    Password
+                  </Label>
                   <div className="relative">
                     <Input
                       id="register-password"
@@ -176,26 +214,26 @@ export default function Auth() {
                       onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                       placeholder="Scegli una password"
                       data-testid="input-register-password"
-                      className="pr-10"
+                      className="retro-input rounded-xl h-12 text-base border-0 pr-12"
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      className="absolute right-1 top-1 h-10 w-10 rounded-lg hover:bg-secondary/10 text-secondary"
                       onClick={() => setShowRegisterPassword(!showRegisterPassword)}
                     >
                       {showRegisterPassword ? (
-                        <EyeOff className="h-4 w-4" />
+                        <EyeOff className="h-5 w-5" />
                       ) : (
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-5 w-5" />
                       )}
                     </Button>
                   </div>
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-secondary hover:bg-red-700"
+                  className="w-full retro-red-gradient retro-button rounded-xl h-14 text-base font-bold text-white border-0 mt-8"
                   onClick={() => registerMutation.mutate()}
                   disabled={registerMutation.isPending}
                   data-testid="button-register"
@@ -206,6 +244,15 @@ export default function Auth() {
             </Card>
           </TabsContent>
         </Tabs>
+        
+        {/* Footer decoration */}
+        <div className="text-center mt-8 opacity-60">
+          <div className="flex items-center justify-center space-x-2">
+            <div className="w-2 h-2 bg-primary rounded-full"></div>
+            <div className="w-2 h-2 bg-secondary rounded-full"></div>
+            <div className="w-2 h-2 bg-accent rounded-full"></div>
+          </div>
+        </div>
       </div>
     </div>
   );
