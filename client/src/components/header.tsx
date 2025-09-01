@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLocation } from "wouter";
-import logoImage from "@assets/Black & White illustrative  Sports football  club logo (1)_1756740778737.png";
+import logoImage from "@assets/logo.png";
 
 interface HeaderProps {
   user: {
