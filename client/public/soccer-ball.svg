@@ -1,11 +1,37 @@
 
 <svg width="500" height="500" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
-<circle cx="250" cy="250" r="240" fill="white" stroke="#2D7D47" stroke-width="10"/>
-<path d="M250 50C250 50 200 100 150 120C100 140 80 180 70 220C60 260 80 300 120 330C160 360 200 380 250 380C300 380 340 360 380 330C420 300 440 260 430 220C420 180 400 140 350 120C300 100 250 50 250 50Z" fill="#2D7D47"/>
-<path d="M150 120L120 180L180 200L220 150L170 110Z" fill="#2D7D47"/>
-<path d="M350 120L380 180L320 200L280 150L330 110Z" fill="#2D7D47"/>
-<path d="M180 200L120 260L160 320L220 300L200 240Z" fill="#2D7D47"/>
-<path d="M320 200L380 260L340 320L280 300L300 240Z" fill="#2D7D47"/>
-<path d="M200 240L220 300L280 300L300 240L250 220Z" fill="#2D7D47"/>
-<path d="M160 320L220 380L280 380L340 320L300 300L220 300Z" fill="#2D7D47"/>
+  <!-- Main circle with white background -->
+  <circle cx="250" cy="250" r="240" fill="white" stroke="#2D7D47" stroke-width="10"/>
+  
+  <!-- Pentagon in center -->
+  <polygon points="250,180 290,200 275,245 225,245 210,200" fill="#2D7D47"/>
+  
+  <!-- Top left pentagon -->
+  <polygon points="150,120 190,100 210,140 180,170 130,150" fill="#2D7D47"/>
+  
+  <!-- Top right pentagon -->
+  <polygon points="350,120 370,150 320,170 290,140 310,100" fill="#2D7D47"/>
+  
+  <!-- Bottom left pentagon -->
+  <polygon points="160,320 130,350 180,370 210,340 190,300" fill="#2D7D47"/>
+  
+  <!-- Bottom right pentagon -->
+  <polygon points="340,320 310,300 290,340 320,370 370,350" fill="#2D7D47"/>
+  
+  <!-- Bottom center pentagon -->
+  <polygon points="225,380 275,380 290,340 250,320 210,340" fill="#2D7D47"/>
+  
+  <!-- Additional connecting lines to create the classic soccer ball pattern -->
+  <path d="M210,200 L150,120" stroke="#2D7D47" stroke-width="3" fill="none"/>
+  <path d="M290,200 L350,120" stroke="#2D7D47" stroke-width="3" fill="none"/>
+  <path d="M225,245 L160,320" stroke="#2D7D47" stroke-width="3" fill="none"/>
+  <path d="M275,245 L340,320" stroke="#2D7D47" stroke-width="3" fill="none"/>
+  <path d="M225,245 L225,380" stroke="#2D7D47" stroke-width="3" fill="none"/>
+  <path d="M275,245 L275,380" stroke="#2D7D47" stroke-width="3" fill="none"/>
+  
+  <!-- Curved lines for 3D effect -->
+  <path d="M190,100 Q250,80 310,100" stroke="#2D7D47" stroke-width="2" fill="none"/>
+  <path d="M130,150 Q90,250 130,350" stroke="#2D7D47" stroke-width="2" fill="none"/>
+  <path d="M370,150 Q410,250 370,350" stroke="#2D7D47" stroke-width="2" fill="none"/>
+  <path d="M180,370 Q250,400 320,370" stroke="#2D7D47" stroke-width="2" fill="none"/>
 </svg>
