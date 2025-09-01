@@ -70,6 +70,10 @@ export default function Auth() {
                     src="/logo.png" 
                     alt="Soccer Ball Logo" 
                     className="w-20 h-20 object-contain"
+                    onError={(e) => {
+                      console.error('Logo failed to load');
+                      e.currentTarget.style.display = 'none';
+                    }}
                   />
                 </div>
               </div>

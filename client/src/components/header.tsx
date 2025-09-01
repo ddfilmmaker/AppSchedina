@@ -52,6 +52,10 @@ export default function Header({ user }: HeaderProps) {
               src="/logo.png" 
               alt="Soccer Ball Logo" 
               className="w-7 h-7 object-contain rounded-full"
+              onError={(e) => {
+                console.error('Header logo failed to load');
+                e.currentTarget.style.display = 'none';
+              }}
             />
           </div>
           <h1 className="text-white font-bold text-lg">La Schedina</h1>
