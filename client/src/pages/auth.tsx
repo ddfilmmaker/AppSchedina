@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff } from "lucide-react";
-import logoImage from "@assets/Black & White illustrative  Sports football  club logo (1)_1756740778737.png";
+import logoImage from "/logo.png";
 
 export default function Auth() {
   const [loginData, setLoginData] = useState({ nickname: "", password: "" });
@@ -239,14 +239,7 @@ export default function Auth() {
           </TabsContent>
         </Tabs>
         
-        {/* Footer decoration */}
-        <div className="text-center mt-8 opacity-60">
-          <div className="flex items-center justify-center space-x-2">
-            <div className="w-2 h-2 bg-primary rounded-full"></div>
-            <div className="w-2 h-2 bg-secondary rounded-full"></div>
-            <div className="w-2 h-2 bg-accent rounded-full"></div>
-          </div>
-        </div>
+        
       </div>
     </div>
   );
