@@ -1,0 +1,82 @@
+Create Coppa Italia predictions as a standalone feature, scoped per League, mobile-first.
+Do not modify or remove any other pages, routes, components, styles, DB tables, or logic. Only add what’s listed below.
+
+Where
+
+Add a small link/card on the League page: “Coppa Italia”.
+
+Route (Wouter): /leagues/:leagueId/coppa-italia-predictions
+
+Use <Link href="..."> (not to / not <a>).
+
+Page UI (mobile)
+
+Title: “Coppa Italia”.
+
+One dropdown: “Vincitrice finale” with Serie A 2025/26 clubs (exact list):
+
+Milan, Atalanta, Bologna, Cagliari, Como, Cremonese, Fiorentina, Genoa, Inter, Juventus, Lazio, Lecce, Napoli, Parma, Pisa, Roma, Sassuolo, Torino, Udinese, Verona.
+
+Button: “Salva”.
+
+Simple “Indietro” link back to the League page.
+
+Visibility & lock rules
+
+Admin can set/edit a deadline (lockAt) and force lock.
+
+Before lock:
+
+Each participant can view/edit only their pick.
+
+After lock:
+
+Picks are read-only and participants can see all other participants’ picks.
+
+Admin can set the risultato ufficiale (vincitrice).
+
+Scoring (added to the league’s general leaderboard when official result is confirmed):
+
+Vincitrice corretta → +5.
+
+API (add only these endpoints)
+
+GET /api/extras/coppa/:leagueId
+
+Returns: current user’s pick (if any), lockAt/isLocked, official winner (if set).
+
+After lock: also include all participants’ picks.
+
+POST /api/extras/coppa
+
+Body: { leagueId, winner } — upsert per (leagueId, userId); allowed only before lock.
+
+POST /api/extras/coppa/lock
+
+Body: { leagueId, lockAt? } — admin set/update deadline; allow force lock.
+
+POST /api/extras/coppa/results
+
+Body: { leagueId, officialWinner } — admin-only; on confirm, award +5 to users who picked correctly.
+
+DB (add minimal tables only; do not change existing ones)
+
+coppa_bet: id, league_id, user_id, winner text, updated_at
+
+Unique (league_id, user_id).
+
+coppa_settings: league_id (PK), lock_at datetime, locked boolean, official_winner text, results_confirmed_at datetime.
+
+Acceptance
+
+From a League page I can open Coppa Italia.
+
+Before lock I can select Vincitrice finale and save; reload shows my saved value.
+
+After lock I see all participants’ picks (read-only).
+
+Admin can set/edit deadline, lock, then set official winner; points (+5) are added to the general leaderboard on confirm.
+
+No other part of the app changes (Pre-Season and Supercoppa remain exactly as they are; league/matchday/picks/leaderboard unaffected).
+
+Build passes with no import/route/type errors.
