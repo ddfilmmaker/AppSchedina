@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
@@ -21,7 +20,7 @@ export default function CreateLeague() {
     queryKey: ["/api/auth/me"],
     retry: false
   });
-  
+
   const user = (authData as any)?.user;
 
   // Redirect to auth if not logged in
@@ -72,7 +71,7 @@ export default function CreateLeague() {
           <div className="absolute bottom-20 right-10 w-40 h-40 retro-red-gradient rounded-full opacity-10 blur-3xl"></div>
           <div className="absolute top-1/2 left-1/4 w-24 h-24 retro-green-gradient rounded-full opacity-10 blur-2xl"></div>
         </div>
-        
+
         <div className="w-full max-w-sm relative z-10">
           <div className="animate-pulse space-y-6">
             <div className="h-32 bg-gray-200 rounded-3xl"></div>
@@ -137,7 +136,7 @@ export default function CreateLeague() {
                   data-testid="input-league-name"
                 />
               </div>
-              
+
               <Button
                 type="submit"
                 className="w-full retro-green-gradient retro-button rounded-xl h-14 text-base font-bold text-white border-0 mt-8"
