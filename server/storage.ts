@@ -986,7 +986,7 @@ export class MemStorage implements IStorage {
 
   // Store supercoppa points separately to integrate with leaderboard
   private supercoppaPoints: Map<string, number> = new Map(); // Key: `${leagueId}-${userId}`
-  
+
   // Store coppa points separately to integrate with leaderboard
   private coppaPoints: Map<string, number> = new Map(); // Key: `${leagueId}-${userId}`
 
@@ -1163,7 +1163,7 @@ export class MemStorage implements IStorage {
     }
   }
 
-  async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number; supercoppaPoints?: number }[]> {
+  async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number; supercoppaPoints?: number }[] {
     const members = await this.getLeagueMembers(leagueId);
     const matchdays = await this.getLeagueMatchdays(leagueId);
 
