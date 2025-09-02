@@ -159,7 +159,7 @@ export default function League() {
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-4">
           <Link href={`/leaderboard/${leagueId}`}>
-            <Button className="w-full retro-red-gradient retro-button rounded-2xl p-4 flex flex-col items-center space-y-2 text-white border-0 shadow-lg h-auto font-bold" data-testid="button-view-leaderboard">
+            <Button className="w-full bg-gradient-to-r from-yellow-400 to-yellow-600 retro-button rounded-2xl p-4 flex flex-col items-center space-y-2 text-white border-0 shadow-lg h-auto font-bold" data-testid="button-view-leaderboard">
               <Trophy className="w-6 h-6" />
               <span className="text-sm font-medium">Classifica</span>
             </Button>
