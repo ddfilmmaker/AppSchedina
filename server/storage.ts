@@ -1210,7 +1210,8 @@ export class MemStorage implements IStorage {
         points: totalPoints,
         correctPicks,
         preseasonPoints: preseasonPoints > 0 ? preseasonPoints : undefined,
-        supercoppaPoints: supercoppaPoints > 0 ? supercoppaPoints : undefined
+        supercoppaPoints: supercoppaPoints > 0 ? supercoppaPoints : undefined,
+        coppaPoints: coppaPoints > 0 ? coppaPoints : undefined
       };
     });
 
