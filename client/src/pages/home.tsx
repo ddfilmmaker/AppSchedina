@@ -149,7 +149,7 @@ export default function Home() {
             <CardContent className="p-6 text-center">
               <Users className="w-12 h-12 text-primary/50 mx-auto mb-4" />
               <p className="text-primary/70 mb-4 font-medium">Non sei ancora in nessuna lega</p>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <Link href="/create-league">
                   <Button className="w-full retro-green-gradient retro-button rounded-xl h-12 text-white border-0 font-bold" data-testid="button-create-first-league">
                     Crea la tua prima lega
