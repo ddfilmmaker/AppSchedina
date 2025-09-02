@@ -284,11 +284,12 @@ export class MemStorage implements IStorage {
       const memberCount = Array.from(this.leagueMembers.values())
         .filter(m => m.leagueId === membership.leagueId).length;
 
+      // Force fresh calculation of leaderboard to ensure latest points are included
       const leaderboard = await this.getLeagueLeaderboard(membership.leagueId);
       const userEntry = leaderboard.find(entry => entry.user.id === userId);
       const userPosition = leaderboard.findIndex(entry => entry.user.id === userId) + 1;
 
-      console.log(`getUserLeagues for user ${userId} in league ${membership.leagueId}: userEntry points = ${userEntry?.points || 0}`);
+      console.log(`getUserLeagues FRESH for user ${userId} in league ${membership.leagueId}: userEntry points = ${userEntry?.points || 0}, total leaderboard:`, leaderboard.map(e => `${e.user.nickname}: ${e.points}`));
 
       result.push({
         ...league,

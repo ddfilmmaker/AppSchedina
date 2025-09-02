@@ -228,6 +228,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     const leaderboard = await storage.getLeagueLeaderboard(league.id);
+    console.log(`API leaderboard response for league ${league.id}:`, leaderboard.map(e => `${e.user.nickname}: ${e.points} points`));
     res.json(leaderboard);
   });
 
