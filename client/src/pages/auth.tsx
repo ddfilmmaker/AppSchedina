@@ -91,7 +91,7 @@ export default function Auth() {
 
         {/* Modern tabs with retro colors */}
         <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 rounded-2xl p-1 mb-6 border-0 bg-transparent">
+          <TabsList className="grid w-full grid-cols-2 gap-3 rounded-2xl p-1 mb-6 border-0 bg-transparent">
             <TabsTrigger 
               value="login" 
               data-testid="tab-login"
