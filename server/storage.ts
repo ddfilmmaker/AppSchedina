@@ -285,6 +285,10 @@ export class MemStorage implements IStorage {
         .filter(m => m.leagueId === membership.leagueId).length;
 
       // Force fresh calculation of leaderboard to ensure latest points are included
+      await this.computePreseasonPoints(membership.leagueId);
+      await this.computeSupercoppaPoints(membership.leagueId);
+      await this.computeCoppaPoints(membership.leagueId);
+      
       const leaderboard = await this.getLeagueLeaderboard(membership.leagueId);
       const userEntry = leaderboard.find(entry => entry.user.id === userId);
       const userPosition = leaderboard.findIndex(entry => entry.user.id === userId) + 1;
@@ -848,7 +852,7 @@ export class MemStorage implements IStorage {
     for (const bet of allBets) {
       let points = 0;
 
-      if (bet.predictions.winner === results.winnerOfficial) points += 5;
+      if (bet.predictions.winner === results.winnerOfficial) points += 10;
       if (bet.predictions.lastPlace === results.bottomOfficial) points += 5;
       if (bet.predictions.topScorer === results.topScorerOfficial) points += 5;
 
