@@ -288,6 +288,8 @@ export class MemStorage implements IStorage {
       const userEntry = leaderboard.find(entry => entry.user.id === userId);
       const userPosition = leaderboard.findIndex(entry => entry.user.id === userId) + 1;
 
+      console.log(`getUserLeagues for user ${userId} in league ${membership.leagueId}: userEntry points = ${userEntry?.points || 0}`);
+
       result.push({
         ...league,
         memberCount,

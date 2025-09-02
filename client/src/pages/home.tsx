@@ -39,7 +39,11 @@ export default function Home() {
   }
 
   const totalPoints = leaguesArray?.reduce((sum: number, league: any) => sum + (league.userPoints || 0), 0) || 0;
-  const totalCorrectPicks = Math.floor(totalPoints * 0.8); // Approximation
+  const totalCorrectPicks = leaguesArray?.reduce((sum: number, league: any) => {
+    // Get the actual correct picks count from the league object if available
+    const userEntry = league.leaderboard?.find((entry: any) => entry.user.id === user?.id);
+    return sum + (userEntry?.correctPicks || 0);
+  }, 0) || 0;
 
   return (
     <div className="min-h-screen paper-texture">
