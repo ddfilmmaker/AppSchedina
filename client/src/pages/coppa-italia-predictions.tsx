@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, Link } from "wouter";
@@ -6,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Trophy, Calendar, Clock, Users } from "lucide-react";
+import { ArrowLeft, Trophy, Calendar, Clock, Users, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -199,215 +200,239 @@ export default function CoppaItaliaPredictions() {
 
   if (isLoading) {
     return (
-      <div className="max-w-md mx-auto px-4 py-6">
-        <div className="animate-pulse space-y-6">
-          <div className="h-6 bg-gray-200 rounded"></div>
-          <div className="h-32 bg-gray-200 rounded-lg"></div>
+      <div className="min-h-screen paper-texture flex items-center justify-center px-4 py-8">
+        {/* Background decorative elements */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-10 left-10 w-32 h-32 totocalcio-gradient rounded-full opacity-10 blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-40 h-40 retro-red-gradient rounded-full opacity-10 blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/4 w-24 h-24 retro-green-gradient rounded-full opacity-10 blur-2xl"></div>
+        </div>
+        
+        <div className="w-full max-w-sm relative z-10">
+          <div className="animate-pulse space-y-6">
+            <div className="h-32 bg-gray-200 rounded-3xl"></div>
+            <div className="h-32 bg-gray-200 rounded-3xl"></div>
+            <div className="h-20 bg-gray-200 rounded-2xl"></div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center mb-6">
-        <Link href={`/league/${leagueId}`}>
-          <Button variant="ghost" size="icon" className="mr-3">
-            <ArrowLeft className="w-6 h-6" />
-          </Button>
-        </Link>
-        <h1 className="text-xl font-bold text-gray-900">Coppa Italia</h1>
+    <div className="min-h-screen paper-texture">
+      {/* Background decorative elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-10 left-10 w-32 h-32 totocalcio-gradient rounded-full opacity-10 blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-40 h-40 retro-red-gradient rounded-full opacity-10 blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/4 w-24 h-24 retro-green-gradient rounded-full opacity-10 blur-2xl"></div>
       </div>
-
-      {/* Status Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <Trophy className="w-5 h-5" />
-              Stato
-            </span>
-            <Badge variant={isLocked ? "destructive" : "default"}>
-              {isLocked ? "Bloccato" : "Aperto"}
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {settings?.lockAt && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Scadenza:
-              </span>
-              <span className="text-sm font-medium">
-                {formatDateTime(settings.lockAt)}
-              </span>
-            </div>
-          )}
-          {settings?.resultsConfirmedAt && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Risultato confermato:</span>
-              <span className="text-sm font-medium text-green-600">
-                {settings.officialWinner}
-              </span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* User Predictions */}
-      {!isLocked && (
-        <Card>
-          <CardHeader>
-            <CardTitle>I tuoi pronostici</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Vincitrice finale
-              </label>
-              <Select value={winner} onValueChange={setWinner}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleziona una squadra" />
-                </SelectTrigger>
-                <SelectContent>
-                  {SERIE_A_TEAMS.map((team) => (
-                    <SelectItem key={team} value={team}>
-                      {team}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button 
-              onClick={handleSave} 
-              className="w-full" 
-              disabled={saveMutation.isPending}
-            >
-              {saveMutation.isPending ? "Salvando..." : "Salva"}
+      
+      <div className="max-w-sm mx-auto px-4 py-8 space-y-6 relative z-10">
+        {/* Header */}
+        <div className="flex items-center">
+          <Link href={`/league/${leagueId}`}>
+            <Button variant="ghost" size="icon" className="mr-3 text-primary hover:bg-primary/10 rounded-xl">
+              <ArrowLeft className="w-6 h-6" />
             </Button>
-          </CardContent>
-        </Card>
-      )}
+          </Link>
+          <h1 className="text-xl font-bold text-primary retro-title">Coppa Italia</h1>
+        </div>
 
-      {/* All Predictions (visible after lock) */}
-      {isLocked && allBets.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Pronostici di tutti ({allBets.length})
+        {/* Status Card */}
+        <Card className="retro-card border-0 rounded-3xl overflow-hidden">
+          <CardHeader className="pb-4 pt-6 px-6">
+            <CardTitle className="text-primary retro-title flex items-center justify-between">
+              <span className="flex items-center space-x-2">
+                <Trophy className="w-5 h-5" />
+                <span>Stato</span>
+              </span>
+              <Badge 
+                variant={isLocked ? "destructive" : "default"}
+                className={`${isLocked ? 'bg-red-500' : 'bg-green-500'} text-white font-bold rounded-full px-3 py-1`}
+              >
+                {isLocked ? "Bloccato" : "Aperto"}
+              </Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {allBets.map((bet: any) => (
-                <div key={bet.userId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-semibold">
-                        {bet.userNickname.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <span className="font-medium">{bet.userNickname}</span>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-medium">{bet.predictions.winner}</div>
-                    {settings?.officialWinner && (
-                      <div className="text-sm">
-                        {bet.predictions.winner === settings.officialWinner ? (
-                          <span className="text-green-600 font-medium">+5 punti</span>
-                        ) : (
-                          <span className="text-gray-500">0 punti</span>
-                        )}
+          <CardContent className="space-y-4 px-6 pb-6">
+            {settings?.lockAt && (
+              <div className="flex items-center justify-between p-3 bg-primary/5 rounded-xl">
+                <span className="text-primary font-medium flex items-center space-x-2">
+                  <Clock className="w-4 h-4" />
+                  <span>Scadenza:</span>
+                </span>
+                <span className="text-primary font-bold text-sm">
+                  {formatDateTime(settings.lockAt)}
+                </span>
+              </div>
+            )}
+            {settings?.resultsConfirmedAt && (
+              <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl">
+                <span className="text-primary font-medium">Risultato confermato:</span>
+                <span className="text-green-600 font-bold">
+                  {settings.officialWinner}
+                </span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* User Predictions Form */}
+        {!isLocked && (
+          <Card className="retro-card border-0 rounded-3xl overflow-hidden">
+            <CardHeader className="pb-4 pt-6 px-6">
+              <CardTitle className="text-primary retro-title flex items-center space-x-2">
+                <Star className="w-5 h-5" />
+                <span>I Tuoi Pronostici</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5 px-6 pb-6">
+              <div>
+                <label className="block text-primary font-medium mb-3">
+                  Vincitrice finale
+                </label>
+                <Select value={winner} onValueChange={setWinner} disabled={!true}>
+                  <SelectTrigger className="rounded-xl border-2 border-gray-200 focus:border-primary h-12 bg-white">
+                    <SelectValue placeholder="Seleziona una squadra" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-2">
+                    {SERIE_A_TEAMS.map((team) => (
+                      <SelectItem key={team} value={team} className="rounded-lg">
+                        {team}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button 
+                onClick={handleSave} 
+                className="w-full retro-green-gradient retro-button rounded-xl h-12 text-white border-0 font-bold shadow-lg"
+                disabled={saveMutation.isPending}
+              >
+                {saveMutation.isPending ? "Salvando..." : "Salva Pronostico"}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* All Predictions (visible after lock) */}
+        {isLocked && allBets.length > 0 && (
+          <Card className="retro-card border-0 rounded-3xl overflow-hidden">
+            <CardHeader className="pb-4 pt-6 px-6">
+              <CardTitle className="text-primary retro-title flex items-center space-x-2">
+                <Users className="w-5 h-5" />
+                <span>Pronostici di tutti ({allBets.length})</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-6 pb-6">
+              <div className="space-y-3">
+                {allBets.map((bet: any) => (
+                  <div key={bet.userId} className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 totocalcio-gradient rounded-full flex items-center justify-center shadow-md">
+                        <span className="text-white text-sm font-bold">
+                          {bet.userNickname.charAt(0).toUpperCase()}
+                        </span>
                       </div>
-                    )}
+                      <span className="font-bold text-primary">{bet.userNickname}</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-primary">{bet.predictions.winner}</div>
+                      {settings?.officialWinner && (
+                        <div className="text-sm font-medium">
+                          {bet.predictions.winner === settings.officialWinner ? (
+                            <span className="text-green-600 font-bold">+5 punti</span>
+                          ) : (
+                            <span className="text-primary/70">0 punti</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-      {/* Admin Section */}
-      {isAdmin && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              Impostazioni Admin
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {!isLocked && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Scadenza pronostici
-                  </label>
-                  <Input
-                    type="datetime-local"
-                    value={lockAt}
-                    onChange={(e) => setLockAt(e.target.value)}
-                  />
-                </div>
+        {/* Admin Section */}
+        {isAdmin && (
+          <Card className="retro-card border-0 rounded-3xl overflow-hidden">
+            <CardHeader className="pb-4 pt-6 px-6">
+              <CardTitle className="text-primary retro-title flex items-center space-x-2">
+                <Calendar className="w-5 h-5" />
+                <span>Impostazioni Admin</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5 px-6 pb-6">
+              {!isLocked && (
+                <>
+                  <div>
+                    <label className="block text-primary font-medium mb-3">
+                      Scadenza pronostici
+                    </label>
+                    <Input
+                      type="datetime-local"
+                      value={lockAt}
+                      onChange={(e) => setLockAt(e.target.value)}
+                      className="rounded-xl border-2 border-gray-200 focus:border-primary h-12 bg-white"
+                    />
+                  </div>
 
-                <div className="flex gap-2">
+                  <div className="flex gap-3">
+                    <Button 
+                      onClick={() => saveDeadlineMutation.mutate()} 
+                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white rounded-xl h-12 font-bold border-0 shadow-lg"
+                      disabled={saveDeadlineMutation.isPending}
+                    >
+                      {saveDeadlineMutation.isPending ? "Salvando..." : "Aggiorna scadenza"}
+                    </Button>
+                    <Button 
+                      onClick={() => forceLockMutation.mutate()}
+                      className="flex-1 retro-red-gradient retro-button rounded-xl h-12 text-white border-0 font-bold shadow-lg"
+                      disabled={forceLockMutation.isPending}
+                    >
+                      {forceLockMutation.isPending ? "Bloccando..." : "Blocca ora"}
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              {isLocked && (
+                <>
+                  <div>
+                    <label className="block text-primary font-medium mb-3">
+                      Vincitrice ufficiale
+                    </label>
+                    <Select value={officialWinner} onValueChange={setOfficialWinner}>
+                      <SelectTrigger className="rounded-xl border-2 border-gray-200 focus:border-primary h-12 bg-white">
+                        <SelectValue placeholder="Seleziona la vincitrice" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-2">
+                        {SERIE_A_TEAMS.map((team) => (
+                          <SelectItem key={team} value={team} className="rounded-lg">
+                            {team}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <Button 
-                    onClick={() => saveDeadlineMutation.mutate()} 
-                    variant="outline"
-                    disabled={saveDeadlineMutation.isPending}
-                    className="flex-1"
+                    onClick={handleSaveResults}
+                    className="w-full retro-green-gradient retro-button rounded-xl h-12 text-white border-0 font-bold shadow-lg"
+                    disabled={saveResultsMutation.isPending}
                   >
-                    {saveDeadlineMutation.isPending ? "Salvando..." : "Aggiorna scadenza"}
+                    {saveResultsMutation.isPending ? "Confermando..." : "Conferma Risultato"}
                   </Button>
-                  <Button 
-                    onClick={() => forceLockMutation.mutate()}
-                    variant="destructive"
-                    disabled={forceLockMutation.isPending}
-                    className="flex-1"
-                  >
-                    {forceLockMutation.isPending ? "Bloccando..." : "Blocca ora"}
-                  </Button>
-                </div>
-              </>
-            )}
-
-            {isLocked && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Vincitrice ufficiale
-                  </label>
-                  <Select value={officialWinner} onValueChange={setOfficialWinner}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleziona la vincitrice" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SERIE_A_TEAMS.map((team) => (
-                        <SelectItem key={team} value={team}>
-                          {team}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <Button 
-                  onClick={handleSaveResults}
-                  className="w-full"
-                  disabled={saveResultsMutation.isPending}
-                >
-                  {saveResultsMutation.isPending ? "Confermando..." : "Conferma risultato"}
-                </Button>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      )}
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
