@@ -164,7 +164,7 @@ export interface IStorage {
   computeCoppaPoints(leagueId: string): Promise<void>;
 
   // Leaderboard
-  getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number; supercoppaPoints?: number }[]>;
+  getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number; supercoppaPoints?: number; coppaPoints?: number }[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -1163,7 +1163,7 @@ export class MemStorage implements IStorage {
     }
   }
 
-  async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number; supercoppaPoints?: number }[] {
+  async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number; supercoppaPoints?: number; coppaPoints?: number }[]> {
     const members = await this.getLeagueMembers(leagueId);
     const matchdays = await this.getLeagueMatchdays(leagueId);
 
