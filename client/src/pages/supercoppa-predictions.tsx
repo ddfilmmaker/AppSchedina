@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -222,13 +223,22 @@ export default function SupercoppaPredictions() {
 
   if (isLoading) {
     return (
-      <div className="max-w-md mx-auto px-4 py-6">
-        <div className="animate-pulse space-y-6">
-          <div className="h-6 bg-gray-200 rounded"></div>
-          <div className="h-32 bg-gray-200 rounded-lg"></div>
-          <div className="space-y-3">
-            <div className="h-20 bg-gray-200 rounded-lg"></div>
-            <div className="h-20 bg-gray-200 rounded-lg"></div>
+      <div className="min-h-screen paper-texture flex items-center justify-center px-4 py-8">
+        {/* Background decorative elements */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-10 left-10 w-32 h-32 totocalcio-gradient rounded-full opacity-10 blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-40 h-40 retro-red-gradient rounded-full opacity-10 blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/4 w-24 h-24 retro-green-gradient rounded-full opacity-10 blur-2xl"></div>
+        </div>
+        
+        <div className="w-full max-w-sm relative z-10">
+          <div className="animate-pulse space-y-6">
+            <div className="h-6 bg-gray-200 rounded"></div>
+            <div className="h-32 bg-gray-200 rounded-3xl"></div>
+            <div className="space-y-3">
+              <div className="h-20 bg-gray-200 rounded-2xl"></div>
+              <div className="h-20 bg-gray-200 rounded-2xl"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -236,253 +246,287 @@ export default function SupercoppaPredictions() {
   }
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6 space-y-6">
-      <div className="flex items-center mb-6">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="mr-3"
-          onClick={() => setLocation(`/league/${leagueId}`)}
-        >
-          <ArrowLeft className="w-6 h-6" />
-        </Button>
-        <h1 className="text-xl font-bold text-gray-900">Supercoppa Italiana</h1>
+    <div className="min-h-screen paper-texture">
+      {/* Background decorative elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-10 left-10 w-32 h-32 totocalcio-gradient rounded-full opacity-10 blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-40 h-40 retro-red-gradient rounded-full opacity-10 blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/4 w-24 h-24 retro-green-gradient rounded-full opacity-10 blur-2xl"></div>
       </div>
 
-      {/* Status Card */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center space-x-2 mb-2">
-            {isLocked ? (
-              <Lock className="w-4 h-4 text-red-500" />
-            ) : (
-              <Calendar className="w-4 h-4 text-green-500" />
-            )}
-            <span className={`font-medium ${isLocked ? 'text-red-600' : 'text-green-600'}`}>
-              {isLocked ? 'Bloccato' : 'Aperto'}
-            </span>
-          </div>
-          {settings?.lockAt && (
-            <p className="text-sm text-gray-500">
-              {isLocked ? 'Bloccato il' : 'Scadenza:'} {formatDateTime(settings.lockAt)}
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      <div className="max-w-sm mx-auto px-4 py-8 space-y-6 relative z-10">
+        {/* Header */}
+        <div className="flex items-center mb-6">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="mr-3 text-primary hover:bg-primary/10 rounded-xl"
+            onClick={() => setLocation(`/league/${leagueId}`)}
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </Button>
+          <h1 className="text-xl font-bold text-primary retro-title">Supercoppa Italiana</h1>
+        </div>
 
-      {/* User Predictions Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle>I Tuoi Pronostici</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="finalist1">Finalista da Semifinale 1 (Napoli vs Milan)</Label>
-            <Select value={finalist1} onValueChange={setFinalist1} disabled={!canEdit}>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleziona finalista" />
-              </SelectTrigger>
-              <SelectContent>
-                {SEMIFINALE_1_TEAMS.map((team) => (
-                  <SelectItem key={team} value={team}>{team}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="finalist2">Finalista da Semifinale 2 (Bologna vs Inter)</Label>
-            <Select value={finalist2} onValueChange={setFinalist2} disabled={!canEdit}>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleziona finalista" />
-              </SelectTrigger>
-              <SelectContent>
-                {SEMIFINALE_2_TEAMS.map((team) => (
-                  <SelectItem key={team} value={team}>{team}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="winner">Vincitore</Label>
-            <Select value={winner} onValueChange={setWinner} disabled={!canEdit}>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleziona vincitore" />
-              </SelectTrigger>
-              <SelectContent>
-                {getWinnerOptions().map((team) => (
-                  <SelectItem key={team} value={team}>{team}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {canEdit && (
-            <div className="flex space-x-2 pt-4">
-              <Button
-                onClick={handleSave}
-                disabled={saveMutation.isPending}
-                className="flex-1"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                {saveMutation.isPending ? "Salvando..." : "Salva"}
-              </Button>
+        {/* Status Card */}
+        <Card className="retro-card border-0 rounded-3xl overflow-hidden">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3 mb-3">
+              {isLocked ? (
+                <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+                  <Lock className="w-5 h-5 text-red-600" />
+                </div>
+              ) : (
+                <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-green-600" />
+                </div>
+              )}
+              <div>
+                <span className={`font-bold ${isLocked ? 'text-red-600' : 'text-green-600'}`}>
+                  {isLocked ? 'Bloccato' : 'Aperto'}
+                </span>
+                {settings?.lockAt && (
+                  <p className="text-sm text-primary/70 font-medium">
+                    {isLocked ? 'Bloccato il' : 'Scadenza:'} {formatDateTime(settings.lockAt)}
+                  </p>
+                )}
+              </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Admin Controls */}
-      {isAdmin && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Controlli Admin</CardTitle>
+        {/* User Predictions Form */}
+        <Card className="retro-card border-0 rounded-3xl overflow-hidden">
+          <CardHeader className="pb-4 pt-8 px-8">
+            <CardTitle className="text-lg font-bold text-primary retro-title">I Tuoi Pronostici</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {!isLocked && (
-              <>
-                <div>
-                  <Label htmlFor="lockAt">Scadenza</Label>
-                  <Input
-                    id="lockAt"
-                    type="datetime-local"
-                    value={lockAt}
-                    onChange={(e) => setLockAt(e.target.value)}
-                  />
-                </div>
-                <div className="flex space-x-2">
-                  <Button
-                    onClick={() => saveDeadlineMutation.mutate()}
-                    disabled={saveDeadlineMutation.isPending}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    {saveDeadlineMutation.isPending ? "Salvando..." : "Salva scadenza"}
-                  </Button>
-                  <Button
-                    onClick={() => lockNowMutation.mutate()}
-                    disabled={lockNowMutation.isPending}
-                    variant="destructive"
-                    className="flex-1"
-                  >
-                    <Lock className="w-4 h-4 mr-2" />
-                    {lockNowMutation.isPending ? "Bloccando..." : "Chiudi ora"}
-                  </Button>
-                </div>
-              </>
-            )}
+          <CardContent className="p-8 pt-0 space-y-6">
+            <div>
+              <Label className="text-primary font-bold mb-2 block" htmlFor="finalist1">
+                Finalista da Semifinale 1 (Napoli vs Milan)
+              </Label>
+              <Select value={finalist1} onValueChange={setFinalist1} disabled={!canEdit}>
+                <SelectTrigger className="rounded-xl border-2 border-primary/20 h-12 font-medium">
+                  <SelectValue placeholder="Seleziona finalista" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-2">
+                  {SEMIFINALE_1_TEAMS.map((team) => (
+                    <SelectItem key={team} value={team} className="font-medium">{team}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            {isLocked && !settings?.resultsConfirmedAt && (
-              <>
-                <h4 className="font-semibold text-gray-900">Risultati Ufficiali</h4>
-                <div>
-                  <Label htmlFor="officialFinalist1">Finalista 1</Label>
-                  <Select value={officialFinalist1} onValueChange={setOfficialFinalist1}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleziona finalista 1" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SEMIFINALE_1_TEAMS.map((team) => (
-                        <SelectItem key={team} value={team}>{team}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div>
+              <Label className="text-primary font-bold mb-2 block" htmlFor="finalist2">
+                Finalista da Semifinale 2 (Bologna vs Inter)
+              </Label>
+              <Select value={finalist2} onValueChange={setFinalist2} disabled={!canEdit}>
+                <SelectTrigger className="rounded-xl border-2 border-primary/20 h-12 font-medium">
+                  <SelectValue placeholder="Seleziona finalista" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-2">
+                  {SEMIFINALE_2_TEAMS.map((team) => (
+                    <SelectItem key={team} value={team} className="font-medium">{team}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-                <div>
-                  <Label htmlFor="officialFinalist2">Finalista 2</Label>
-                  <Select value={officialFinalist2} onValueChange={setOfficialFinalist2}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleziona finalista 2" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SEMIFINALE_2_TEAMS.map((team) => (
-                        <SelectItem key={team} value={team}>{team}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div>
+              <Label className="text-primary font-bold mb-2 block" htmlFor="winner">
+                Vincitore
+              </Label>
+              <Select value={winner} onValueChange={setWinner} disabled={!canEdit}>
+                <SelectTrigger className="rounded-xl border-2 border-primary/20 h-12 font-medium">
+                  <SelectValue placeholder="Seleziona vincitore" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-2">
+                  {getWinnerOptions().map((team) => (
+                    <SelectItem key={team} value={team} className="font-medium">{team}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-                <div>
-                  <Label htmlFor="officialWinner">Vincitore Ufficiale</Label>
-                  <Select value={officialWinner} onValueChange={setOfficialWinner}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleziona vincitore" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[officialFinalist1, officialFinalist2].filter(Boolean).map((team) => (
-                        <SelectItem key={team} value={team}>{team}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
+            {canEdit && (
+              <div className="pt-4">
                 <Button
-                  onClick={handleSaveResults}
-                  disabled={saveResultsMutation.isPending}
-                  className="w-full"
+                  onClick={handleSave}
+                  disabled={saveMutation.isPending}
+                  className="w-full retro-green-gradient retro-button rounded-xl h-12 text-white border-0 font-bold"
                 >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  {saveResultsMutation.isPending ? "Confermando..." : "Conferma risultati"}
+                  <Save className="w-4 h-4 mr-2" />
+                  {saveMutation.isPending ? "Salvando..." : "Salva"}
                 </Button>
-              </>
-            )}
-
-            {settings?.resultsConfirmedAt && (
-              <div className="p-3 bg-green-50 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="font-medium text-green-800">Risultati confermati</span>
-                </div>
-                <p className="text-sm text-green-600 mt-1">
-                  {formatDateTime(settings.resultsConfirmedAt)}
-                </p>
               </div>
             )}
           </CardContent>
         </Card>
-      )}
 
-      {/* All Predictions (visible after lock or deadline passed) */}
-      {shouldShowAllBets && allBets && allBets.length > 0 && (
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <h3 className="text-lg font-semibold mb-4 flex items-center space-x-2">
-              <Users className="w-5 h-5" />
-              <span>Tutti i pronostici</span>
-            </h3>
-            <div className="space-y-3">
-              {allBets.map((bet: any) => (
-                <div key={bet.userId} className="bg-gray-50 p-3 rounded-lg">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="font-medium text-sm">{bet.userNickname}</div>
-                    {bet.points > 0 && settings?.resultsConfirmedAt && (
-                      <div className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">
-                        {bet.points} pt
-                      </div>
-                    )}
+        {/* Admin Controls */}
+        {isAdmin && (
+          <Card className="retro-card border-0 rounded-3xl overflow-hidden">
+            <CardHeader className="pb-4 pt-8 px-8">
+              <CardTitle className="text-lg font-bold text-primary retro-title">Controlli Admin</CardTitle>
+            </CardHeader>
+            <CardContent className="p-8 pt-0 space-y-6">
+              {!isLocked && (
+                <>
+                  <div>
+                    <Label className="text-primary font-bold mb-2 block" htmlFor="lockAt">
+                      Scadenza
+                    </Label>
+                    <Input
+                      id="lockAt"
+                      type="datetime-local"
+                      value={lockAt}
+                      onChange={(e) => setLockAt(e.target.value)}
+                      className="rounded-xl border-2 border-primary/20 h-12 font-medium"
+                    />
                   </div>
-                  <div className="text-sm text-gray-600">
-                    <div>Finalista 1: {bet.predictions.finalist1}</div>
-                    <div>Finalista 2: {bet.predictions.finalist2}</div>
-                    <div>Vincitore: {bet.predictions.winner}</div>
+                  <div className="flex space-x-3">
+                    <Button
+                      onClick={() => saveDeadlineMutation.mutate()}
+                      disabled={saveDeadlineMutation.isPending}
+                      variant="outline"
+                      className="flex-1 rounded-xl h-12 border-2 border-primary/20 text-primary font-bold hover:bg-primary/10"
+                    >
+                      {saveDeadlineMutation.isPending ? "Salvando..." : "Salva scadenza"}
+                    </Button>
+                    <Button
+                      onClick={() => lockNowMutation.mutate()}
+                      disabled={lockNowMutation.isPending}
+                      className="flex-1 retro-red-gradient retro-button rounded-xl h-12 text-white border-0 font-bold"
+                    >
+                      <Lock className="w-4 h-4 mr-2" />
+                      {lockNowMutation.isPending ? "Bloccando..." : "Chiudi ora"}
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              {isLocked && !settings?.resultsConfirmedAt && (
+                <>
+                  <h4 className="font-bold text-primary">Risultati Ufficiali</h4>
+                  <div>
+                    <Label className="text-primary font-bold mb-2 block" htmlFor="officialFinalist1">
+                      Finalista 1
+                    </Label>
+                    <Select value={officialFinalist1} onValueChange={setOfficialFinalist1}>
+                      <SelectTrigger className="rounded-xl border-2 border-primary/20 h-12 font-medium">
+                        <SelectValue placeholder="Seleziona finalista 1" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-2">
+                        {SEMIFINALE_1_TEAMS.map((team) => (
+                          <SelectItem key={team} value={team} className="font-medium">{team}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label className="text-primary font-bold mb-2 block" htmlFor="officialFinalist2">
+                      Finalista 2
+                    </Label>
+                    <Select value={officialFinalist2} onValueChange={setOfficialFinalist2}>
+                      <SelectTrigger className="rounded-xl border-2 border-primary/20 h-12 font-medium">
+                        <SelectValue placeholder="Seleziona finalista 2" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-2">
+                        {SEMIFINALE_2_TEAMS.map((team) => (
+                          <SelectItem key={team} value={team} className="font-medium">{team}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label className="text-primary font-bold mb-2 block" htmlFor="officialWinner">
+                      Vincitore Ufficiale
+                    </Label>
+                    <Select value={officialWinner} onValueChange={setOfficialWinner}>
+                      <SelectTrigger className="rounded-xl border-2 border-primary/20 h-12 font-medium">
+                        <SelectValue placeholder="Seleziona vincitore" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-2">
+                        {[officialFinalist1, officialFinalist2].filter(Boolean).map((team) => (
+                          <SelectItem key={team} value={team} className="font-medium">{team}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Button
+                    onClick={handleSaveResults}
+                    disabled={saveResultsMutation.isPending}
+                    className="w-full retro-green-gradient retro-button rounded-xl h-12 text-white border-0 font-bold"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    {saveResultsMutation.isPending ? "Confermando..." : "Conferma risultati"}
+                  </Button>
+                </>
+              )}
+
+              {settings?.resultsConfirmedAt && (
+                <div className="p-4 bg-green-50 rounded-xl border-2 border-green-200">
+                  <div className="flex items-center space-x-3">
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                    <div>
+                      <span className="font-bold text-green-800">Risultati confermati</span>
+                      <p className="text-sm text-green-600 font-medium">
+                        {formatDateTime(settings.resultsConfirmedAt)}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              )}
+            </CardContent>
+          </Card>
+        )}
 
-      {shouldShowAllBets && (!allBets || allBets.length === 0) && (
-        <Card>
-          <CardContent className="p-6 text-center">
-            <Trophy className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">Nessun pronostico ancora</p>
-          </CardContent>
-        </Card>
-      )}
+        {/* All Predictions (visible after lock or deadline passed) */}
+        {shouldShowAllBets && allBets && allBets.length > 0 && (
+          <Card className="retro-card border-0 rounded-3xl overflow-hidden">
+            <CardHeader className="pb-4 pt-8 px-8">
+              <CardTitle className="text-lg font-bold text-primary retro-title flex items-center space-x-2">
+                <Users className="w-5 h-5" />
+                <span>Tutti i pronostici</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-8 pt-0">
+              <div className="space-y-4">
+                {allBets.map((bet: any) => (
+                  <div key={bet.userId} className="bg-primary/5 p-4 rounded-xl border border-primary/10">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="font-bold text-primary">{bet.userNickname}</div>
+                      {bet.points > 0 && settings?.resultsConfirmedAt && (
+                        <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold">
+                          {bet.points} pt
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-sm text-primary/70 space-y-1 font-medium">
+                      <div>Finalista 1: <span className="text-primary font-bold">{bet.predictions.finalist1}</span></div>
+                      <div>Finalista 2: <span className="text-primary font-bold">{bet.predictions.finalist2}</span></div>
+                      <div>Vincitore: <span className="text-primary font-bold">{bet.predictions.winner}</span></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {shouldShowAllBets && (!allBets || allBets.length === 0) && (
+          <Card className="retro-card border-0 rounded-3xl overflow-hidden">
+            <CardContent className="p-8 text-center">
+              <Trophy className="w-12 h-12 text-primary/50 mx-auto mb-4" />
+              <p className="text-primary/70 font-medium">Nessun pronostico ancora</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
