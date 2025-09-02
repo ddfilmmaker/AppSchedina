@@ -151,12 +151,12 @@ export default function Home() {
               <p className="text-primary/70 mb-4 font-medium">Non sei ancora in nessuna lega</p>
               <div className="flex flex-col gap-6">
                 <Link href="/create-league">
-                  <Button className="w-full retro-green-gradient retro-button rounded-xl h-12 text-white border-0 font-bold" data-testid="button-create-first-league">
+                  <Button className="w-full retro-red-gradient retro-button rounded-xl h-12 text-white border-0 font-bold" data-testid="button-create-first-league">
                     Crea la tua prima lega
                   </Button>
                 </Link>
                 <Link href="/join-league">
-                  <Button className="w-full retro-red-gradient retro-button rounded-xl h-12 text-white border-0 font-bold" data-testid="button-join-first-league">
+                  <Button className="w-full retro-green-gradient retro-button rounded-xl h-12 text-white border-0 font-bold" data-testid="button-join-first-league">
                     Unisciti a una lega
                   </Button>
                 </Link>
