@@ -146,31 +146,31 @@ export default function CreateMatchday() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="max-w-md mx-auto px-4 py-6 space-y-6">
       <div className="flex items-center mb-6">
         <Link href={`/league/${leagueId}`}>
           <Button variant="ghost" size="icon" className="mr-3" data-testid="button-back">
             <ArrowLeft className="w-6 h-6" />
           </Button>
         </Link>
-        <h1 className="text-xl font-bold text-gray-900">Crea Nuova Giornata</h1>
+        <h1 className="text-xl font-bold text-primary retro-title">Crea Nuova Giornata</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Matchday Details */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
+        <Card className="retro-card border-0 rounded-3xl overflow-hidden">
+          <CardHeader className="pb-4 pt-8 px-8">
+            <CardTitle className="flex items-center space-x-2 text-primary retro-title">
               <Calendar className="w-5 h-5" />
               <span>Dettagli Giornata</span>
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-primary/70 font-medium mt-2">
               Crea una nuova giornata di pronostici per la tua lega.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="px-8 pb-8 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="matchday-name">Nome della Giornata</Label>
+              <Label htmlFor="matchday-name" className="text-primary font-medium">Nome della Giornata</Label>
               <Input
                 id="matchday-name"
                 type="text"
@@ -178,76 +178,80 @@ export default function CreateMatchday() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 data-testid="input-matchday-name"
+                className="border-0 bg-gray-50 rounded-xl h-12 px-4 font-medium"
               />
             </div>
           </CardContent>
         </Card>
 
         {/* Matches */}
-        <Card>
-          <CardHeader>
+        <Card className="retro-card border-0 rounded-3xl overflow-hidden">
+          <CardHeader className="pb-4 pt-8 px-8">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Partite</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-primary retro-title">Partite</CardTitle>
+                <CardDescription className="text-primary/70 font-medium mt-2">
                   Inserisci le partite per questa giornata (come una schedina Totocalcio)
                 </CardDescription>
               </div>
-              <Button type="button" onClick={addMatch} variant="outline" size="sm">
+              <Button type="button" onClick={addMatch} variant="outline" size="sm" className="rounded-xl border-primary/20">
                 <Plus className="w-4 h-4 mr-2" />
-                Aggiungi Partita
+                Aggiungi
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-8 pb-8">
             <div className="space-y-4">
               {matches.map((match, index) => (
-                <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end p-4 border rounded-lg bg-gray-50">
+                <div key={index} className="grid grid-cols-1 gap-4 p-6 border-0 rounded-2xl bg-gray-50/50 shadow-sm">
                   <div className="space-y-2">
-                    <Label htmlFor={`home-team-${index}`}>Squadra Casa</Label>
+                    <Label htmlFor={`home-team-${index}`} className="text-primary font-medium">Squadra Casa</Label>
                     <Input
                       id={`home-team-${index}`}
                       type="text"
                       placeholder="es. Juventus"
                       value={match.homeTeam}
                       onChange={(e) => updateMatch(index, "homeTeam", e.target.value)}
+                      className="border-0 bg-white rounded-xl h-12 px-4 font-medium"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor={`away-team-${index}`}>Squadra Trasferta</Label>
+                    <Label htmlFor={`away-team-${index}`} className="text-primary font-medium">Squadra Trasferta</Label>
                     <Input
                       id={`away-team-${index}`}
                       type="text"
                       placeholder="es. Milan"
                       value={match.awayTeam}
                       onChange={(e) => updateMatch(index, "awayTeam", e.target.value)}
+                      className="border-0 bg-white rounded-xl h-12 px-4 font-medium"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor={`deadline-${index}`}>Scadenza Pronostici</Label>
+                    <Label htmlFor={`deadline-${index}`} className="text-primary font-medium">Scadenza Pronostici</Label>
                     <Input
                       id={`deadline-${index}`}
                       type="datetime-local"
                       value={match.deadline}
                       onChange={(e) => updateMatch(index, "deadline", e.target.value)}
+                      className="border-0 bg-white rounded-xl h-12 px-4 font-medium"
                     />
                   </div>
 
-                  <div className="flex items-end">
-                    {matches.length > 1 && (
+                  {matches.length > 1 && (
+                    <div className="flex justify-end pt-2">
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
                         onClick={() => removeMatch(index)}
-                        className="text-red-600 hover:text-red-700"
+                        className="text-red-600 hover:text-red-700 rounded-xl border-red-200 hover:border-red-300"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -255,20 +259,20 @@ export default function CreateMatchday() {
         </Card>
 
         {/* Action buttons */}
-        <div className="flex space-x-2 pt-4">
-          <Link href={`/league/${leagueId}`} className="flex-1">
-            <Button type="button" variant="outline" className="w-full" data-testid="button-cancel">
-              Annulla
-            </Button>
-          </Link>
+        <div className="flex flex-col gap-3 pt-4">
           <Button
             type="submit"
-            className="flex-1"
+            className="w-full retro-green-gradient retro-button rounded-xl h-14 text-white border-0 font-bold shadow-lg"
             disabled={createMatchdayMutation.isPending}
             data-testid="button-create-matchday"
           >
             {createMatchdayMutation.isPending ? "Creazione..." : "Crea Giornata"}
           </Button>
+          <Link href={`/league/${leagueId}`}>
+            <Button type="button" variant="outline" className="w-full rounded-xl h-12 border-primary/20 text-primary font-medium" data-testid="button-cancel">
+              Annulla
+            </Button>
+          </Link>
         </div>
       </form>
     </div>
