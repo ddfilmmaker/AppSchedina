@@ -68,9 +68,6 @@ export default function Profile() {
                 <User className="w-10 h-10 text-primary" />
               </div>
               <h1 className="text-2xl font-bold retro-title mb-2">{user.nickname}</h1>
-              <p className="text-green-100 text-sm font-medium">
-                Membro dal {new Date(user.createdAt).toLocaleDateString('it-IT')}
-              </p>
             </div>
           </CardContent>
         </Card>
