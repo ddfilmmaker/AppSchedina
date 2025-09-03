@@ -1198,11 +1198,13 @@ export class MemStorage implements IStorage {
     return result;
   }
 
-  async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number; supercoppaPoints?: number; coppaPoints?: number }[]> {
+  async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number; supercoppaPoints?: number; coppaPoints?: number; manualPoints?: number }[]> {
     const members = await this.getLeagueMembers(leagueId);
     const matchdays = await this.getLeagueMatchdays(leagueId);
 
-    const leaderboard = members.map(member => {
+    const leaderboard = [];
+
+    for (const member of members) {
       let matchdayPoints = 0;
       let correctPicks = 0;
 
@@ -1243,7 +1245,7 @@ export class MemStorage implements IStorage {
 
       console.log(`Leaderboard calculation for ${member.user.nickname}: matchday points: ${matchdayPoints}, preseason points: ${preseasonPoints}, supercoppa points: ${supercoppaPoints}, coppa points: ${coppaPoints}, manual points: ${manualPoints}, total: ${totalPoints}`);
 
-      return {
+      leaderboard.push({
         user: member.user,
         points: totalPoints,
         correctPicks,
@@ -1251,8 +1253,8 @@ export class MemStorage implements IStorage {
         supercoppaPoints: supercoppaPoints > 0 ? supercoppaPoints : undefined,
         coppaPoints: coppaPoints > 0 ? coppaPoints : undefined,
         manualPoints: manualPoints > 0 ? manualPoints : undefined
-      };
-    });
+      });
+    }</leaderboard.push>
 
     return leaderboard.sort((a, b) => {
       if (b.points !== a.points) {
