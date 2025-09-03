@@ -222,7 +222,7 @@ export default function MatchCard({ match, userPick, isLocked, user, matchDeadli
     </div>
   );
 
-  return isDeadlinePassed ? (
+  return isDeadlinePassed && !user?.isAdmin ? (
     <Link href={`/matches/${match.id}`} passHref>
       {cardContent}
     </Link>
