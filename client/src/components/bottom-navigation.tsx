@@ -13,11 +13,11 @@ export default function BottomNavigation() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-50 min-h-[4rem]" data-testid="bottom-navigation">
-      <div className="max-w-md mx-auto flex justify-center">
-        <div className="grid grid-cols-3 gap-1 w-full max-w-xs">
+      <div className="flex justify-center items-center h-full">
+        <div className="flex space-x-8">
           <Link href="/">
             <button 
-              className={`flex flex-col items-center py-2 px-1 ${
+              className={`flex flex-col items-center py-2 px-4 ${
                 isActive("/") ? "text-primary" : "text-gray-400"
               }`}
               data-testid="nav-home"
@@ -29,7 +29,7 @@ export default function BottomNavigation() {
           
           <Link href="/leagues">
             <button 
-              className={`flex flex-col items-center py-2 px-1 ${
+              className={`flex flex-col items-center py-2 px-4 ${
                 isActive("/leagues") ? "text-primary" : "text-gray-400"
               }`}
               data-testid="nav-leagues"
@@ -41,7 +41,7 @@ export default function BottomNavigation() {
           
           <Link href="/profile">
             <button 
-              className={`flex flex-col items-center py-2 px-1 ${
+              className={`flex flex-col items-center py-2 px-4 ${
                 isActive("/profile") ? "text-primary" : "text-gray-400"
               }`}
               data-testid="nav-profile"
