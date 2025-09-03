@@ -466,13 +466,13 @@ export default function PreSeasonPredictions() {
                           <div className="text-sm text-primary font-medium">
                             Punti guadagnati: 
                             <span className="font-bold ml-1 text-lg">
-                              {(bet.predictions?.winner === settings.winnerOfficial ? 5 : 0) +
+                              {(bet.predictions?.winner === settings.winnerOfficial ? 10 : 0) +
                                (bet.predictions?.lastPlace === settings.bottomOfficial ? 5 : 0) +
                                (bet.predictions?.topScorer === settings.topScorerOfficial ? 5 : 0)}
                             </span>
                           </div>
                           <div className="text-xs text-primary/70 font-medium">
-                            {bet.predictions?.winner === settings.winnerOfficial && "✓ Vincitore (+5) "}
+                            {bet.predictions?.winner === settings.winnerOfficial && "✓ Vincitore (+10) "}
                             {bet.predictions?.lastPlace === settings.bottomOfficial && "✓ Ultima (+5) "}
                             {bet.predictions?.topScorer === settings.topScorerOfficial && "✓ Capocannoniere (+5)"}
                           </div>
