@@ -19,6 +19,15 @@
   scroll-behavior: smooth;
 }
 
+/* CSS Scroll Snap for mobile-friendly card scrolling */
+.snap-x {
+  scroll-snap-type: x mandatory;
+}
+
+.snap-start {
+  scroll-snap-align: start;
+}
+
 :root {
   --background: hsl(0 0% 100%);
   --foreground: hsl(210 25% 7.8431%);

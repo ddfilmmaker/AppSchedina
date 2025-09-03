@@ -253,11 +253,11 @@ export default function League() {
           </div>
           
           {matchdays && matchdays.length > 0 ? (
-            <div className="overflow-x-auto scrollbar-hide">
-              <div className="flex space-x-4 pb-2" style={{ width: 'max-content' }}>
+            <div className="overflow-x-auto scrollbar-hide snap-x snap-mandatory">
+              <div className="flex gap-4 pb-2 px-1" style={{ width: 'max-content' }}>
                 {matchdays.map((matchday: any) => (
                   <Link key={matchday.id} href={`/matchday/${matchday.id}`}>
-                    <Card className="retro-card border-0 rounded-2xl cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden flex-shrink-0 w-64" data-testid={`card-matchday-${matchday.id}`}>
+                    <Card className="retro-card border-0 rounded-2xl cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden flex-shrink-0 w-72 snap-start" data-testid={`card-matchday-${matchday.id}`}>
                       <CardContent className="p-4">
                         <div className="space-y-3">
                           <div>
