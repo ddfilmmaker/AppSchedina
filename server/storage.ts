@@ -1254,7 +1254,7 @@ export class MemStorage implements IStorage {
         coppaPoints: coppaPoints > 0 ? coppaPoints : undefined,
         manualPoints: manualPoints > 0 ? manualPoints : undefined
       });
-    }</leaderboard.push>
+    }
 
     return leaderboard.sort((a, b) => {
       if (b.points !== a.points) {
