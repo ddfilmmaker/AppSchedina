@@ -155,6 +155,16 @@ export const coppaBets = pgTable("coppa_bet", {
   unq: sql`unique(${table.leagueId}, ${table.userId})`
 }));
 
+export const manualPoints = pgTable("manual_points", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  leagueId: varchar("league_id").references(() => leagues.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  points: integer("points").default(0).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  unq: sql`unique(${table.leagueId}, ${table.userId})`
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -275,4 +285,10 @@ export const coppaResultsSchema = z.object({
 
 export const coppaBetSchema = z.object({
   winner: z.string().min(1),
+});
+
+export const manualPointsSchema = z.object({
+  leagueId: z.string(),
+  userId: z.string(),
+  points: z.number().int(),
 });

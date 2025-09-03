@@ -1,13 +1,20 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
-import { ArrowLeft, Trophy, Medal, Award } from "lucide-react";
+import { ArrowLeft, Trophy, Medal, Award, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 export default function Leaderboard() {
   const [, params] = useRoute("/leaderboard/:leagueId");
   const leagueId = params?.leagueId;
+  const queryClient = useQueryClient();
+  const [editingPoints, setEditingPoints] = useState<Record<string, string>>({});
+
+  const { data: authData } = useQuery({ queryKey: ["/api/auth/me"] });
+  const user = (authData as any)?.user;
 
   const { data: leaderboardData, isLoading } = useQuery({
     queryKey: ["/api/leagues", leagueId, "leaderboard"],
@@ -17,6 +24,27 @@ export default function Leaderboard() {
   const { data: leagueData } = useQuery({
     queryKey: ["/api/leagues", leagueId],
     enabled: !!leagueId,
+  });
+
+  const { data: manualPointsData } = useQuery({
+    queryKey: ["/api/leagues", leagueId, "manual-points"],
+    enabled: !!leagueId,
+  });
+
+  const updateManualPointsMutation = useMutation({
+    mutationFn: async ({ userId, points }: { userId: string; points: number }) => {
+      const response = await fetch(`/api/leagues/${leagueId}/manual-points`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, points }),
+      });
+      if (!response.ok) throw new Error("Failed to update manual points");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/leagues", leagueId, "leaderboard"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leagues", leagueId, "manual-points"] });
+    },
   });
 
   if (isLoading) {
@@ -67,9 +95,36 @@ export default function Leaderboard() {
   }
 
   const league = (leagueData as any)?.league;
+  const isAdmin = user && league && user.id === league.adminId;
+  const manualPoints = manualPointsData || {};
 
   // Ensure leaderboardData is always an array
   const leaderboardArray = Array.isArray(leaderboardData) ? leaderboardData : [];
+
+  const handleManualPointsChange = (userId: string, value: string) => {
+    setEditingPoints(prev => ({ ...prev, [userId]: value }));
+  };
+
+  const handleManualPointsSubmit = (userId: string) => {
+    const value = editingPoints[userId];
+    if (value !== undefined) {
+      const points = parseInt(value, 10);
+      if (!isNaN(points)) {
+        updateManualPointsMutation.mutate({ userId, points });
+        setEditingPoints(prev => {
+          const newState = { ...prev };
+          delete newState[userId];
+          return newState;
+        });
+      }
+    }
+  };
+
+  const handleQuickAdjust = (userId: string, delta: number) => {
+    const currentPoints = manualPoints[userId] || 0;
+    const newPoints = Math.max(0, currentPoints + delta);
+    updateManualPointsMutation.mutate({ userId, points: newPoints });
+  };
 
   return (
     <div className="min-h-screen paper-texture">
@@ -184,7 +239,69 @@ export default function Leaderboard() {
                       player.points === 0 ? "text-primary/50" : "text-primary/70"
                     }`}>
                       {player.points === 0 ? "Nessun pronostico" : `${player.correctPicks} giusti`}
+                      {player.manualPoints && player.manualPoints > 0 && (
+                        <span className="text-blue-600 ml-1">+{player.manualPoints} manuali</span>
+                      )}
                     </div>
+                    {isAdmin && (
+                      <div className="mt-2 flex items-center gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-6 w-6 p-0"
+                          onClick={() => handleQuickAdjust(player.user.id, -1)}
+                          disabled={updateManualPointsMutation.isPending}
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        {editingPoints[player.user.id] !== undefined ? (
+                          <div className="flex items-center gap-1">
+                            <Input
+                              type="number"
+                              value={editingPoints[player.user.id]}
+                              onChange={(e) => handleManualPointsChange(player.user.id, e.target.value)}
+                              className="h-6 w-12 p-1 text-xs"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleManualPointsSubmit(player.user.id);
+                                if (e.key === 'Escape') setEditingPoints(prev => {
+                                  const newState = { ...prev };
+                                  delete newState[player.user.id];
+                                  return newState;
+                                });
+                              }}
+                              autoFocus
+                            />
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-6 px-2"
+                              onClick={() => handleManualPointsSubmit(player.user.id)}
+                              disabled={updateManualPointsMutation.isPending}
+                            >
+                              ✓
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 px-2 text-xs"
+                            onClick={() => handleManualPointsChange(player.user.id, String(manualPoints[player.user.id] || 0))}
+                          >
+                            {manualPoints[player.user.id] || 0}
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-6 w-6 p-0"
+                          onClick={() => handleQuickAdjust(player.user.id, 1)}
+                          disabled={updateManualPointsMutation.isPending}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
