@@ -253,35 +253,37 @@ export default function League() {
           </div>
           
           {matchdays && matchdays.length > 0 ? (
-            <div className="space-y-3">
-              {matchdays.map((matchday: any) => (
-                <Link key={matchday.id} href={`/matchday/${matchday.id}`}>
-                  <Card className="retro-card border-0 rounded-2xl cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden" data-testid={`card-matchday-${matchday.id}`}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <h4 className="font-bold text-primary">{matchday.name}</h4>
-                          <p className="text-sm text-primary/70 font-medium">Clicca per vedere le partite</p>
-                        </div>
-                        <div className="text-right">
-                          <Badge 
-                            className={`mb-2 font-bold ${
-                              matchday.isCompleted 
-                                ? "bg-gradient-to-r from-success to-accent text-white border-0" 
-                                : "bg-primary/10 text-primary border-0"
-                            }`}
-                          >
-                            {matchday.isCompleted ? "Completata" : "In corso"}
-                          </Badge>
-                          <div className="text-primary font-bold text-sm">
-                            Visualizza →
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex space-x-4 pb-2" style={{ width: 'max-content' }}>
+                {matchdays.map((matchday: any) => (
+                  <Link key={matchday.id} href={`/matchday/${matchday.id}`}>
+                    <Card className="retro-card border-0 rounded-2xl cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden flex-shrink-0 w-64" data-testid={`card-matchday-${matchday.id}`}>
+                      <CardContent className="p-4">
+                        <div className="space-y-3">
+                          <div>
+                            <h4 className="font-bold text-primary text-lg">{matchday.name}</h4>
+                            <p className="text-sm text-primary/70 font-medium">Clicca per vedere le partite</p>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Badge 
+                              className={`font-bold ${
+                                matchday.isCompleted 
+                                  ? "bg-gradient-to-r from-success to-accent text-white border-0" 
+                                  : "bg-primary/10 text-primary border-0"
+                              }`}
+                            >
+                              {matchday.isCompleted ? "Completata" : "In corso"}
+                            </Badge>
+                            <div className="text-primary font-bold text-sm">
+                              Visualizza →
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
             </div>
           ) : (
             <Card className="retro-card border-0 rounded-3xl overflow-hidden">
