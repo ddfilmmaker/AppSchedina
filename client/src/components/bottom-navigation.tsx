@@ -12,7 +12,7 @@ export default function BottomNavigation() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2" data-testid="bottom-navigation">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-50 min-h-[4rem]" data-testid="bottom-navigation">
       <div className="max-w-md mx-auto">
         <div className="grid grid-cols-3 gap-1">
           <Link href="/">

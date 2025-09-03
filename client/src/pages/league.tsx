@@ -93,7 +93,7 @@ export default function League() {
         <div className="absolute top-1/2 left-1/4 w-24 h-24 retro-green-gradient rounded-full opacity-10 blur-2xl"></div>
       </div>
 
-      <div className="max-w-sm mx-auto px-4 py-8 space-y-6 relative z-10">
+      <div className="max-w-sm mx-auto px-4 py-8 pb-8 space-y-6 relative z-10">
         {/* Header Card */}
         <Card className="retro-card border-0 rounded-3xl overflow-hidden">
           <CardContent className="p-0">

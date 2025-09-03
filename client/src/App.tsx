@@ -68,7 +68,7 @@ function AppContent() {
     <div className="min-h-screen bg-gray-50">
       <Header user={user} />
 
-      <main className="pb-20">
+      <main className="pb-24">
         <Switch>
           <Route path="/" component={Home} />
           <Route path="/leagues" component={Leagues} />
