@@ -48,6 +48,20 @@ export default function Leaderboard() {
     },
   });
 
+  // Ensure leaderboardData is always an array
+  const leaderboardArray = Array.isArray(leaderboardData) ? leaderboardData : [];
+
+  // Initialize manual points inputs with current values
+  React.useEffect(() => {
+    if (leaderboardArray.length > 0) {
+      const initialInputs: Record<string, number> = {};
+      leaderboardArray.forEach((player: any) => {
+        initialInputs[player.user.id] = player.manualPoints || 0;
+      });
+      setManualPointsInputs(initialInputs);
+    }
+  }, [leaderboardArray]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen paper-texture flex items-center justify-center px-4 py-8">
@@ -115,20 +129,6 @@ export default function Leaderboard() {
   const league = (leagueData as any)?.league;
   const user = (authData as any)?.user;
   const isAdmin = user && league && league.adminId === user.id;
-
-  // Ensure leaderboardData is always an array
-  const leaderboardArray = Array.isArray(leaderboardData) ? leaderboardData : [];
-
-  // Initialize manual points inputs with current values
-  React.useEffect(() => {
-    if (leaderboardArray.length > 0) {
-      const initialInputs: Record<string, number> = {};
-      leaderboardArray.forEach((player: any) => {
-        initialInputs[player.user.id] = player.manualPoints || 0;
-      });
-      setManualPointsInputs(initialInputs);
-    }
-  }, [leaderboardArray]);
 
   return (
     <div className="min-h-screen paper-texture">
