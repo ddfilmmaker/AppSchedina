@@ -21,10 +21,12 @@ export default function Profile() {
       });
       
       if (response.ok) {
-        setLocation("/auth");
+        window.location.href = "/auth";
       }
     } catch (error) {
       console.error("Logout failed:", error);
+      // Even if logout fails, redirect to auth page
+      window.location.href = "/auth";
     }
   };
 
