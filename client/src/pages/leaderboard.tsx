@@ -45,6 +45,8 @@ export default function Leaderboard() {
     onSuccess: () => {
       // Refetch leaderboard data
       queryClient.invalidateQueries({ queryKey: ["/api/leagues", leagueId, "leaderboard"] });
+      // Also refetch user leagues to update home page totals
+      queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
     },
   });
 
@@ -279,9 +281,17 @@ export default function Leaderboard() {
                       )}
                     </div>
                   </div>
-                  {isAdmin && player.manualPoints && player.manualPoints > 0 && (
+                  {player.manualPoints && player.manualPoints > 0 && (
                     <div className="mt-2 text-xs text-blue-600 font-medium">
                       +{player.manualPoints} punti manuali
+                    </div>
+                  )}
+                  {isAdmin && (
+                    <div className="mt-1 text-xs text-gray-500">
+                      {player.preseasonPoints ? `Preseason: +${player.preseasonPoints} ` : ''}
+                      {player.supercoppaPoints ? `Supercoppa: +${player.supercoppaPoints} ` : ''}
+                      {player.coppaPoints ? `Coppa: +${player.coppaPoints} ` : ''}
+                      {player.manualPoints ? `Manuali: +${player.manualPoints} ` : ''}
                     </div>
                   )}
                 </div>
