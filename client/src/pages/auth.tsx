@@ -15,6 +15,7 @@ export default function Auth() {
   const [registerData, setRegisterData] = useState({ nickname: "", email: "", password: "" });
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [emailVerificationSent, setEmailVerificationSent] = useState(false); // State to manage email verification message
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -38,8 +39,8 @@ export default function Auth() {
     mutationFn: () => register(registerData.nickname, registerData.email, registerData.password),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      // Redirect to home page after successful registration
-      window.location.href = "/";
+      // Set state to show email verification message
+      setEmailVerificationSent(true);
     },
     onError: (error: any) => {
       toast({
@@ -58,7 +59,7 @@ export default function Auth() {
         <div className="absolute bottom-20 right-10 w-40 h-40 retro-red-gradient rounded-full opacity-10 blur-3xl"></div>
         <div className="absolute top-1/2 left-1/4 w-24 h-24 retro-green-gradient rounded-full opacity-10 blur-2xl"></div>
       </div>
-      
+
       <div className="w-full max-w-sm relative z-10">
         {/* Header with modern soccer ball logo */}
         <div className="text-center mb-10">
@@ -81,7 +82,7 @@ export default function Auth() {
 
             </div>
           </div>
-          
+
           <h1 className="text-5xl font-bold retro-title mb-2 bg-gradient-to-r from-primary via-success to-accent bg-clip-text text-transparent">
             La Schedina
           </h1>
@@ -107,7 +108,7 @@ export default function Auth() {
               Registrati
             </TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="login" className="mt-0">
             <Card className="retro-card border-0 rounded-3xl overflow-hidden">
               <CardHeader className="pb-4 pt-8 px-8">
@@ -172,7 +173,7 @@ export default function Auth() {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="register" className="mt-0">
             <Card className="retro-card border-0 rounded-3xl overflow-hidden">
               <CardHeader className="pb-4 pt-8 px-8">
@@ -182,79 +183,93 @@ export default function Auth() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6 px-8 pb-8">
-                <div className="space-y-3">
-                  <Label htmlFor="register-nickname" className="text-sm font-semibold text-secondary">
-                    Nickname
-                  </Label>
-                  <Input
-                    id="register-nickname"
-                    type="text"
-                    value={registerData.nickname}
-                    onChange={(e) => setRegisterData({ ...registerData, nickname: e.target.value })}
-                    placeholder="Scegli un nickname"
-                    data-testid="input-register-nickname"
-                    className="retro-input rounded-xl h-12 text-base border-0"
-                  />
-                </div>
-                <div className="space-y-3">
-                  <Label htmlFor="register-email" className="text-sm font-semibold text-secondary">
-                    Email
-                  </Label>
-                  <Input
-                    id="register-email"
-                    type="email"
-                    value={registerData.email}
-                    onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                    placeholder="La tua email"
-                    data-testid="input-register-email"
-                    className="retro-input rounded-xl h-12 text-base border-0"
-                    required
-                  />
-                </div>
-                <div className="space-y-3">
-                  <Label htmlFor="register-password" className="text-sm font-semibold text-secondary">
-                    Password
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="register-password"
-                      type={showRegisterPassword ? "text" : "password"}
-                      value={registerData.password}
-                      onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                      placeholder="Scegli una password"
-                      data-testid="input-register-password"
-                      className="retro-input rounded-xl h-12 text-base border-0 pr-12"
-                    />
+                {emailVerificationSent ? (
+                  <div className="text-center space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Clicca sul link nell'email per verificare il tuo account e completare la registrazione.
+                    </p>
                     <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-1 top-1 h-10 w-10 rounded-lg hover:bg-secondary/10 text-secondary"
-                      onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                      className="w-full retro-green-gradient retro-button rounded-xl h-12 text-white border-0 font-bold"
+                      onClick={() => window.location.href = "/"}
                     >
-                      {showRegisterPassword ? (
-                        <EyeOff className="h-5 w-5" />
-                      ) : (
-                        <Eye className="h-5 w-5" />
-                      )}
+                      Continua
                     </Button>
                   </div>
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full retro-red-gradient retro-button rounded-xl h-14 text-base font-bold text-white border-0 mt-8"
-                  onClick={() => registerMutation.mutate()}
-                  disabled={registerMutation.isPending}
-                  data-testid="button-register"
-                >
-                  {registerMutation.isPending ? "Registrazione..." : "Registrati"}
-                </Button>
+                ) : (
+                  <>
+                    <div className="space-y-3">
+                      <Label htmlFor="register-nickname" className="text-sm font-semibold text-secondary">
+                        Nickname
+                      </Label>
+                      <Input
+                        id="register-nickname"
+                        type="text"
+                        value={registerData.nickname}
+                        onChange={(e) => setRegisterData({ ...registerData, nickname: e.target.value })}
+                        placeholder="Scegli un nickname"
+                        data-testid="input-register-nickname"
+                        className="retro-input rounded-xl h-12 text-base border-0"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label htmlFor="register-email" className="text-sm font-semibold text-secondary">
+                        Email
+                      </Label>
+                      <Input
+                        id="register-email"
+                        type="email"
+                        value={registerData.email}
+                        onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                        placeholder="La tua email"
+                        data-testid="input-register-email"
+                        className="retro-input rounded-xl h-12 text-base border-0"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label htmlFor="register-password" className="text-sm font-semibold text-secondary">
+                        Password
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="register-password"
+                          type={showRegisterPassword ? "text" : "password"}
+                          value={registerData.password}
+                          onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                          placeholder="Scegli una password"
+                          data-testid="input-register-password"
+                          className="retro-input rounded-xl h-12 text-base border-0 pr-12"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-1 top-1 h-10 w-10 rounded-lg hover:bg-secondary/10 text-secondary"
+                          onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                        >
+                          {showRegisterPassword ? (
+                            <EyeOff className="h-5 w-5" />
+                          ) : (
+                            <Eye className="h-5 w-5" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full retro-red-gradient retro-button rounded-xl h-14 text-base font-bold text-white border-0 mt-8"
+                      onClick={() => registerMutation.mutate()}
+                      disabled={registerMutation.isPending}
+                      data-testid="button-register"
+                    >
+                      {registerMutation.isPending ? "Registrazione..." : "Registrati"}
+                    </Button>
+                  </>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
-        
-        
       </div>
     </div>
   );

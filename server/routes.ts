@@ -23,10 +23,11 @@ import {
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { db } from "./db";
-import { leagueMembers, users, preSeasonPredictions } from "@shared/schema";
+import { leagueMembers, users, preSeasonPredictions, emailVerificationTokens } from "@shared/schema";
 import { z } from "zod";
 import { eq, and } from "drizzle-orm";
 import crypto from "crypto";
+import { sendEmail } from "./lib/email";
 
 declare module "express-session" {
   interface SessionData {
@@ -60,8 +61,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       console.log("User created:", user.id);
+
+      // Generate email verification token
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+
+      // Store verification token
+      await db.insert(emailVerificationTokens).values({
+        userId: user.id,
+        token: verificationToken,
+        expiresAt,
+      });
+
+      // Send verification email
+      const appUrl = process.env.APP_URL || `https://${req.get('host')}`;
+      const verificationLink = `${appUrl}/auth/verify?token=${verificationToken}`;
+      
+      try {
+        await sendEmail({
+          to: email,
+          subject: "Verifica la tua email - Schedina",
+          html: `
+            <h2>Benvenuto in Schedina!</h2>
+            <p>Clicca sul link qui sotto per verificare la tua email:</p>
+            <p><a href="${verificationLink}">Verifica Email</a></p>
+            <p>Il link scadrà tra 1 ora.</p>
+          `,
+          text: `Benvenuto in Schedina! Verifica la tua email visitando: ${verificationLink}`
+        });
+        console.log("Verification email sent to:", email);
+      } catch (error) {
+        console.error("Failed to send verification email:", error);
+        // Continue with registration even if email fails
+      }
+
       req.session.userId = user.id;
-      res.json({ user: { id: user.id, nickname: user.nickname, isAdmin: user.isAdmin } });
+      res.json({ 
+        user: { id: user.id, nickname: user.nickname, isAdmin: user.isAdmin },
+        emailVerificationSent: true
+      });
     } catch (error) {
       console.error("Registration error:", error);
       res.status(400).json({ error: "Dati non validi" });
@@ -121,6 +159,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     res.json({ user: { id: user.id, nickname: user.nickname, isAdmin: user.isAdmin } });
+  });
+
+  app.get("/api/auth/verify", async (req, res) => {
+    try {
+      const { token } = req.query;
+      
+      if (!token || typeof token !== 'string') {
+        return res.status(400).json({ error: "Token non valido" });
+      }
+
+      // Find the verification token
+      const verificationRecord = await db.select({
+        id: emailVerificationTokens.id,
+        userId: emailVerificationTokens.userId,
+        expiresAt: emailVerificationTokens.expiresAt,
+        usedAt: emailVerificationTokens.usedAt,
+      })
+      .from(emailVerificationTokens)
+      .where(eq(emailVerificationTokens.token, token))
+      .limit(1);
+
+      if (verificationRecord.length === 0) {
+        return res.status(400).json({ error: "Token non trovato" });
+      }
+
+      const record = verificationRecord[0];
+
+      // Check if token is already used
+      if (record.usedAt) {
+        return res.status(400).json({ error: "Token già utilizzato" });
+      }
+
+      // Check if token is expired
+      if (new Date() > record.expiresAt) {
+        return res.status(400).json({ error: "Token scaduto" });
+      }
+
+      // Mark token as used
+      await db.update(emailVerificationTokens)
+        .set({ usedAt: new Date() })
+        .where(eq(emailVerificationTokens.id, record.id));
+
+      // Update user's email_verified_at
+      await db.update(users)
+        .set({ emailVerifiedAt: new Date() })
+        .where(eq(users.id, record.userId));
+
+      console.log("Email verified for user:", record.userId);
+      res.json({ success: true, message: "Email verificata con successo!" });
+    } catch (error) {
+      console.error("Email verification error:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
   });
 
   // League routes

@@ -31,7 +31,7 @@ export async function login(nickname: string, password: string): Promise<User> {
   return data.user;
 }
 
-export async function register(nickname: string, email: string, password: string): Promise<User> {
+export async function register(nickname: string, email: string, password: string): Promise<any> {
   const response = await fetch("/api/auth/register", {
     method: "POST",
     headers: {
@@ -40,7 +40,7 @@ export async function register(nickname: string, email: string, password: string
     body: JSON.stringify({ nickname, email, password }),
   });
   const data = await response.json();
-  return data.user;
+  return { user: data.user, emailVerificationSent: data.emailVerificationSent };
 }
 
 export async function logout(): Promise<void> {
