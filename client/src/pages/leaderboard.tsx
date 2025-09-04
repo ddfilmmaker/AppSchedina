@@ -243,11 +243,6 @@ export default function Leaderboard() {
                         }`}>
                           {player.points} punti
                         </div>
-                        <div className={`text-xs font-medium ${
-                          player.points === 0 ? "text-primary/50" : "text-primary/70"
-                        }`}>
-                          {player.points === 0 ? "Nessun pronostico" : `${player.correctPicks} giusti`}
-                        </div>
                       </div>
                       {isAdmin && (
                         <div className="flex items-center space-x-2">
