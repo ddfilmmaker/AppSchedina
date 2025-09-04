@@ -96,9 +96,6 @@ export default function Leagues() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm text-primary/70 font-medium mb-1">
-                        {league.matchdayCount || 0} giornate
-                      </div>
                       <span className="text-primary text-sm font-bold">
                         Visualizza →
                       </span>
