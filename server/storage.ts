@@ -164,7 +164,7 @@ export interface IStorage {
   computeCoppaPoints(leagueId: string): Promise<void>;
 
   // Leaderboard
-  getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number; supercoppaPoints?: number; coppaPoints?: number }[]>;
+  getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number; supercoppaPoints?: number; coppaPoints?: number; manualPoints?: number }[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -187,6 +187,10 @@ export class MemStorage implements IStorage {
   // In-memory storage for coppa bets and settings
   private coppaBets: Map<string, any> = new Map(); // Key: `${leagueId}-${userId}`
   private coppaSettings: Map<string, any> = new Map(); // Key: leagueId
+
+  // In-memory storage for manual points
+  private manualPoints: Map<string, number> = new Map(); // Key: `${leagueId}-${userId}`
+
 
   constructor() {
     // Removed initialization of global special tournaments as they are now league-specific.
@@ -288,7 +292,7 @@ export class MemStorage implements IStorage {
       await this.computePreseasonPoints(membership.leagueId);
       await this.computeSupercoppaPoints(membership.leagueId);
       await this.computeCoppaPoints(membership.leagueId);
-      
+
       const leaderboard = await this.getLeagueLeaderboard(membership.leagueId);
       const userEntry = leaderboard.find(entry => entry.user.id === userId);
       const userPosition = leaderboard.findIndex(entry => entry.user.id === userId) + 1;
@@ -1170,11 +1174,13 @@ export class MemStorage implements IStorage {
     }
   }
 
-  async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number; supercoppaPoints?: number; coppaPoints?: number }[]> {
+  async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number; supercoppaPoints?: number; coppaPoints?: number; manualPoints?: number }[]> {
     const members = await this.getLeagueMembers(leagueId);
     const matchdays = await this.getLeagueMatchdays(leagueId);
 
-    const leaderboard = members.map(member => {
+    const leaderboard = [];
+
+    for (const member of members) {
       let matchdayPoints = 0;
       let correctPicks = 0;
 
@@ -1208,19 +1214,24 @@ export class MemStorage implements IStorage {
       const coppaPointsKey = `${leagueId}-${member.userId}`;
       let coppaPoints = this.coppaPoints.get(coppaPointsKey) || 0;
 
-      const totalPoints = matchdayPoints + preseasonPoints + supercoppaPoints + coppaPoints;
+      // Get manual points
+      const manualPointsKey = `${leagueId}-${member.userId}`;
+      let manualPoints = this.manualPoints.get(manualPointsKey) || 0;
 
-      console.log(`Leaderboard calculation for ${member.user.nickname}: matchday points: ${matchdayPoints}, preseason points: ${preseasonPoints}, supercoppa points: ${supercoppaPoints}, coppa points: ${coppaPoints}, total: ${totalPoints}`);
+      const totalPoints = matchdayPoints + preseasonPoints + supercoppaPoints + coppaPoints + manualPoints;
 
-      return {
+      console.log(`Leaderboard calculation for ${member.user.nickname}: matchday points: ${matchdayPoints}, preseason points: ${preseasonPoints}, supercoppa points: ${supercoppaPoints}, coppa points: ${coppaPoints}, manual points: ${manualPoints}, total: ${totalPoints}`);
+
+      leaderboard.push({
         user: member.user,
         points: totalPoints,
         correctPicks,
         preseasonPoints: preseasonPoints > 0 ? preseasonPoints : undefined,
         supercoppaPoints: supercoppaPoints > 0 ? supercoppaPoints : undefined,
-        coppaPoints: coppaPoints > 0 ? coppaPoints : undefined
-      };
-    });
+        coppaPoints: coppaPoints > 0 ? coppaPoints : undefined,
+        manualPoints: manualPoints > 0 ? manualPoints : undefined
+      });
+    }
 
     return leaderboard.sort((a, b) => {
       if (b.points !== a.points) {
