@@ -12,7 +12,7 @@ import logoImage from "@assets/logo.png";
 
 export default function Auth() {
   const [loginData, setLoginData] = useState({ nickname: "", password: "" });
-  const [registerData, setRegisterData] = useState({ nickname: "", password: "" });
+  const [registerData, setRegisterData] = useState({ nickname: "", email: "", password: "" });
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const { toast } = useToast();
@@ -35,7 +35,7 @@ export default function Auth() {
   });
 
   const registerMutation = useMutation({
-    mutationFn: () => register(registerData.nickname, registerData.password),
+    mutationFn: () => register(registerData.nickname, registerData.email, registerData.password),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       // Redirect to home page after successful registration
@@ -194,6 +194,21 @@ export default function Auth() {
                     placeholder="Scegli un nickname"
                     data-testid="input-register-nickname"
                     className="retro-input rounded-xl h-12 text-base border-0"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label htmlFor="register-email" className="text-sm font-semibold text-secondary">
+                    Email
+                  </Label>
+                  <Input
+                    id="register-email"
+                    type="email"
+                    value={registerData.email}
+                    onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                    placeholder="La tua email"
+                    data-testid="input-register-email"
+                    className="retro-input rounded-xl h-12 text-base border-0"
+                    required
                   />
                 </div>
                 <div className="space-y-3">

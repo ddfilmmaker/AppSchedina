@@ -31,8 +31,14 @@ export async function login(nickname: string, password: string): Promise<User> {
   return data.user;
 }
 
-export async function register(nickname: string, password: string): Promise<User> {
-  const response = await apiRequest("POST", "/api/auth/register", { nickname, password });
+export async function register(nickname: string, email: string, password: string): Promise<User> {
+  const response = await fetch("/api/auth/register", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ nickname, email, password }),
+  });
   const data = await response.json();
   return data.user;
 }

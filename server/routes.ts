@@ -39,7 +39,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/register", async (req, res) => {
     try {
       console.log("Registration attempt:", req.body);
-      const { nickname, password } = insertUserSchema.parse(req.body);
+      // Registration
+      const { nickname, email, password } = insertUserSchema.parse(req.body);
 
       // Check if user exists
       const existingUser = await storage.getUserByNickname(nickname);
@@ -53,6 +54,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const user = await storage.createUser({
         nickname,
+        email,
         password: hashedPassword,
         isAdmin: false
       });
@@ -282,10 +284,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("Match creation request body:", req.body);
       console.log("Matchday ID:", req.params.id);
-      
+
       const data = insertMatchSchema.parse(req.body);
       console.log("Parsed match data:", data);
-      
+
       const match = await storage.createMatch({
         ...data,
         matchdayId: req.params.id
