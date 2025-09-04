@@ -997,9 +997,6 @@ export class MemStorage implements IStorage {
   // Store coppa points separately to integrate with leaderboard
   private coppaPoints: Map<string, number> = new Map(); // Key: `${leagueId}-${userId}`
 
-  // Store manual points separately to integrate with leaderboard
-  private manualPointsStore: Map<string, number> = new Map(); // Key: `${leagueId}-${userId}`
-
   async computeSupercoppaPoints(leagueId: string): Promise<void> {
     const results = await this.getSupercoppaSettings(leagueId);
     if (!results?.officialFinalist1 || !results?.officialFinalist2 || !results?.officialWinner) {
@@ -1173,38 +1170,11 @@ export class MemStorage implements IStorage {
     }
   }
 
-  async getManualPoints(leagueId: string, userId: string): Promise<number> {
-    const key = `${leagueId}-${userId}`;
-    return this.manualPointsStore.get(key) || 0;
-  }
-
-  async setManualPoints(leagueId: string, userId: string, points: number): Promise<void> {
-    const key = `${leagueId}-${userId}`;
-    this.manualPointsStore.set(key, points);
-    console.log(`Manual points set for user ${userId} in league ${leagueId}: ${points} points`);
-  }
-
-  async getAllManualPoints(leagueId: string): Promise<Map<string, number>> {
-    const result = new Map<string, number>();
-    const prefix = `${leagueId}-`;
-    
-    for (const [key, points] of this.manualPointsStore.entries()) {
-      if (key.startsWith(prefix)) {
-        const userId = key.substring(prefix.length);
-        result.set(userId, points);
-      }
-    }
-    
-    return result;
-  }
-
-  async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number; supercoppaPoints?: number; coppaPoints?: number; manualPoints?: number }[]> {
+  async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number; supercoppaPoints?: number; coppaPoints?: number }[]> {
     const members = await this.getLeagueMembers(leagueId);
     const matchdays = await this.getLeagueMatchdays(leagueId);
 
-    const leaderboard = [];
-
-    for (const member of members) {
+    const leaderboard = members.map(member => {
       let matchdayPoints = 0;
       let correctPicks = 0;
 
@@ -1238,23 +1208,19 @@ export class MemStorage implements IStorage {
       const coppaPointsKey = `${leagueId}-${member.userId}`;
       let coppaPoints = this.coppaPoints.get(coppaPointsKey) || 0;
 
-      // Get manual points
-      const manualPoints = await this.getManualPoints(leagueId, member.userId);
+      const totalPoints = matchdayPoints + preseasonPoints + supercoppaPoints + coppaPoints;
 
-      const totalPoints = matchdayPoints + preseasonPoints + supercoppaPoints + coppaPoints + manualPoints;
+      console.log(`Leaderboard calculation for ${member.user.nickname}: matchday points: ${matchdayPoints}, preseason points: ${preseasonPoints}, supercoppa points: ${supercoppaPoints}, coppa points: ${coppaPoints}, total: ${totalPoints}`);
 
-      console.log(`Leaderboard calculation for ${member.user.nickname}: matchday points: ${matchdayPoints}, preseason points: ${preseasonPoints}, supercoppa points: ${supercoppaPoints}, coppa points: ${coppaPoints}, manual points: ${manualPoints}, total: ${totalPoints}`);
-
-      leaderboard.push({
+      return {
         user: member.user,
         points: totalPoints,
         correctPicks,
         preseasonPoints: preseasonPoints > 0 ? preseasonPoints : undefined,
         supercoppaPoints: supercoppaPoints > 0 ? supercoppaPoints : undefined,
-        coppaPoints: coppaPoints > 0 ? coppaPoints : undefined,
-        manualPoints: manualPoints > 0 ? manualPoints : undefined
-      });
-    }
+        coppaPoints: coppaPoints > 0 ? coppaPoints : undefined
+      };
+    });
 
     return leaderboard.sort((a, b) => {
       if (b.points !== a.points) {
