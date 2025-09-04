@@ -170,6 +170,13 @@ export default function Auth() {
                 >
                   {loginMutation.isPending ? "Accesso..." : "Accedi"}
                 </Button>
+                <div className="text-center mt-4">
+                  <Link href="/auth/forgot-password">
+                    <Button variant="ghost" className="text-primary font-medium text-sm hover:bg-primary/10">
+                      Hai dimenticato la password?
+                    </Button>
+                  </Link>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

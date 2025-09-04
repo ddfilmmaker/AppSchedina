@@ -23,7 +23,7 @@ import {
 } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { db } from "./db";
-import { leagueMembers, users, preSeasonPredictions, emailVerificationTokens } from "@shared/schema";
+import { leagueMembers, users, preSeasonPredictions, emailVerificationTokens, passwordResetTokens } from "@shared/schema";
 import { z } from "zod";
 import { eq, and } from "drizzle-orm";
 import crypto from "crypto";
@@ -210,6 +210,170 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true, message: "Email verificata con successo!" });
     } catch (error) {
       console.error("Email verification error:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  app.post("/api/auth/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email || typeof email !== 'string') {
+        return res.status(200).json({ success: true, message: "Se l'email esiste, riceverai un link per reimpostare la password" });
+      }
+
+      // Find user by email
+      const user = await db.select({
+        id: users.id,
+        email: users.email,
+      })
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+
+      // Always return success for security
+      if (user.length === 0) {
+        return res.status(200).json({ success: true, message: "Se l'email esiste, riceverai un link per reimpostare la password" });
+      }
+
+      // Generate password reset token
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+
+      // Store reset token
+      await db.insert(passwordResetTokens).values({
+        userId: user[0].id,
+        token: resetToken,
+        expiresAt,
+      });
+
+      // Send password reset email
+      const appUrl = process.env.APP_URL || `https://${req.get('host')}`;
+      const resetLink = `${appUrl}/auth/reset?token=${resetToken}`;
+      
+      try {
+        await sendEmail({
+          to: email,
+          subject: "Reimposta la tua password - Schedina",
+          html: `
+            <h2>Richiesta di reset password</h2>
+            <p>Hai richiesto di reimpostare la tua password. Clicca sul link qui sotto:</p>
+            <p><a href="${resetLink}">Reimposta Password</a></p>
+            <p>Il link scadrà tra 1 ora.</p>
+            <p>Se non hai fatto questa richiesta, ignora questa email.</p>
+          `,
+          text: `Hai richiesto di reimpostare la tua password. Visita: ${resetLink} (Il link scade tra 1 ora)`
+        });
+        console.log("Password reset email sent to:", email);
+      } catch (error) {
+        console.error("Failed to send password reset email:", error);
+      }
+
+      res.status(200).json({ success: true, message: "Se l'email esiste, riceverai un link per reimpostare la password" });
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      res.status(200).json({ success: true, message: "Se l'email esiste, riceverai un link per reimpostare la password" });
+    }
+  });
+
+  app.get("/api/auth/reset", async (req, res) => {
+    try {
+      const { token } = req.query;
+      
+      if (!token || typeof token !== 'string') {
+        return res.status(400).json({ error: "Token non valido" });
+      }
+
+      // Find the reset token
+      const resetRecord = await db.select({
+        id: passwordResetTokens.id,
+        userId: passwordResetTokens.userId,
+        expiresAt: passwordResetTokens.expiresAt,
+        usedAt: passwordResetTokens.usedAt,
+      })
+      .from(passwordResetTokens)
+      .where(eq(passwordResetTokens.token, token))
+      .limit(1);
+
+      if (resetRecord.length === 0) {
+        return res.status(400).json({ error: "Token non valido o scaduto" });
+      }
+
+      const record = resetRecord[0];
+
+      // Check if token is already used
+      if (record.usedAt) {
+        return res.status(400).json({ error: "Token già utilizzato" });
+      }
+
+      // Check if token is expired
+      if (new Date() > record.expiresAt) {
+        return res.status(400).json({ error: "Token scaduto" });
+      }
+
+      res.json({ success: true, message: "Token valido" });
+    } catch (error) {
+      console.error("Password reset token validation error:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+      
+      if (!token || typeof token !== 'string' || !newPassword || typeof newPassword !== 'string') {
+        return res.status(400).json({ error: "Token o password non validi" });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: "La password deve essere di almeno 6 caratteri" });
+      }
+
+      // Find the reset token
+      const resetRecord = await db.select({
+        id: passwordResetTokens.id,
+        userId: passwordResetTokens.userId,
+        expiresAt: passwordResetTokens.expiresAt,
+        usedAt: passwordResetTokens.usedAt,
+      })
+      .from(passwordResetTokens)
+      .where(eq(passwordResetTokens.token, token))
+      .limit(1);
+
+      if (resetRecord.length === 0) {
+        return res.status(400).json({ error: "Token non valido o scaduto" });
+      }
+
+      const record = resetRecord[0];
+
+      // Check if token is already used
+      if (record.usedAt) {
+        return res.status(400).json({ error: "Token già utilizzato" });
+      }
+
+      // Check if token is expired
+      if (new Date() > record.expiresAt) {
+        return res.status(400).json({ error: "Token scaduto" });
+      }
+
+      // Hash the new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update user's password
+      await db.update(users)
+        .set({ password: hashedPassword })
+        .where(eq(users.id, record.userId));
+
+      // Mark token as used
+      await db.update(passwordResetTokens)
+        .set({ usedAt: new Date() })
+        .where(eq(passwordResetTokens.id, record.id));
+
+      console.log("Password reset successfully for user:", record.userId);
+      res.json({ success: true, message: "Password reimpostata con successo" });
+    } catch (error) {
+      console.error("Password reset error:", error);
       res.status(500).json({ error: "Errore interno del server" });
     }
   });

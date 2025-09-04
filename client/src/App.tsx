@@ -23,6 +23,8 @@ import SupercoppaPredictions from "./pages/supercoppa-predictions";
 import CoppaItaliaPredictions from "./pages/coppa-italia-predictions"; // Import the new page
 import NotFound from "@/pages/not-found";
 import VerifyEmail from "@/pages/verify-email";
+import ForgotPassword from "@/pages/forgot-password";
+import ResetPassword from "@/pages/reset-password";
 
 import Header from "@/components/header";
 import BottomNavigation from "@/components/bottom-navigation";
@@ -106,6 +108,8 @@ function AppContent() {
           <Route path="/leagues/:leagueId/supercoppa-predictions" component={SupercoppaPredictions} />
           <Route path="/leagues/:leagueId/coppa-italia-predictions" component={CoppaItaliaPredictions} />
           <Route path="/auth/verify" component={VerifyEmail} />
+        <Route path="/auth/forgot-password" component={ForgotPassword} />
+        <Route path="/auth/reset" component={ResetPassword} />
 
           <Route component={NotFound} />
         </Switch>
