@@ -42,6 +42,11 @@ function AppContent() {
         window.location.href = "/auth";
       }
     }
+    // If user is authenticated and we're on the auth page, redirect to home
+    if (!isLoading && authData && window.location.pathname === "/auth") {
+      console.log("User authenticated, redirecting to home");
+      window.location.href = "/";
+    }
   }, [authData, isLoading]);
 
   if (isLoading) {
@@ -59,6 +64,15 @@ function AppContent() {
       window.history.replaceState(null, "", "/auth");
     }
     return <Auth />;
+  }
+
+  // Show loading during auth transitions to prevent 404 flash
+  if (window.location.pathname === "/auth") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   // Extract user from auth data (API returns { user: { id, nickname, isAdmin } })
