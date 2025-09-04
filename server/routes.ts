@@ -1019,6 +1019,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Manual points endpoint
+  app.post("/api/leagues/:leagueId/manual-points", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    try {
+      const { leagueId } = req.params;
+      const { userId, points } = req.body;
+
+      // Check if user is admin of the league
+      const league = await storage.getLeague(leagueId);
+      if (!league || league.adminId !== req.session.userId) {
+        return res.status(403).json({ error: "Solo l'admin può modificare i punti manuali" });
+      }
+
+      // Update manual points
+      await storage.updateManualPoints(leagueId, userId, points);
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Manual points update error:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
   // Coppa Italia endpoints
   app.get("/api/extras/coppa/:leagueId", async (req, res) => {
     if (!req.session.userId) {

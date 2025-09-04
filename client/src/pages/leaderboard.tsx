@@ -1,13 +1,18 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
-import { ArrowLeft, Trophy, Medal, Award } from "lucide-react";
+import { ArrowLeft, Trophy, Medal, Award, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import React from "react";
 
 export default function Leaderboard() {
   const [, params] = useRoute("/leaderboard/:leagueId");
   const leagueId = params?.leagueId;
+  const [manualPointsInputs, setManualPointsInputs] = useState<Record<string, number>>({});
+  const queryClient = useQueryClient();
 
   const { data: leaderboardData, isLoading } = useQuery({
     queryKey: ["/api/leagues", leagueId, "leaderboard"],
@@ -17,6 +22,30 @@ export default function Leaderboard() {
   const { data: leagueData } = useQuery({
     queryKey: ["/api/leagues", leagueId],
     enabled: !!leagueId,
+  });
+
+  const { data: authData } = useQuery({ queryKey: ["/api/auth/me"] });
+
+  const updateManualPointsMutation = useMutation({
+    mutationFn: async ({ userId, points }: { userId: string; points: number }) => {
+      const response = await fetch(`/api/leagues/${leagueId}/manual-points`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, points }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update manual points');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      // Refetch leaderboard data
+      queryClient.invalidateQueries({ queryKey: ["/api/leagues", leagueId, "leaderboard"] });
+    },
   });
 
   if (isLoading) {
@@ -44,6 +73,23 @@ export default function Leaderboard() {
     );
   }
 
+  const updateManualPoints = (userId: string, points: number) => {
+    updateManualPointsMutation.mutate({ userId, points });
+  };
+
+  const adjustManualPoints = (userId: string, delta: number) => {
+    const currentPoints = manualPointsInputs[userId] || 0;
+    const newPoints = Math.max(0, currentPoints + delta);
+    setManualPointsInputs(prev => ({ ...prev, [userId]: newPoints }));
+    updateManualPoints(userId, newPoints);
+  };
+
+  const handleManualPointsInput = (userId: string, value: string) => {
+    const points = Math.max(0, parseInt(value) || 0);
+    setManualPointsInputs(prev => ({ ...prev, [userId]: points }));
+    updateManualPoints(userId, points);
+  };
+
   if (!leaderboardData || !leagueData) {
     return (
       <div className="min-h-screen paper-texture flex items-center justify-center px-4 py-8">
@@ -67,9 +113,22 @@ export default function Leaderboard() {
   }
 
   const league = (leagueData as any)?.league;
+  const user = (authData as any)?.user;
+  const isAdmin = user && league && league.adminId === user.id;
 
   // Ensure leaderboardData is always an array
   const leaderboardArray = Array.isArray(leaderboardData) ? leaderboardData : [];
+
+  // Initialize manual points inputs with current values
+  React.useEffect(() => {
+    if (leaderboardArray.length > 0) {
+      const initialInputs: Record<string, number> = {};
+      leaderboardArray.forEach((player: any) => {
+        initialInputs[player.user.id] = player.manualPoints || 0;
+      });
+      setManualPointsInputs(initialInputs);
+    }
+  }, [leaderboardArray]);
 
   return (
     <div className="min-h-screen paper-texture">
@@ -157,35 +216,74 @@ export default function Leaderboard() {
               {leaderboardArray?.map((player: any, index: number) => (
                 <div 
                   key={player.user.id} 
-                  className={`px-6 py-4 flex items-center justify-between ${
+                  className={`px-6 py-4 ${
                     player.points === 0 ? "bg-gray-50/50" : ""
                   }`}
                   data-testid={`leaderboard-row-${index + 1}`}
                 >
-                  <div className="flex items-center space-x-4">
-                    <span className={`w-8 text-center font-bold text-lg ${
-                      player.points === 0 ? "text-primary/50" : "text-primary"
-                    }`}>
-                      {index + 1}°
-                    </span>
-                    <span className={`font-bold ${
-                      player.points === 0 ? "text-primary/60" : "text-primary"
-                    }`}>
-                      {player.user.nickname}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <div className={`font-bold ${
-                      player.points === 0 ? "text-primary/60" : "text-primary"
-                    }`}>
-                      {player.points} punti
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <span className={`w-8 text-center font-bold text-lg ${
+                        player.points === 0 ? "text-primary/50" : "text-primary"
+                      }`}>
+                        {index + 1}°
+                      </span>
+                      <span className={`font-bold ${
+                        player.points === 0 ? "text-primary/60" : "text-primary"
+                      }`}>
+                        {player.user.nickname}
+                      </span>
                     </div>
-                    <div className={`text-xs font-medium ${
-                      player.points === 0 ? "text-primary/50" : "text-primary/70"
-                    }`}>
-                      {player.points === 0 ? "Nessun pronostico" : `${player.correctPicks} giusti`}
+                    <div className="flex items-center space-x-3">
+                      <div className="text-right">
+                        <div className={`font-bold ${
+                          player.points === 0 ? "text-primary/60" : "text-primary"
+                        }`}>
+                          {player.points} punti
+                        </div>
+                        <div className={`text-xs font-medium ${
+                          player.points === 0 ? "text-primary/50" : "text-primary/70"
+                        }`}>
+                          {player.points === 0 ? "Nessun pronostico" : `${player.correctPicks} giusti`}
+                        </div>
+                      </div>
+                      {isAdmin && (
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 w-8 p-0"
+                            onClick={() => adjustManualPoints(player.user.id, -1)}
+                            disabled={updateManualPointsMutation.isPending}
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <Input
+                            type="number"
+                            min="0"
+                            value={manualPointsInputs[player.user.id] || 0}
+                            onChange={(e) => handleManualPointsInput(player.user.id, e.target.value)}
+                            className="w-16 h-8 text-center text-sm"
+                            disabled={updateManualPointsMutation.isPending}
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 w-8 p-0"
+                            onClick={() => adjustManualPoints(player.user.id, 1)}
+                            disabled={updateManualPointsMutation.isPending}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
+                  {isAdmin && player.manualPoints && player.manualPoints > 0 && (
+                    <div className="mt-2 text-xs text-blue-600 font-medium">
+                      +{player.manualPoints} punti manuali
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

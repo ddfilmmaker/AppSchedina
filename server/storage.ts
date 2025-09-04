@@ -165,6 +165,9 @@ export interface IStorage {
 
   // Leaderboard
   getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number; supercoppaPoints?: number; coppaPoints?: number; manualPoints?: number }[]>;
+
+  // Manual Points
+  updateManualPoints(leagueId: string, userId: string, points: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -1239,6 +1242,12 @@ export class MemStorage implements IStorage {
       }
       return b.correctPicks - a.correctPicks;
     });
+  }
+
+  async updateManualPoints(leagueId: string, userId: string, points: number): Promise<void> {
+    const key = `${leagueId}-${userId}`;
+    this.manualPoints.set(key, points);
+    console.log(`Updated manual points for user ${userId} in league ${leagueId}: ${points} points`);
   }
 
   private async createDefaultSpecialTournaments(leagueId: string): Promise<void> {
