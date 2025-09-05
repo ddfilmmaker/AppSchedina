@@ -1,0 +1,30 @@
+Please fix ONLY the email verification flow and related UI state. Do not modify leagues, giornate, leaderboard, Supercoppa/Coppa, scoring, or other features.
+
+Issues to fix:
+1) Clicking the verification link opens a generic login page and the app still shows “verifica la tua email”.
+2) After successful verification, the “verify your email” banner does not clear.
+3) There’s an interim screen that only shows a welcome message and a button to send the verification email — remove this screen and show a non-blocking banner instead.
+
+Required behavior:
+A) Server: GET /auth/verify?token=...
+   - Validate token (exists, not used, not expired).
+   - Set users.email_verified_at = now() and mark token used.
+   - Redirect (302) to the main app URL with a success flag, e.g. ${APP_URL}/?verified=1
+   - Return 4xx with a small HTML page if invalid/expired, with a link back to ${APP_URL}.
+
+B) Client:
+   - On app load, if URL has ?verified=1, show a success toast “Email verificata!” and remove the query param without reload (history.replaceState).
+   - Make sure /api/auth/me includes current verification status; after redirect, refetch /api/auth/me so the banner disappears immediately when verified.
+   - Replace any standalone “verify email” page with a small, dismissible banner shown only when auth.me.unverified === true, containing a “Reinvia email di verifica” link/button. This banner must not block navigation.
+
+C) Resend verification email:
+   - Keep the existing POST to trigger a resend.
+   - On success, show toast “Ti abbiamo inviato una nuova email di verifica”.
+
+D) Do not change auth rules or block login for unverified users. This task only fixes verification handling, redirect, banner state, and resend UX.
+
+Acceptance:
+- New signup receives an email; clicking the link marks verified server-side and redirects to /?verified=1.
+- The app shows “Email verificata!” toast and the verification banner no longer appears.
+- No interim page; only a small banner with “Reinvia email di verifica” for unverified users.
+- All other features/pages remain unchanged.
