@@ -97,9 +97,10 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
 
   // Email Verification
-  createEmailVerificationToken(userId: string, token: string): Promise<void>;
-  getEmailVerificationToken(userId: string): Promise<string | undefined>;
-  deleteEmailVerificationToken(userId: string): Promise<void>;
+  createEmailVerificationToken(data: { userId: string; token: string; expiresAt: Date }): Promise<void>;
+  getEmailVerificationToken(token: string): Promise<{ userId: string; expiresAt: Date; usedAt: Date | null } | undefined>;
+  useEmailVerificationToken(token: string): Promise<void>;
+  verifyUserEmail(userId: string): Promise<void>;
 
   // Leagues
   createLeague(league: InsertLeague & { adminId: string }): Promise<League>;
@@ -264,29 +265,44 @@ export class MemStorage implements IStorage {
   }
 
   // Email verification token methods
-  async createEmailVerificationToken(userId: string, token: string): Promise<void> {
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // Token valid for 24 hours
-    this.emailVerificationTokens.set(userId, { userId, token, expiresAt, createdAt: new Date(), usedAt: null });
-    console.log(`Email verification token created for user ${userId}. Expires at: ${expiresAt.toISOString()}`);
+  async createEmailVerificationToken(data: { userId: string; token: string; expiresAt: Date }): Promise<void> {
+    this.emailVerificationTokens.set(data.token, { 
+      userId: data.userId, 
+      token: data.token, 
+      expiresAt: data.expiresAt, 
+      createdAt: new Date(), 
+      usedAt: null 
+    });
+    console.log(`Email verification token created for user ${data.userId}. Expires at: ${data.expiresAt.toISOString()}`);
   }
 
-  async getEmailVerificationToken(userId: string): Promise<string | undefined> {
-    const tokenData = this.emailVerificationTokens.get(userId);
+  async getEmailVerificationToken(token: string): Promise<{ userId: string; expiresAt: Date; usedAt: Date | null } | undefined> {
+    const tokenData = this.emailVerificationTokens.get(token);
     if (!tokenData) return undefined;
 
-    // Check if token has expired
-    if (new Date() > tokenData.expiresAt) {
-      console.log(`Email verification token expired for user ${userId}`);
-      this.emailVerificationTokens.delete(userId); // Clean up expired token
-      return undefined;
-    }
-
-    return tokenData.token;
+    return {
+      userId: tokenData.userId,
+      expiresAt: tokenData.expiresAt,
+      usedAt: tokenData.usedAt
+    };
   }
 
-  async deleteEmailVerificationToken(userId: string): Promise<void> {
-    this.emailVerificationTokens.delete(userId);
-    console.log(`Email verification token deleted for user ${userId}`);
+  async useEmailVerificationToken(token: string): Promise<void> {
+    const tokenData = this.emailVerificationTokens.get(token);
+    if (tokenData) {
+      tokenData.usedAt = new Date();
+      this.emailVerificationTokens.set(token, tokenData);
+      console.log(`Email verification token used for token ${token}`);
+    }
+  }
+
+  async verifyUserEmail(userId: string): Promise<void> {
+    const user = this.users.get(userId);
+    if (user) {
+      user.emailVerifiedAt = new Date();
+      this.users.set(userId, user);
+      console.log(`Email verified for user ${userId} at ${user.emailVerifiedAt}`);
+    }
   }
 
   async createLeague(insertLeague: InsertLeague & { adminId: string }): Promise<League> {

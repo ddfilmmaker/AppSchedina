@@ -55,7 +55,7 @@ export default function Home() {
       </div>
       
       <div className="max-w-sm mx-auto px-4 py-8 pb-8 space-y-6 relative z-10">
-      {/* Email Verification Reminder */}
+      {/* Email Verification Status */}
       {user?.unverified && (
         <Card className="retro-card border-0 rounded-2xl overflow-hidden bg-yellow-50 border-yellow-200">
           <CardContent className="p-4">
@@ -69,6 +69,26 @@ export default function Home() {
                 </p>
                 <p className="text-xs text-yellow-700">
                   Controlla la tua casella di posta per completare la registrazione
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
+      {user && !user.unverified && user.email && (
+        <Card className="retro-card border-0 rounded-2xl overflow-hidden bg-green-50 border-green-200">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-bold">✓</span>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-green-800">
+                  Email verificata
+                </p>
+                <p className="text-xs text-green-700">
+                  Il tuo account è stato verificato con successo
                 </p>
               </div>
             </div>
