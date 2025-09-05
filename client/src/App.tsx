@@ -108,10 +108,9 @@ function AppContent() {
           <Route path="/leagues/:leagueId/supercoppa-predictions" component={SupercoppaPredictions} />
           <Route path="/leagues/:leagueId/coppa-italia-predictions" component={CoppaItaliaPredictions} />
           <Route path="/auth/verify" component={VerifyEmail} />
-        <Route path="/auth/forgot-password" component={ForgotPassword} />
         <Route path="/auth/reset" component={ResetPassword} />
-
-          <Route component={NotFound} />
+        <Route path="/auth/verify" component={VerifyEmail} />
+        <Route component={NotFound} />
         </Switch>
       </main>
 

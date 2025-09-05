@@ -27,7 +27,7 @@ export default function VerifyEmail() {
     const verifyEmail = async () => {
       try {
         console.log('Sending verification request for token:', token);
-        const response = await fetch(`/api/auth/verify?token=${encodeURIComponent(token)}`);
+        const response = await fetch(`/auth/verify?token=${encodeURIComponent(token)}`);
         const data = await response.json();
 
         console.log('Verification response:', { status: response.status, data });
