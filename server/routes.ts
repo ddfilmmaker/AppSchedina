@@ -66,8 +66,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const verificationToken = crypto.randomBytes(32).toString('hex');
       const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
 
-      // Store verification token
-      await db.insert(emailVerificationTokens).values({
+      // Store verification token in memory storage
+      await storage.createEmailVerificationToken({
         userId: user.id,
         token: verificationToken,
         expiresAt,
@@ -179,21 +179,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Find the verification token
-      const verificationRecord = await db.select({
-        id: emailVerificationTokens.id,
-        userId: emailVerificationTokens.userId,
-        expiresAt: emailVerificationTokens.expiresAt,
-        usedAt: emailVerificationTokens.usedAt,
-      })
-      .from(emailVerificationTokens)
-      .where(eq(emailVerificationTokens.token, token))
-      .limit(1);
+      const record = await storage.getEmailVerificationToken(token);
 
-      if (verificationRecord.length === 0) {
+      if (!record) {
         return res.status(400).json({ error: "Token non trovato" });
       }
-
-      const record = verificationRecord[0];
 
       // Check if token is already used
       if (record.usedAt) {
@@ -205,15 +195,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Token scaduto" });
       }
 
-      // Mark token as used
-      await db.update(emailVerificationTokens)
-        .set({ usedAt: new Date() })
-        .where(eq(emailVerificationTokens.id, record.id));
-
-      // Update user's email_verified_at
-      await db.update(users)
-        .set({ emailVerifiedAt: new Date() })
-        .where(eq(users.id, record.userId));
+      // Mark token as used and update user
+      await storage.useEmailVerificationToken(token);
+      await storage.verifyUserEmail(record.userId);
 
       console.log("Email verified for user:", record.userId);
       res.json({ success: true, message: "Email verificata con successo!" });

@@ -96,6 +96,11 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>; // Added for email verification
   createUser(user: InsertUser): Promise<User>;
 
+  // Email Verification
+  createEmailVerificationToken(userId: string, token: string): Promise<void>;
+  getEmailVerificationToken(userId: string): Promise<string | undefined>;
+  deleteEmailVerificationToken(userId: string): Promise<void>;
+
   // Leagues
   createLeague(league: InsertLeague & { adminId: string }): Promise<League>;
   getLeague(id: string): Promise<League | undefined>;
@@ -175,29 +180,21 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<string, User> = new Map();
-  private leagues: Map<string, League> = new Map();
-  private leagueMembers: Map<string, LeagueMember> = new Map();
-  private matchdays: Map<string, Matchday> = new Map();
-  private matches: Map<string, Match> = new Map();
-  private picks: Map<string, Pick> = new Map();
-  private specialTournaments: Map<string, SpecialTournament> = new Map();
-  private specialBets: Map<string, SpecialBet> = new Map();
-  // In-memory storage for preseason bets and settings
-  private preseasonBets: Map<string, InsertPreSeasonPrediction> = new Map(); // Key: `${leagueId}-${userId}`
-  private preseasonSettings: Map<string, PreSeasonSetting> = new Map(); // Key: leagueId
-
-  // In-memory storage for supercoppa bets and settings
-  private supercoppaBets: Map<string, any> = new Map(); // Key: `${leagueId}-${userId}`
-  private supercoppaSettings: Map<string, any> = new Map(); // Key: leagueId
-
-  // In-memory storage for coppa bets and settings
-  private coppaBets: Map<string, any> = new Map(); // Key: `${leagueId}-${userId}`
-  private coppaSettings: Map<string, any> = new Map(); // Key: leagueId
-
-  // In-memory storage for manual points
-  private manualPoints: Map<string, number> = new Map(); // Key: `${leagueId}-${userId}`
-
+  private users = new Map<string, User>();
+  private leagues = new Map<string, League>();
+  private leagueMembers = new Map<string, LeagueMember>();
+  private matchdays = new Map<string, Matchday>();
+  private matches = new Map<string, Match>();
+  private picks = new Map<string, Pick>();
+  private specialTournaments = new Map<string, SpecialTournament>();
+  private specialBets = new Map<string, SpecialBet>();
+  private preseasonBets = new Map<string, any>();
+  private preseasonSettings = new Map<string, any>();
+  private supercoppaSettings = new Map<string, any>();
+  private supercoppaBets = new Map<string, any>();
+  private coppaSettings = new Map<string, any>();
+  private coppaBets = new Map<string, any>();
+  private emailVerificationTokens = new Map<string, any>();
 
   constructor() {
     // Removed initialization of global special tournaments as they are now league-specific.
@@ -252,6 +249,22 @@ export class MemStorage implements IStorage {
     };
     this.users.set(id, user);
     return user;
+  }
+
+  // Email verification token methods
+  async createEmailVerificationToken(userId: string, token: string): Promise<void> {
+    this.emailVerificationTokens.set(userId, { token, createdAt: new Date() });
+    console.log(`Email verification token created for user ${userId}`);
+  }
+
+  async getEmailVerificationToken(userId: string): Promise<string | undefined> {
+    const tokenData = this.emailVerificationTokens.get(userId);
+    return tokenData ? tokenData.token : undefined;
+  }
+
+  async deleteEmailVerificationToken(userId: string): Promise<void> {
+    this.emailVerificationTokens.delete(userId);
+    console.log(`Email verification token deleted for user ${userId}`);
   }
 
   async createLeague(insertLeague: InsertLeague & { adminId: string }): Promise<League> {
@@ -1193,7 +1206,7 @@ export class MemStorage implements IStorage {
     }
   }
 
-  async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number; supercoppaPoints?: number; coppaPoints?: number; manualPoints?: number }[]> {
+  async getLeagueLeaderboard(leagueId: string): Promise<{ user: User; points: number; correctPicks: number; preseasonPoints?: number; supercoppaPoints?: number; coppaPoints?: number; manualPoints?: number }[]>{
     const members = await this.getLeagueMembers(leagueId);
     const matchdays = await this.getLeagueMatchdays(leagueId);
 
