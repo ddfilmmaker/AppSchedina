@@ -80,14 +80,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         await sendEmail({
           to: email,
-          subject: "Verifica la tua email - Schedina",
+          subject: "Verifica la tua email – Schedina",
           html: `
-            <h2>Benvenuto in Schedina!</h2>
-            <p>Clicca sul link qui sotto per verificare la tua email:</p>
-            <p><a href="${verificationLink}">Verifica Email</a></p>
-            <p>Il link scadrà tra 1 ora.</p>
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h1 style="color: #16a34a; margin-bottom: 20px;">Benvenuto in Schedina, ${nickname}!</h1>
+              <p style="font-size: 16px; line-height: 1.5; margin-bottom: 25px;">
+                Clicca il pulsante qui sotto per verificare la tua email:
+              </p>
+              <p style="text-align: center; margin: 30px 0;">
+                <a href="${verificationLink}" style="display: inline-block; padding: 12px 20px; background: #16a34a; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold;">Verifica Email</a>
+              </p>
+              <p style="font-size: 14px; color: #666; margin-top: 25px;">
+                Oppure copia e incolla questo link nel tuo browser:<br>
+                <span style="word-break: break-all; color: #16a34a;">${verificationLink}</span>
+              </p>
+              <p style="font-size: 12px; color: #999; margin-top: 25px;">
+                Il link scadrà tra 1 ora.
+              </p>
+            </div>
           `,
-          text: `Benvenuto in Schedina! Verifica la tua email visitando: ${verificationLink}`
+          text: `Benvenuto in Schedina, ${nickname}! Verifica la tua email visitando: ${verificationLink} (Il link scade tra 1 ora)`
         });
         console.log("Verification email sent to:", email);
       } catch (error) {
