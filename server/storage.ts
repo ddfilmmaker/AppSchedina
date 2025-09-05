@@ -40,7 +40,7 @@ import { eq, and, asc, desc, sql } from "drizzle-orm"; // Added for potential fu
 // For this example, we'll simulate the DB and schema objects.
 
 // Mock schema objects (replace with actual imports from @shared/schema)
-const users = { id: "users.id", nickname: "users.nickname" } as any;
+const users = { id: "users.id", nickname: "users.nickname", email: "users.email", password: "users.password", isAdmin: "users.isAdmin", emailVerifiedAt: "users.emailVerifiedAt", createdAt: "users.createdAt" } as any;
 const leagues = { id: "leagues.id", code: "leagues.code" } as any;
 const leagueMembers = { id: "leagueMembers.id", leagueId: "leagueMembers.leagueId", userId: "leagueMembers.userId" } as any;
 const matchdays = { id: "matchdays.id", leagueId: "matchdays.leagueId", deadline: "matchdays.deadline" } as any;
@@ -55,6 +55,9 @@ const preseasonSettings = { leagueId: "preseasonSettings.leagueId", lockAt: "pre
 const db = {
   insert: (table: any) => ({
     values: (data: any) => ({
+      returning: () => ({
+        execute: () => Promise.resolve([{...data}]) // Mock execute method
+      }),
       onConflictDoUpdate: ({ target, set }: { target: any; set: any }) => ({
         execute: () => Promise.resolve({ rows: [] }) // Mock execute method
       }),
@@ -90,6 +93,7 @@ export interface IStorage {
   // Users
   getUser(id: string): Promise<User | undefined>;
   getUserByNickname(nickname: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>; // Added for email verification
   createUser(user: InsertUser): Promise<User>;
 
   // Leagues
@@ -208,8 +212,10 @@ export class MemStorage implements IStorage {
     const testUser = {
       id: "test-user-1",
       nickname: "test",
+      email: "test@example.com", // Added email
       password: await bcrypt.hash("test", 10),
-      isAdmin: true
+      isAdmin: true,
+      emailVerifiedAt: new Date() // Assume verified for sample
     };
 
     this.users.set(testUser.id, testUser);
@@ -222,23 +228,50 @@ export class MemStorage implements IStorage {
   }
 
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const result = await db.select({
+      id: users.id,
+      nickname: users.nickname,
+      email: users.email,
+      password: users.password,
+      isAdmin: users.isAdmin,
+      emailVerifiedAt: users.emailVerifiedAt,
+      createdAt: users.createdAt,
+    }).from(users).where(eq(users.id, id)).limit(1);
+    return result[0];
   }
 
   async getUserByNickname(nickname: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.nickname === nickname);
+    const result = await db.select({
+      id: users.id,
+      nickname: users.nickname,
+      email: users.email,
+      password: users.password,
+      isAdmin: users.isAdmin,
+      emailVerifiedAt: users.emailVerifiedAt,
+      createdAt: users.createdAt,
+    }).from(users).where(eq(users.nickname, nickname)).limit(1);
+    return result[0];
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = {
-      ...insertUser,
-      id,
-      createdAt: new Date(),
-      isAdmin: insertUser.isAdmin ?? false,
-    };
-    this.users.set(id, user);
-    return user;
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const result = await db.select({
+      id: users.id,
+      nickname: users.nickname,
+      email: users.email,
+      password: users.password,
+      isAdmin: users.isAdmin,
+      emailVerifiedAt: users.emailVerifiedAt,
+      createdAt: users.createdAt,
+    }).from(users).where(eq(users.email, email)).limit(1);
+    return result[0];
+  }
+
+  async createUser(userData: InsertUser): Promise<User> {
+    const result = await db.insert(users).values({
+      ...userData,
+      emailVerifiedAt: null, // Set as null initially, will be updated when verified
+    }).returning();
+    return result[0];
   }
 
   async createLeague(insertLeague: InsertLeague & { adminId: string }): Promise<League> {
@@ -834,12 +867,15 @@ export class MemStorage implements IStorage {
   async setPreseasonOfficialResults(leagueId: string, results: { winnerOfficial: string; bottomOfficial: string; topScorerOfficial: string }): Promise<void> {
     const settings = this.preseasonSettings.get(leagueId);
     if (settings) {
-      settings.winnerOfficial = results.winnerOfficial;
-      settings.bottomOfficial = results.bottomOfficial;
-      settings.topScorerOfficial = results.topScorerOfficial;
-      // Mark results as confirmed, which might trigger point calculation
-      settings.resultsConfirmedAt = new Date();
-      this.preseasonSettings.set(leagueId, settings);
+      this.preseasonSettings.set(leagueId, {
+        ...settings,
+        winnerOfficial: results.winnerOfficial,
+        bottomOfficial: results.bottomOfficial,
+        topScorerOfficial: results.topScorerOfficial,
+        // Mark results as confirmed, which might trigger point calculation
+        resultsConfirmedAt: new Date(),
+        updatedAt: new Date()
+      });
     }
   }
 

@@ -158,7 +158,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ error: "Utente non trovato" });
     }
 
-    res.json({ user: { id: user.id, nickname: user.nickname, isAdmin: user.isAdmin } });
+    const unverified = !user.emailVerifiedAt;
+    res.json({ 
+      user: { 
+        id: user.id, 
+        nickname: user.nickname, 
+        isAdmin: user.isAdmin,
+        email: user.email,
+        unverified 
+      } 
+    });
   });
 
   app.get("/api/auth/verify", async (req, res) => {

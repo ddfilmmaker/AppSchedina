@@ -55,6 +55,27 @@ export default function Home() {
       </div>
       
       <div className="max-w-sm mx-auto px-4 py-8 pb-8 space-y-6 relative z-10">
+      {/* Email Verification Reminder */}
+      {user?.unverified && (
+        <Card className="retro-card border-0 rounded-2xl overflow-hidden bg-yellow-50 border-yellow-200">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-bold">!</span>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-yellow-800">
+                  Verifica la tua email
+                </p>
+                <p className="text-xs text-yellow-700">
+                  Controlla la tua casella di posta per completare la registrazione
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Welcome Section */}
       <Card className="retro-card border-0 rounded-3xl overflow-hidden">
         <CardContent className="p-0">
