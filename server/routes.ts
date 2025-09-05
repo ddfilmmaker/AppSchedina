@@ -1455,6 +1455,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Email configuration check endpoint
+  app.get("/api/email/check", async (req, res) => {
+    try {
+      const hasApiKey = !!process.env.RESEND_API_KEY;
+      const fromEmail = process.env.FROM_EMAIL || 'noreply@schedina.app';
+      const fromName = process.env.FROM_NAME || 'Schedina';
+      
+      res.json({
+        configured: hasApiKey,
+        fromEmail,
+        fromName,
+        message: hasApiKey ? 'Email service is configured' : 'RESEND_API_KEY not found'
+      });
+    } catch (error) {
+      res.json({ 
+        configured: false, 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
   // Dev-only test endpoint for email verification
   app.post("/api/dev/send-test-email", async (req, res) => {
     // Protection: only allow in development or with test header

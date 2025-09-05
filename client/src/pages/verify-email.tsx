@@ -15,6 +15,8 @@ export default function VerifyEmail() {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
 
+    console.log('Verification page loaded with token:', token);
+
     if (!token) {
       setStatus('error');
       setMessage('Token di verifica mancante');
@@ -24,8 +26,11 @@ export default function VerifyEmail() {
     // Verify the email
     const verifyEmail = async () => {
       try {
+        console.log('Sending verification request for token:', token);
         const response = await fetch(`/api/auth/verify?token=${encodeURIComponent(token)}`);
         const data = await response.json();
+
+        console.log('Verification response:', { status: response.status, data });
 
         if (response.ok) {
           setStatus('success');
@@ -35,6 +40,7 @@ export default function VerifyEmail() {
           setMessage(data.error || 'Errore nella verifica');
         }
       } catch (error) {
+        console.error('Verification error:', error);
         setStatus('error');
         setMessage('Errore di connessione');
       }

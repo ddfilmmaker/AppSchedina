@@ -182,19 +182,31 @@ export interface IStorage {
 export class MemStorage implements IStorage {
   private users = new Map<string, User>();
   private leagues = new Map<string, League>();
-  private leagueMembers = new Map<string, LeagueMember>();
+  private leagueMembers = new Map<string, LeagueMember[]>();
   private matchdays = new Map<string, Matchday>();
   private matches = new Map<string, Match>();
   private picks = new Map<string, Pick>();
   private specialTournaments = new Map<string, SpecialTournament>();
   private specialBets = new Map<string, SpecialBet>();
+
+  // New storage for pre-season tournament
+  private preSeasonPredictions = new Map<string, PreSeasonPrediction>();
   private preseasonBets = new Map<string, any>();
   private preseasonSettings = new Map<string, any>();
-  private supercoppaSettings = new Map<string, any>();
   private supercoppaBets = new Map<string, any>();
-  private coppaSettings = new Map<string, any>();
+  private supercoppaSettings = new Map<string, any>();
   private coppaBets = new Map<string, any>();
-  private emailVerificationTokens = new Map<string, any>();
+  private coppaSettings = new Map<string, any>();
+  private manualPoints = new Map<string, Map<string, number>>();
+
+  // Add storage for email verification tokens
+  private emailVerificationTokens = new Map<string, {
+    userId: string;
+    token: string;
+    expiresAt: Date;
+    createdAt: Date;
+    usedAt: Date | null;
+  }>();
 
   constructor() {
     // Removed initialization of global special tournaments as they are now league-specific.
@@ -253,13 +265,23 @@ export class MemStorage implements IStorage {
 
   // Email verification token methods
   async createEmailVerificationToken(userId: string, token: string): Promise<void> {
-    this.emailVerificationTokens.set(userId, { token, createdAt: new Date() });
-    console.log(`Email verification token created for user ${userId}`);
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // Token valid for 24 hours
+    this.emailVerificationTokens.set(userId, { userId, token, expiresAt, createdAt: new Date(), usedAt: null });
+    console.log(`Email verification token created for user ${userId}. Expires at: ${expiresAt.toISOString()}`);
   }
 
   async getEmailVerificationToken(userId: string): Promise<string | undefined> {
     const tokenData = this.emailVerificationTokens.get(userId);
-    return tokenData ? tokenData.token : undefined;
+    if (!tokenData) return undefined;
+
+    // Check if token has expired
+    if (new Date() > tokenData.expiresAt) {
+      console.log(`Email verification token expired for user ${userId}`);
+      this.emailVerificationTokens.delete(userId); // Clean up expired token
+      return undefined;
+    }
+
+    return tokenData.token;
   }
 
   async deleteEmailVerificationToken(userId: string): Promise<void> {
@@ -347,23 +369,34 @@ export class MemStorage implements IStorage {
       userId,
       joinedAt: new Date(),
     };
-    this.leagueMembers.set(id, member);
+    // Ensure leagueMembers is treated as a Map of userId to LeagueMember[]
+    if (!this.leagueMembers.has(userId)) {
+      this.leagueMembers.set(userId, []);
+    }
+    this.leagueMembers.get(userId)!.push(member);
     return member;
   }
 
   async getLeagueMembers(leagueId: string): Promise<(LeagueMember & { user: User })[]> {
-    const members = Array.from(this.leagueMembers.values())
-      .filter(member => member.leagueId === leagueId);
+    const allMembers = [];
+    for (const members of this.leagueMembers.values()) {
+      for (const member of members) {
+        if (member.leagueId === leagueId) {
+          allMembers.push(member);
+        }
+      }
+    }
 
-    return members.map(member => ({
+    return allMembers.map(member => ({
       ...member,
       user: this.users.get(member.userId)!
     })).filter(m => m.user);
   }
 
   async isUserInLeague(leagueId: string, userId: string): Promise<boolean> {
-    return Array.from(this.leagueMembers.values())
-      .some(member => member.leagueId === leagueId && member.userId === userId);
+    const userMembers = this.leagueMembers.get(userId);
+    if (!userMembers) return false;
+    return userMembers.some(member => member.leagueId === leagueId);
   }
 
   async isUserAdminOfLeague(leagueId: string, userId: string): Promise<boolean> {
@@ -691,7 +724,7 @@ export class MemStorage implements IStorage {
     for (const [key, bet] of this.preseasonBets.entries()) {
       if (key.startsWith(`${leagueId}-`)) {
         // Extract userId by removing the leagueId prefix and the dash
-        const userId = key.substring(`${leagueId}-`.length);
+        const userId = key.split('-')[1];
         const user = this.users.get(userId);
         if (user) {
           bets.push({
