@@ -1450,6 +1450,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Dev-only test endpoint for email verification
+  app.post("/api/dev/send-test-email", async (req, res) => {
+    // Protection: only allow in development or with test header
+    const isDev = process.env.NODE_ENV !== 'production';
+    const hasDevKey = req.headers['x-dev-key'] === 'TEST';
+    
+    if (!isDev && !hasDevKey) {
+      return res.status(403).json({ error: "Not allowed in production" });
+    }
+
+    try {
+      const { to, subject, text } = req.body;
+      
+      if (!to || !subject || !text) {
+        return res.status(400).json({ error: "Missing required fields: to, subject, text" });
+      }
+
+      await sendEmail({
+        to,
+        subject,
+        text,
+        html: `<pre>${text}</pre>`
+      });
+
+      console.log(`Test email sent to: ${to} with subject: ${subject}`);
+      res.json({ ok: true });
+    } catch (error) {
+      console.error("Test email send error:", error);
+      res.json({ ok: false, error: error instanceof Error ? error.message : "Unknown error" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
