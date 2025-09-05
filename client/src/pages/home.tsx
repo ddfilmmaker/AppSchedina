@@ -3,14 +3,26 @@ import { Link } from "wouter";
 import { Plus, Users, TrendingUp, Trophy, Award, Medal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 export default function Home() {
+  const { toast } = useToast();
   const { data: authData } = useQuery({ queryKey: ["/api/auth/me"] });
   const { data: leagues, isLoading: leaguesLoading } = useQuery({
     queryKey: ["/api/leagues"],
   });
 
   const user = (authData as any)?.user;
+
+  useEffect(() => {
+    const handleShowToast = (event: any) => {
+      toast(event.detail);
+    };
+
+    window.addEventListener('show-toast', handleShowToast);
+    return () => window.removeEventListener('show-toast', handleShowToast);
+  }, [toast]);
 
   // Ensure leagues is always an array
   const leaguesArray = Array.isArray(leagues) ? leagues : [];
@@ -59,18 +71,55 @@ export default function Home() {
       {user?.unverified && (
         <Card className="retro-card border-0 rounded-2xl overflow-hidden bg-yellow-50 border-yellow-200">
           <CardContent className="p-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-bold">!</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">!</span>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-yellow-800">
+                    Verifica la tua email
+                  </p>
+                  <p className="text-xs text-yellow-700">
+                    Controlla la tua casella di posta
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-bold text-yellow-800">
-                  Verifica la tua email
-                </p>
-                <p className="text-xs text-yellow-700">
-                  Controlla la tua casella di posta per completare la registrazione
-                </p>
-              </div>
+              <button 
+                onClick={async () => {
+                  try {
+                    const response = await fetch("/api/auth/resend-verification", {
+                      method: "POST",
+                    });
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                      // Show success toast
+                      const event = new CustomEvent('show-toast', {
+                        detail: {
+                          title: "Ti abbiamo inviato una nuova email di verifica",
+                          description: "Controlla la tua casella di posta.",
+                        }
+                      });
+                      window.dispatchEvent(event);
+                    } else {
+                      throw new Error(data.error || "Errore nell'invio");
+                    }
+                  } catch (error) {
+                    const event = new CustomEvent('show-toast', {
+                      detail: {
+                        title: "Errore",
+                        description: error instanceof Error ? error.message : "Errore nell'invio dell'email",
+                        variant: "destructive",
+                      }
+                    });
+                    window.dispatchEvent(event);
+                  }
+                }}
+                className="text-xs bg-yellow-600 text-white px-3 py-1 rounded-full font-medium hover:bg-yellow-700 transition-colors"
+              >
+                Reinvia email di verifica
+              </button>
             </div>
           </CardContent>
         </Card>

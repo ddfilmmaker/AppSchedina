@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 import Home from "@/pages/home";
 import Auth from "@/pages/auth";
@@ -22,7 +23,6 @@ import PreSeasonPredictions from "./pages/pre-season-predictions";
 import SupercoppaPredictions from "./pages/supercoppa-predictions";
 import CoppaItaliaPredictions from "./pages/coppa-italia-predictions"; // Import the new page
 import NotFound from "@/pages/not-found";
-import VerifyEmail from "@/pages/verify-email";
 import ForgotPassword from "@/pages/forgot-password";
 import ResetPassword from "@/pages/reset-password";
 
@@ -30,11 +30,28 @@ import Header from "@/components/header";
 import BottomNavigation from "@/components/bottom-navigation";
 
 function AppContent() {
-  const { data: authData, isLoading } = useQuery({
+  const { toast } = useToast();
+  const { data: authData, isLoading, refetch } = useQuery({
     queryKey: ["/api/auth/me"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
   });
+
+  useEffect(() => {
+    // Check for verification success flag
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('verified') === '1') {
+      toast({
+        title: "Email verificata!",
+        description: "La tua email è stata verificata con successo.",
+      });
+      // Remove the query param without reload
+      const newUrl = window.location.pathname + window.location.search.replace(/[?&]verified=1/, '').replace(/^\?$/, '');
+      window.history.replaceState(null, '', newUrl);
+      // Refetch auth data to update verification status
+      refetch();
+    }
+  }, [toast, refetch]);
 
   useEffect(() => {
     // If user is null (401 error) and we're not on the auth page, redirect
@@ -107,9 +124,7 @@ function AppContent() {
           />
           <Route path="/leagues/:leagueId/supercoppa-predictions" component={SupercoppaPredictions} />
           <Route path="/leagues/:leagueId/coppa-italia-predictions" component={CoppaItaliaPredictions} />
-          <Route path="/auth/verify" component={VerifyEmail} />
         <Route path="/auth/reset" component={ResetPassword} />
-        <Route path="/auth/verify" component={VerifyEmail} />
         <Route component={NotFound} />
         </Switch>
       </main>

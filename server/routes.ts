@@ -187,24 +187,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { token } = req.query;
       
       if (!token || typeof token !== 'string') {
-        return res.status(400).json({ error: "Token non valido" });
+        return res.status(400).send(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Verifica Email - Schedina</title>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+            </head>
+            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f5f5f5;">
+              <h1 style="color: #dc2626;">Token non valido</h1>
+              <p>Il link di verifica non è valido.</p>
+              <a href="${process.env.APP_URL || '/'}" style="display: inline-block; padding: 12px 20px; background: #16a34a; color: white; text-decoration: none; border-radius: 6px; margin-top: 20px;">Torna all'app</a>
+            </body>
+          </html>
+        `);
       }
 
       // Find the verification token
       const record = await storage.getEmailVerificationToken(token);
 
       if (!record) {
-        return res.status(400).json({ error: "Token non trovato" });
+        return res.status(400).send(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Verifica Email - Schedina</title>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+            </head>
+            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f5f5f5;">
+              <h1 style="color: #dc2626;">Token non trovato</h1>
+              <p>Il link di verifica non è stato trovato o è già stato utilizzato.</p>
+              <a href="${process.env.APP_URL || '/'}" style="display: inline-block; padding: 12px 20px; background: #16a34a; color: white; text-decoration: none; border-radius: 6px; margin-top: 20px;">Torna all'app</a>
+            </body>
+          </html>
+        `);
       }
 
       // Check if token is already used
       if (record.usedAt) {
-        return res.status(400).json({ error: "Token già utilizzato" });
+        return res.status(400).send(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Verifica Email - Schedina</title>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+            </head>
+            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f5f5f5;">
+              <h1 style="color: #dc2626;">Token già utilizzato</h1>
+              <p>Questo link di verifica è già stato utilizzato.</p>
+              <a href="${process.env.APP_URL || '/'}" style="display: inline-block; padding: 12px 20px; background: #16a34a; color: white; text-decoration: none; border-radius: 6px; margin-top: 20px;">Torna all'app</a>
+            </body>
+          </html>
+        `);
       }
 
       // Check if token is expired
       if (new Date() > record.expiresAt) {
-        return res.status(400).json({ error: "Token scaduto" });
+        return res.status(400).send(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Verifica Email - Schedina</title>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+            </head>
+            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f5f5f5;">
+              <h1 style="color: #dc2626;">Token scaduto</h1>
+              <p>Il link di verifica è scaduto. Puoi richiedere un nuovo link dall'app.</p>
+              <a href="${process.env.APP_URL || '/'}" style="display: inline-block; padding: 12px 20px; background: #16a34a; color: white; text-decoration: none; border-radius: 6px; margin-top: 20px;">Torna all'app</a>
+            </body>
+          </html>
+        `);
       }
 
       // Mark token as used and update user
@@ -212,10 +268,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.verifyUserEmail(record.userId);
 
       console.log("Email verified for user:", record.userId);
-      res.json({ success: true, message: "Email verificata con successo!" });
+      
+      // Redirect to main app with success flag
+      const appUrl = process.env.APP_URL || '/';
+      const redirectUrl = `${appUrl}${appUrl.includes('?') ? '&' : '?'}verified=1`;
+      res.redirect(302, redirectUrl);
     } catch (error) {
       console.error("Email verification error:", error);
-      res.status(500).json({ error: "Errore interno del server" });
+      res.status(500).send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Verifica Email - Schedina</title>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+          </head>
+          <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f5f5f5;">
+            <h1 style="color: #dc2626;">Errore del server</h1>
+            <p>Si è verificato un errore interno. Riprova più tardi.</p>
+            <a href="${process.env.APP_URL || '/'}" style="display: inline-block; padding: 12px 20px; background: #16a34a; color: white; text-decoration: none; border-radius: 6px; margin-top: 20px;">Torna all'app</a>
+          </body>
+        </html>
+      `);
     }
   });
 
@@ -1451,6 +1525,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       console.error("Coppa results error:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  // Resend verification email endpoint
+  app.post("/api/auth/resend-verification", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    try {
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        return res.status(404).json({ error: "Utente non trovato" });
+      }
+
+      // Check if already verified
+      if (user.emailVerifiedAt) {
+        return res.status(400).json({ error: "Email già verificata" });
+      }
+
+      // Generate new verification token
+      const verificationToken = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+
+      // Store verification token
+      await storage.createEmailVerificationToken({
+        userId: user.id,
+        token: verificationToken,
+        expiresAt,
+      });
+
+      // Send verification email
+      const appUrl = process.env.APP_URL || `https://${req.get('host')}`;
+      const verificationLink = `${appUrl}/auth/verify?token=${verificationToken}`;
+      
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: "Verifica la tua email – Schedina",
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h1 style="color: #16a34a; margin-bottom: 20px;">Verifica la tua email, ${user.nickname}!</h1>
+              <p style="font-size: 16px; line-height: 1.5; margin-bottom: 25px;">
+                Clicca il pulsante qui sotto per verificare la tua email:
+              </p>
+              <p style="text-align: center; margin: 30px 0;">
+                <a href="${verificationLink}" style="display: inline-block; padding: 12px 20px; background: #16a34a; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold;">Verifica Email</a>
+              </p>
+              <p style="font-size: 14px; color: #666; margin-top: 25px;">
+                Oppure copia e incolla questo link nel tuo browser:<br>
+                <span style="word-break: break-all; color: #16a34a;">${verificationLink}</span>
+              </p>
+              <p style="font-size: 12px; color: #999; margin-top: 25px;">
+                Il link scadrà tra 1 ora.
+              </p>
+            </div>
+          `,
+          text: `Verifica la tua email, ${user.nickname}! Verifica la tua email visitando: ${verificationLink} (Il link scade tra 1 ora)`
+        });
+        console.log("Verification email resent to:", user.email);
+      } catch (error) {
+        console.error("Failed to resend verification email:", error);
+        return res.status(500).json({ error: "Errore nell'invio dell'email" });
+      }
+
+      res.json({ success: true, message: "Email di verifica inviata" });
+    } catch (error) {
+      console.error("Resend verification error:", error);
       res.status(500).json({ error: "Errore interno del server" });
     }
   });
