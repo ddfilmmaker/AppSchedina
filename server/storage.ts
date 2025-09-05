@@ -228,50 +228,30 @@ export class MemStorage implements IStorage {
   }
 
   async getUser(id: string): Promise<User | undefined> {
-    const result = await db.select({
-      id: users.id,
-      nickname: users.nickname,
-      email: users.email,
-      password: users.password,
-      isAdmin: users.isAdmin,
-      emailVerifiedAt: users.emailVerifiedAt,
-      createdAt: users.createdAt,
-    }).from(users).where(eq(users.id, id)).limit(1);
-    return result[0];
+    return this.users.get(id);
   }
 
   async getUserByNickname(nickname: string): Promise<User | undefined> {
-    const result = await db.select({
-      id: users.id,
-      nickname: users.nickname,
-      email: users.email,
-      password: users.password,
-      isAdmin: users.isAdmin,
-      emailVerifiedAt: users.emailVerifiedAt,
-      createdAt: users.createdAt,
-    }).from(users).where(eq(users.nickname, nickname)).limit(1);
-    return result[0];
+    return Array.from(this.users.values()).find(user => user.nickname === nickname);
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const result = await db.select({
-      id: users.id,
-      nickname: users.nickname,
-      email: users.email,
-      password: users.password,
-      isAdmin: users.isAdmin,
-      emailVerifiedAt: users.emailVerifiedAt,
-      createdAt: users.createdAt,
-    }).from(users).where(eq(users.email, email)).limit(1);
-    return result[0];
+    return Array.from(this.users.values()).find(user => user.email === email);
   }
 
   async createUser(userData: InsertUser): Promise<User> {
-    const result = await db.insert(users).values({
-      ...userData,
+    const id = randomUUID();
+    const user: User = {
+      id,
+      nickname: userData.nickname,
+      email: userData.email,
+      password: userData.password,
+      isAdmin: userData.isAdmin || false,
       emailVerifiedAt: null, // Set as null initially, will be updated when verified
-    }).returning();
-    return result[0];
+      createdAt: new Date(),
+    };
+    this.users.set(id, user);
+    return user;
   }
 
   async createLeague(insertLeague: InsertLeague & { adminId: string }): Promise<League> {
