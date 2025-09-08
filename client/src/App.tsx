@@ -78,12 +78,27 @@ function AppContent() {
     );
   }
 
-  // If user is not authenticated, always show Auth page regardless of route
+  // If user is not authenticated, allow auth-related pages but redirect others to auth
   if (!authData) {
-    // Make sure the URL shows /auth
-    if (window.location.pathname !== "/auth") {
+    const currentPath = window.location.pathname;
+    const allowedPaths = ["/auth", "/auth/forgot-password", "/auth/reset-password", "/verify-email"];
+    
+    if (!allowedPaths.includes(currentPath)) {
       window.history.replaceState(null, "", "/auth");
+      return <Auth />;
     }
+    
+    // Show the appropriate auth-related component
+    if (currentPath === "/auth/forgot-password") {
+      return <ForgotPassword />;
+    }
+    if (currentPath === "/auth/reset-password") {
+      return <ResetPassword />;
+    }
+    if (currentPath === "/verify-email") {
+      return <VerifyEmail />;
+    }
+    
     return <Auth />;
   }
 
