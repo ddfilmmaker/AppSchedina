@@ -86,6 +86,10 @@ export default function ResetPassword() {
           title: "Successo",
           description: "Password reimpostata con successo!",
         });
+        // Redirect to auth page after successful reset
+        setTimeout(() => {
+          window.location.href = "/auth";
+        }, 2000);
       } else {
         throw new Error(data.error || "Errore durante il reset della password");
       }
@@ -130,7 +134,7 @@ export default function ResetPassword() {
         <div className="text-center space-y-4">
           <CheckCircle2 className="w-16 h-16 text-green-600 mx-auto" />
           <p className="text-sm text-muted-foreground">
-            Password reimpostata con successo! Ora puoi accedere con la nuova password.
+            Password aggiornata con successo! Sarai reindirizzato al login tra pochi secondi.
           </p>
           <Link href="/auth">
             <Button className="w-full retro-green-gradient retro-button rounded-xl h-12 text-white border-0 font-bold">

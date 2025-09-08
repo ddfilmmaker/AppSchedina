@@ -177,7 +177,7 @@ export default function Auth() {
                 </Button>
                 <div className="text-center mt-4">
                   <Link href="/auth/forgot-password" className="text-sm text-primary hover:text-secondary font-medium transition-colors">
-                    Password dimenticata?
+                    Hai dimenticato la password?
                   </Link>
                 </div>
               </CardContent>

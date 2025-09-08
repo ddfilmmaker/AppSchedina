@@ -81,9 +81,8 @@ function AppContent() {
   // If user is not authenticated, allow auth-related pages but redirect others to auth
   if (!authData) {
     const currentPath = window.location.pathname;
-    const allowedPaths = ["/auth", "/auth/forgot-password", "/auth/reset-password", "/verify-email"];
 
-    if (!allowedPaths.includes(currentPath)) {
+    if (!currentPath.startsWith("/auth") && currentPath !== "/verify-email") {
       window.history.replaceState(null, "", "/auth");
       return <Auth />;
     }
@@ -114,9 +113,8 @@ function AppContent() {
   // If user is authenticated, redirect away from auth pages
   if (authData) {
     const currentPath = window.location.pathname;
-    const authPaths = ["/auth", "/auth/forgot-password", "/auth/reset-password"];
 
-    if (authPaths.includes(currentPath)) {
+    if (currentPath.startsWith("/auth")) {
       // Immediate redirect without showing loading state to prevent flash
       window.location.replace("/");
       return null;
