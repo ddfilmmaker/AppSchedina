@@ -301,17 +301,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(200).json({ success: true, message: "Se l'email esiste, riceverai un link per reimpostare la password" });
       }
 
-      // Find user by email
-      const user = await db.select({
-        id: users.id,
-        email: users.email,
-      })
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1);
+      // Find user by email using storage method
+      const user = await storage.getUserByEmail(email);
+      
+      // Convert to array format for consistency
+      const userArray = user ? [user] : [];
 
       // Always return success for security
-      if (user.length === 0) {
+      if (userArray.length === 0) {
         return res.status(200).json({ success: true, message: "Se l'email esiste, riceverai un link per reimpostare la password" });
       }
 
@@ -321,7 +318,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Store reset token
       await db.insert(passwordResetTokens).values({
-        userId: user[0].id,
+        userId: userArray[0].id,
         token: resetToken,
         expiresAt,
       });
