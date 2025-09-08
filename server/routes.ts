@@ -328,7 +328,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Send password reset email
       const appUrl = process.env.APP_URL || `https://${req.get('host')}`;
-      const resetLink = `${appUrl}/auth/reset?token=${resetToken}`;
+      const resetLink = `${appUrl}/auth/reset-password?token=${resetToken}`;
       
       try {
         await sendEmail({

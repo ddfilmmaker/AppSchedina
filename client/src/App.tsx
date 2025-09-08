@@ -127,7 +127,7 @@ function AppContent() {
           <Route path="/leagues/:leagueId/coppa-italia-predictions" component={CoppaItaliaPredictions} />
           <Route path="/auth" component={Auth} />
           <Route path="/auth/forgot-password" component={ForgotPassword} />
-          <Route path="/auth/reset" component={ResetPassword} />
+          <Route path="/auth/reset-password" component={ResetPassword} />
           <Route path="/verify-email" component={VerifyEmail} />
           <Route component={NotFound} />
         </Switch>

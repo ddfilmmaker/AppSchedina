@@ -22,6 +22,16 @@ export default function ResetPassword() {
   const token = new URLSearchParams(window.location.search).get("token");
 
   useEffect(() => {
+    // Check for verification success redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('verified') === '1') {
+      // Redirect to home if this is a verification success redirect
+      window.location.href = '/';
+      return;
+    }
+  }, []);
+
+  useEffect(() => {
     const validateToken = async () => {
       if (!token) {
         setError("Token di reset mancante");
