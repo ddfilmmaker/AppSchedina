@@ -82,12 +82,12 @@ function AppContent() {
   if (!authData) {
     const currentPath = window.location.pathname;
     const allowedPaths = ["/auth", "/auth/forgot-password", "/auth/reset-password", "/verify-email"];
-    
+
     if (!allowedPaths.includes(currentPath)) {
       window.history.replaceState(null, "", "/auth");
       return <Auth />;
     }
-    
+
     // Show the appropriate auth-related component
     if (currentPath === "/auth/forgot-password") {
       return <ForgotPassword />;
@@ -98,7 +98,7 @@ function AppContent() {
     if (currentPath === "/verify-email") {
       return <VerifyEmail />;
     }
-    
+
     return <Auth />;
   }
 
@@ -109,6 +109,18 @@ function AppContent() {
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>
     );
+  }
+
+  // If user is authenticated, redirect away from auth pages
+  if (authData) {
+    const currentPath = window.location.pathname;
+    const authPaths = ["/auth", "/auth/forgot-password", "/auth/reset-password"];
+
+    if (authPaths.includes(currentPath)) {
+      // Immediate redirect without showing loading state to prevent flash
+      window.location.replace("/");
+      return null;
+    }
   }
 
   // Extract user from auth data (API returns { user: { id, nickname, isAdmin } })

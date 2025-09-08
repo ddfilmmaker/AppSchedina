@@ -42,6 +42,10 @@ export default function Auth() {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       // Set state to show email verification message
       setEmailVerificationSent(true);
+      // Redirect to home page after short delay to let state update
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 100);
     },
     onError: (error: any) => {
       toast({
