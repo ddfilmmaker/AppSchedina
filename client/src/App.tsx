@@ -55,10 +55,10 @@ function AppContent() {
   }, [toast, refetch]);
 
   useEffect(() => {
-    // If user is null (401 error) and we're not on the auth page, redirect
+    // If user is null (401 error) and we're not on auth-related pages, redirect
     if (!isLoading && authData === null) {
       const currentPath = window.location.pathname;
-      if (currentPath !== "/auth") {
+      if (!currentPath.startsWith("/auth") && currentPath !== "/verify-email") {
         console.log("User not authenticated, redirecting to auth");
         window.location.href = "/auth";
       }
