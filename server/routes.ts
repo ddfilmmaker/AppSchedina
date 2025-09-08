@@ -76,7 +76,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send verification email
       const appUrl = process.env.APP_URL || `https://${req.get('host')}`;
       const verificationLink = `${appUrl}/auth/verify?token=${verificationToken}`;
-      
+
       try {
         await sendEmail({
           to: email,
@@ -185,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/auth/verify", async (req, res) => {
     try {
       const { token } = req.query;
-      
+
       if (!token || typeof token !== 'string') {
         return res.status(400).send(`
           <!DOCTYPE html>
@@ -268,7 +268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.verifyUserEmail(record.userId);
 
       console.log("Email verified for user:", record.userId);
-      
+
       // Redirect to main app with success flag
       const appUrl = process.env.APP_URL || '/';
       const redirectUrl = `${appUrl}${appUrl.includes('?') ? '&' : '?'}verified=1`;
@@ -296,14 +296,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/forgot-password", async (req, res) => {
     try {
       const { email } = req.body;
-      
+
       if (!email || typeof email !== 'string') {
         return res.status(200).json({ success: true, message: "Se l'email esiste, riceverai un link per reimpostare la password" });
       }
 
       // Find user by email using storage method
       const user = await storage.getUserByEmail(email);
-      
+
       // Convert to array format for consistency
       const userArray = user ? [user] : [];
 
@@ -316,8 +316,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const resetToken = crypto.randomBytes(32).toString('hex');
       const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
 
-      // Store reset token
-      await db.insert(passwordResetTokens).values({
+      // Store reset token in memory storage
+      await storage.createPasswordResetToken({
         userId: userArray[0].id,
         token: resetToken,
         expiresAt,
@@ -326,7 +326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send password reset email
       const appUrl = process.env.APP_URL || `https://${req.get('host')}`;
       const resetLink = `${appUrl}/auth/reset-password?token=${resetToken}`;
-      
+
       try {
         await sendEmail({
           to: email,
@@ -355,27 +355,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/auth/reset", async (req, res) => {
     try {
       const { token } = req.query;
-      
+
       if (!token || typeof token !== 'string') {
         return res.status(400).json({ error: "Token non valido" });
       }
 
-      // Find the reset token
-      const resetRecord = await db.select({
-        id: passwordResetTokens.id,
-        userId: passwordResetTokens.userId,
-        expiresAt: passwordResetTokens.expiresAt,
-        usedAt: passwordResetTokens.usedAt,
-      })
-      .from(passwordResetTokens)
-      .where(eq(passwordResetTokens.token, token))
-      .limit(1);
+      // Find the reset token in memory storage
+      const record = await storage.getPasswordResetToken(token);
 
-      if (resetRecord.length === 0) {
+      if (!record) {
         return res.status(400).json({ error: "Token non valido o scaduto" });
       }
-
-      const record = resetRecord[0];
 
       // Check if token is already used
       if (record.usedAt) {
@@ -397,7 +387,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/reset-password", async (req, res) => {
     try {
       const { token, newPassword } = req.body;
-      
+
       if (!token || typeof token !== 'string' || !newPassword || typeof newPassword !== 'string') {
         return res.status(400).json({ error: "Token o password non validi" });
       }
@@ -406,22 +396,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "La password deve essere di almeno 6 caratteri" });
       }
 
-      // Find the reset token
-      const resetRecord = await db.select({
-        id: passwordResetTokens.id,
-        userId: passwordResetTokens.userId,
-        expiresAt: passwordResetTokens.expiresAt,
-        usedAt: passwordResetTokens.usedAt,
-      })
-      .from(passwordResetTokens)
-      .where(eq(passwordResetTokens.token, token))
-      .limit(1);
+      // Find the reset token in memory storage
+      const record = await storage.getPasswordResetToken(token);
 
-      if (resetRecord.length === 0) {
+      if (!record) {
         return res.status(400).json({ error: "Token non valido o scaduto" });
       }
-
-      const record = resetRecord[0];
 
       // Check if token is already used
       if (record.usedAt) {
@@ -436,15 +416,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Hash the new password
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-      // Update user's password
-      await db.update(users)
-        .set({ password: hashedPassword })
-        .where(eq(users.id, record.userId));
+      // Update user's password using the storage method
+      await storage.updateUserPassword(record.userId, hashedPassword);
 
-      // Mark token as used
-      await db.update(passwordResetTokens)
-        .set({ usedAt: new Date() })
-        .where(eq(passwordResetTokens.id, record.id));
+      // Mark token as used using the storage method
+      await storage.usePasswordResetToken(token);
 
       console.log("Password reset successfully for user:", record.userId);
       res.json({ success: true, message: "Password reimpostata con successo" });
@@ -1557,7 +1533,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send verification email
       const appUrl = process.env.APP_URL || `https://${req.get('host')}`;
       const verificationLink = `${appUrl}/auth/verify?token=${verificationToken}`;
-      
+
       try {
         await sendEmail({
           to: user.email,
@@ -1601,7 +1577,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hasApiKey = !!process.env.RESEND_API_KEY;
       const fromEmail = process.env.FROM_EMAIL || 'noreply@schedina.app';
       const fromName = process.env.FROM_NAME || 'Schedina';
-      
+
       res.json({
         configured: hasApiKey,
         fromEmail,
@@ -1621,14 +1597,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Protection: only allow in development or with test header
     const isDev = process.env.NODE_ENV !== 'production';
     const hasDevKey = req.headers['x-dev-key'] === 'TEST';
-    
+
     if (!isDev && !hasDevKey) {
       return res.status(403).json({ error: "Not allowed in production" });
     }
 
     try {
       const { to, subject, text } = req.body;
-      
+
       if (!to || !subject || !text) {
         return res.status(400).json({ error: "Missing required fields: to, subject, text" });
       }

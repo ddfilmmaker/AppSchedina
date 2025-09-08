@@ -102,6 +102,12 @@ export interface IStorage {
   useEmailVerificationToken(token: string): Promise<void>;
   verifyUserEmail(userId: string): Promise<void>;
 
+  // Password Reset
+  createPasswordResetToken(data: { userId: string; token: string; expiresAt: Date }): Promise<void>;
+  getPasswordResetToken(token: string): Promise<{ userId: string; expiresAt: Date; usedAt: Date | null } | undefined>;
+  usePasswordResetToken(token: string): Promise<void>;
+  updateUserPassword(userId: string, hashedPassword: string): Promise<void>;
+
   // Leagues
   createLeague(league: InsertLeague & { adminId: string }): Promise<League>;
   getLeague(id: string): Promise<League | undefined>;
@@ -209,6 +215,15 @@ export class MemStorage implements IStorage {
     usedAt: Date | null;
   }>();
 
+  // Add storage for password reset tokens
+  private passwordResetTokens = new Map<string, {
+    userId: string;
+    token: string;
+    expiresAt: Date;
+    createdAt: Date;
+    usedAt: Date | null;
+  }>();
+
   constructor() {
     // Removed initialization of global special tournaments as they are now league-specific.
     // this.initializeSpecialTournaments();
@@ -302,6 +317,47 @@ export class MemStorage implements IStorage {
       user.emailVerifiedAt = new Date();
       this.users.set(userId, user);
       console.log(`Email verified for user ${userId} at ${user.emailVerifiedAt}`);
+    }
+  }
+
+  // Password reset token methods
+  async createPasswordResetToken(data: { userId: string; token: string; expiresAt: Date }): Promise<void> {
+    this.passwordResetTokens.set(data.token, { 
+      userId: data.userId, 
+      token: data.token, 
+      expiresAt: data.expiresAt, 
+      createdAt: new Date(), 
+      usedAt: null 
+    });
+    console.log(`Password reset token created for user ${data.userId}. Expires at: ${data.expiresAt.toISOString()}`);
+  }
+
+  async getPasswordResetToken(token: string): Promise<{ userId: string; expiresAt: Date; usedAt: Date | null } | undefined> {
+    const tokenData = this.passwordResetTokens.get(token);
+    if (!tokenData) return undefined;
+
+    return {
+      userId: tokenData.userId,
+      expiresAt: tokenData.expiresAt,
+      usedAt: tokenData.usedAt
+    };
+  }
+
+  async usePasswordResetToken(token: string): Promise<void> {
+    const tokenData = this.passwordResetTokens.get(token);
+    if (tokenData) {
+      tokenData.usedAt = new Date();
+      this.passwordResetTokens.set(token, tokenData);
+      console.log(`Password reset token used for token ${token}`);
+    }
+  }
+
+  async updateUserPassword(userId: string, hashedPassword: string): Promise<void> {
+    const user = this.users.get(userId);
+    if (user) {
+      user.password = hashedPassword;
+      this.users.set(userId, user);
+      console.log(`Password updated for user ${userId}`);
     }
   }
 
