@@ -10,7 +10,6 @@ import { Eye, EyeOff, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import logoImage from "@assets/logo.png";
 
 export default function ResetPassword() {
-  const [token, setToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -20,38 +19,28 @@ export default function ResetPassword() {
   const [error, setError] = useState("");
   const { toast } = useToast();
 
+  const token = new URLSearchParams(window.location.search).get("token");
+
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlToken = urlParams.get('token');
-
-    if (!urlToken) {
-      setError('Token di reset mancante');
-      setTokenValidating(false);
-      return;
-    }
-
-    setToken(urlToken);
-
-    // Validate token
     const validateToken = async () => {
-      try {
-        const response = await fetch(`/api/auth/reset?token=${encodeURIComponent(urlToken)}`);
-        const data = await response.json();
+      if (!token) {
+        setError("Token di reset mancante");
+        setTokenValidating(false);
+        return;
+      }
 
-        if (response.ok) {
-          setTokenValid(true);
-        } else {
-          setError(data.error || 'Token non valido');
-        }
+      try {
+        // Just validate that we have a token, the actual validation happens on submit
+        setTokenValid(true);
+        setTokenValidating(false);
       } catch (error) {
-        setError('Errore di connessione');
-      } finally {
+        setError("Token non valido o scaduto");
         setTokenValidating(false);
       }
     };
 
     validateToken();
-  }, []);
+  }, [token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,20 +62,28 @@ export default function ResetPassword() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ token, newPassword }),
+        body: JSON.stringify({ 
+          token: token,
+          newPassword: newPassword 
+        }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
         setPasswordResetSuccess(true);
+        toast({
+          title: "Successo",
+          description: "Password reimpostata con successo!",
+        });
       } else {
-        throw new Error(data.error || "Errore nel reset della password");
+        throw new Error(data.error || "Errore durante il reset della password");
       }
-    } catch (error: any) {
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Errore durante il reset della password");
       toast({
         title: "Errore",
-        description: error.message || "Si è verificato un errore. Riprova più tardi.",
+        description: error instanceof Error ? error.message : "Errore durante il reset della password",
         variant: "destructive",
       });
     } finally {
@@ -194,9 +191,9 @@ export default function ResetPassword() {
       </div>
 
       <div className="w-full max-w-sm relative z-10">
-        {/* Header with logo */}
+        {/* Header */}
         <div className="text-center mb-8">
-          <div className="relative mx-auto mb-4">
+          <div className="relative mx-auto mb-6">
             <div className="w-20 h-20 mx-auto relative">
               <div className="absolute inset-0 totocalcio-gradient rounded-full p-1">
                 <div className="w-full h-full bg-white rounded-full flex items-center justify-center shadow-inner">
@@ -204,10 +201,6 @@ export default function ResetPassword() {
                     src={logoImage} 
                     alt="Soccer Ball Logo" 
                     className="w-14 h-14 object-contain"
-                    onError={(e) => {
-                      console.error('Logo failed to load');
-                      e.currentTarget.style.display = 'none';
-                    }}
                   />
                 </div>
               </div>
