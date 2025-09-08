@@ -107,11 +107,12 @@ export default function ForgotPassword() {
                 <p className="text-sm text-muted-foreground">
                   Se l'email esiste nel nostro sistema, riceverai un link per reimpostare la password entro pochi minuti.
                 </p>
-                <Link href="/auth">
-                  <Button className="w-full retro-green-gradient retro-button rounded-xl h-12 text-white border-0 font-bold">
-                    Torna al Login
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={() => window.location.href = "/auth"}
+                  className="w-full retro-green-gradient retro-button rounded-xl h-12 text-white border-0 font-bold"
+                >
+                  Torna al Login
+                </Button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -140,12 +141,14 @@ export default function ForgotPassword() {
             )}
 
             <div className="flex justify-center">
-              <Link href="/auth">
-                <Button variant="ghost" className="text-primary font-medium">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Torna al Login
-                </Button>
-              </Link>
+              <Button 
+                variant="ghost" 
+                onClick={() => window.location.href = "/auth"}
+                className="text-primary font-medium"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Torna al Login
+              </Button>
             </div>
           </CardContent>
         </Card>

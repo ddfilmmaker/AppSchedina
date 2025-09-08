@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,7 +53,7 @@ export default function ResetPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!newPassword || newPassword.length < 6) {
       toast({
         title: "Errore",
@@ -120,11 +119,12 @@ export default function ResetPassword() {
         <div className="text-center space-y-4">
           <XCircle className="w-16 h-16 text-red-600 mx-auto" />
           <p className="text-sm text-red-600">{error}</p>
-          <Link href="/auth/forgot-password">
-            <Button className="w-full retro-green-gradient retro-button rounded-xl h-12 text-white border-0 font-bold">
-              Richiedi Nuovo Link
-            </Button>
-          </Link>
+          <Button 
+            onClick={() => window.location.href = "/auth/forgot-password"}
+            className="w-full retro-green-gradient retro-button rounded-xl h-12 text-white border-0 font-bold"
+          >
+            Richiedi Nuovo Link
+          </Button>
         </div>
       );
     }
@@ -136,11 +136,12 @@ export default function ResetPassword() {
           <p className="text-sm text-muted-foreground">
             Password aggiornata con successo! Sarai reindirizzato al login tra pochi secondi.
           </p>
-          <Link href="/auth">
-            <Button className="w-full retro-green-gradient retro-button rounded-xl h-12 text-white border-0 font-bold">
-              Vai al Login
-            </Button>
-          </Link>
+          <Button 
+            onClick={() => window.location.href = "/auth"}
+            className="w-full retro-green-gradient retro-button rounded-xl h-12 text-white border-0 font-bold"
+          >
+            Vai al Login
+          </Button>
         </div>
       );
     }
@@ -245,11 +246,9 @@ export default function ResetPassword() {
 
             {!passwordResetSuccess && (
               <div className="flex justify-center mt-6">
-                <Link href="/auth">
-                  <Button variant="ghost" className="text-primary font-medium">
-                    Torna al Login
-                  </Button>
-                </Link>
+                <Button variant="ghost" className="text-primary font-medium" onClick={() => window.location.href = "/auth"}>
+                  Torna al Login
+                </Button>
               </div>
             )}
           </CardContent>
