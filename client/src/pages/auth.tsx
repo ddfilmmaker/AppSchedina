@@ -176,9 +176,13 @@ export default function Auth() {
                   {loginMutation.isPending ? "Accesso..." : "Accedi"}
                 </Button>
                 <div className="text-center mt-4">
-                  <Link href="/auth/forgot-password" className="text-sm text-primary hover:text-secondary font-medium transition-colors">
+                  <button 
+                    onClick={() => window.location.href = "/auth/forgot-password"}
+                    className="text-sm text-primary hover:text-secondary font-medium transition-colors bg-transparent border-none cursor-pointer underline-offset-2 hover:underline"
+                    data-testid="link-forgot-password"
+                  >
                     Hai dimenticato la password?
-                  </Link>
+                  </button>
                 </div>
               </CardContent>
             </Card>
