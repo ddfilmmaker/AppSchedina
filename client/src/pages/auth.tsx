@@ -11,9 +11,21 @@ import { Eye, EyeOff } from "lucide-react";
 import { Link } from "wouter";
 import logoImage from "@assets/logo.png";
 
+// Define LoginData and RegisterData types if they are not globally available
+interface LoginData {
+  nickname: string;
+  password: string;
+}
+
+interface RegisterData {
+  nickname: string;
+  email: string;
+  password: string;
+}
+
 export default function Auth() {
-  const [loginData, setLoginData] = useState({ nickname: "", password: "" });
-  const [registerData, setRegisterData] = useState({ nickname: "", email: "", password: "" });
+  const [loginData, setLoginData] = useState<LoginData>({ nickname: "", password: "" });
+  const [registerData, setRegisterData] = useState<RegisterData>({ nickname: "", email: "", password: "" });
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [emailVerificationSent, setEmailVerificationSent] = useState(false); // State to manage email verification message
@@ -21,10 +33,27 @@ export default function Auth() {
   const queryClient = useQueryClient();
 
   const loginMutation = useMutation({
-    mutationFn: () => login(loginData.nickname, loginData.password),
+    mutationFn: async (data: LoginData) => {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Login failed");
+      }
+
+      return response.json();
+    },
     onSuccess: () => {
+      // Clear all queries to ensure fresh data
+      queryClient.clear();
+      // Invalidate and refetch auth and leagues data
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      // Redirect to home page after successful login
+      queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
       window.location.href = "/";
     },
     onError: (error: any) => {
@@ -37,15 +66,28 @@ export default function Auth() {
   });
 
   const registerMutation = useMutation({
-    mutationFn: () => register(registerData.nickname, registerData.email, registerData.password),
+    mutationFn: async (data: RegisterData) => {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Registration failed");
+      }
+
+      return response.json();
+    },
     onSuccess: () => {
+      // Clear all queries to ensure fresh data
+      queryClient.clear();
+      // Invalidate and refetch auth and leagues data
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      // Set state to show email verification message
-      setEmailVerificationSent(true);
-      // Redirect to home page after short delay to let state update
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 100);
+      queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
+      window.location.href = "/";
     },
     onError: (error: any) => {
       toast({
@@ -73,9 +115,9 @@ export default function Auth() {
               <div className="absolute inset-0 totocalcio-gradient rounded-full p-1">
                 <div className="w-full h-full bg-white rounded-full flex items-center justify-center shadow-inner">
                   {/* Custom soccer ball logo */}
-                  <img 
-                    src={logoImage} 
-                    alt="Soccer Ball Logo" 
+                  <img
+                    src={logoImage}
+                    alt="Soccer Ball Logo"
                     className="w-20 h-20 object-contain"
                     onError={(e) => {
                       console.error('Logo failed to load');
@@ -98,15 +140,15 @@ export default function Auth() {
         {/* Modern tabs with retro colors */}
         <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid w-full grid-cols-2 gap-3 rounded-2xl p-1 mb-6 border-0 bg-transparent">
-            <TabsTrigger 
-              value="login" 
+            <TabsTrigger
+              value="login"
               data-testid="tab-login"
               className="rounded-xl font-semibold text-sm py-3 retro-green-gradient text-white shadow-lg transition-all duration-300"
             >
               Accedi
             </TabsTrigger>
-            <TabsTrigger 
-              value="register" 
+            <TabsTrigger
+              value="register"
               data-testid="tab-register"
               className="rounded-xl font-semibold text-sm py-3 retro-red-gradient text-white shadow-lg transition-all duration-300"
             >
@@ -169,14 +211,14 @@ export default function Auth() {
                 <Button
                   type="submit"
                   className="w-full retro-green-gradient retro-button rounded-xl h-14 text-base font-bold text-white border-0 mt-8"
-                  onClick={() => loginMutation.mutate()}
+                  onClick={() => loginMutation.mutate(loginData)}
                   disabled={loginMutation.isPending}
                   data-testid="button-login"
                 >
                   {loginMutation.isPending ? "Accesso..." : "Accedi"}
                 </Button>
                 <div className="text-center mt-4">
-                  <button 
+                  <button
                     onClick={() => window.location.href = "/auth/forgot-password"}
                     className="text-sm text-primary hover:text-secondary font-medium transition-colors bg-transparent border-none cursor-pointer underline-offset-2 hover:underline"
                     data-testid="link-forgot-password"
@@ -272,7 +314,7 @@ export default function Auth() {
                     <Button
                       type="submit"
                       className="w-full retro-red-gradient retro-button rounded-xl h-14 text-base font-bold text-white border-0 mt-8"
-                      onClick={() => registerMutation.mutate()}
+                      onClick={() => registerMutation.mutate(registerData)}
                       disabled={registerMutation.isPending}
                       data-testid="button-register"
                     >

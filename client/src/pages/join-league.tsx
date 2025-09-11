@@ -23,7 +23,9 @@ export default function JoinLeague() {
         title: "Iscrizione completata",
         description: `Ti sei unito alla lega "${result.league.name}"!`,
       });
+      // Invalidate both leagues list and the specific league data
       queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leagues", result.league.id] });
       setLocation(`/league/${result.league.id}`);
     },
     onError: (error: any) => {

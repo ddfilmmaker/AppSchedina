@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useLocation } from "wouter";
 import logoImage from "@assets/logo.png";
+import { useMutation } from "@tanstack/react-query";
 
 interface HeaderProps {
   user: {
@@ -28,19 +29,31 @@ export default function Header({ user }: HeaderProps) {
     // Future: could open a notifications dropdown or navigate to notifications page
   };
 
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Logout failed");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      // Clear all cached queries
+      queryClient.clear();
+      // Ensure auth and leagues queries are invalidated
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
+      window.location.href = "/auth";
+    },
+  });
+
   const handleLogout = async () => {
-    try {
-      await logout();
-      // Clear all cached data to ensure fresh state
-      queryClient.clear();
-      // Force a hard redirect to ensure clean state
-      window.location.href = "/auth";
-    } catch (error) {
-      console.error("Logout failed:", error);
-      // Even if logout fails, clear local state and redirect
-      queryClient.clear();
-      window.location.href = "/auth";
-    }
+    logoutMutation.mutate();
   };
 
   return (
@@ -51,9 +64,9 @@ export default function Header({ user }: HeaderProps) {
             <div className="absolute inset-0 bg-white rounded-full p-1">
               <div className="w-full h-full bg-white rounded-full flex items-center justify-center shadow-inner">
                 {/* Custom soccer ball logo */}
-                <img 
-                  src={logoImage} 
-                  alt="Soccer Ball Logo" 
+                <img
+                  src={logoImage}
+                  alt="Soccer Ball Logo"
                   className="w-6 h-6 object-contain"
                   onError={(e) => {
                     console.error('Header logo failed to load');

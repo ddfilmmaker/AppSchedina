@@ -16,7 +16,7 @@ export default function CreateLeague() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: authData } = useQuery({ 
+  const { data: authData } = useQuery({
     queryKey: ["/api/auth/me"],
     retry: false
   });
@@ -33,9 +33,10 @@ export default function CreateLeague() {
     mutationFn: () => createLeague(name),
     onSuccess: (league) => {
       toast({
-        title: "Lega creata",
-        description: `La lega "${league.name}" è stata creata con successo!`,
+        title: "Lega creata!",
+        description: `La tua lega "${league.name}" è stata creata con successo.`,
       });
+      // Invalidate leagues list to show new league
       queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
       setLocation(`/league/${league.id}`);
     },
@@ -98,10 +99,10 @@ export default function CreateLeague() {
         {/* Header */}
         <div className="flex items-center mb-6">
           <Link href="/">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="mr-3 text-primary hover:bg-primary/10 rounded-xl" 
+            <Button
+              variant="ghost"
+              size="icon"
+              className="mr-3 text-primary hover:bg-primary/10 rounded-xl"
               data-testid="button-back"
             >
               <ArrowLeft className="w-6 h-6" />

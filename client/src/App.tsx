@@ -54,6 +54,13 @@ function AppContent() {
     }
   }, [toast, refetch]);
 
+  // Ensure leagues are refetched when auth data changes
+  useEffect(() => {
+    if (authData?.user) {
+      queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
+    }
+  }, [authData?.user]);
+
   useEffect(() => {
     // If user is null (401 error) and we're not on auth-related pages, redirect
     if (!isLoading && authData === null) {

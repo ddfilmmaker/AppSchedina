@@ -8,9 +8,10 @@ import { useEffect } from "react";
 
 export default function Home() {
   const { toast } = useToast();
-  const { data: authData } = useQuery({ queryKey: ["/api/auth/me"] });
+  const { data: authData, isLoading: authLoading } = useQuery({ queryKey: ["/api/auth/me"] });
   const { data: leagues, isLoading: leaguesLoading } = useQuery({
     queryKey: ["/api/leagues"],
+    enabled: !!authData && !authLoading, // Only fetch leagues when we have auth data
   });
 
   const user = (authData as any)?.user;

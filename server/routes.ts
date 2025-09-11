@@ -151,6 +151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (err) {
         return res.status(500).json({ error: "Errore durante il logout" });
       }
+      res.clearCookie('connect.sid', { path: '/' });
       res.json({ success: true });
     });
   });
