@@ -789,7 +789,7 @@ export class MemStorage implements IStorage {
     const predictions: (PreSeasonPrediction & { user: User })[] = [];
     for (const [key, bet] of this.preseasonBets.entries()) {
       if (key.startsWith(`${leagueId}-`)) {
-        const userId = key.split('-')[1];
+        const userId = key.slice(`${leagueId}-`.length);
         const user = this.users.get(userId);
         if (user) {
           predictions.push({ ...bet, user });
@@ -804,7 +804,7 @@ export class MemStorage implements IStorage {
     for (const [key, bet] of this.preseasonBets.entries()) {
       if (key.startsWith(`${leagueId}-`)) {
         // Extract userId by removing the leagueId prefix and the dash
-        const userId = key.split('-')[1];
+        const userId = key.slice(`${leagueId}-`.length);
         const user = this.users.get(userId);
         if (user) {
           bets.push({
