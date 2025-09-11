@@ -80,6 +80,11 @@ export const queryClient = new QueryClient({
           queryClient.clear();
         }
 
+        // Skip toast for expected "winner not declared" 404 errors
+        if (error.message.includes('Vincitore non ancora dichiarato')) {
+          return;
+        }
+
         toast({
           title: "Errore",
           description: error.message,
