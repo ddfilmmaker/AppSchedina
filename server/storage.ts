@@ -406,8 +406,7 @@ export class MemStorage implements IStorage {
   }
 
   async getUserLeagues(userId: string): Promise<(League & { memberCount: number; userPosition: number; userPoints: number })[]> {
-    const userMemberships = Array.from(this.leagueMembers.values())
-      .filter(member => member.userId === userId);
+    const userMemberships = this.leagueMembers.get(userId) || [];
 
     const result = [];
 
@@ -415,7 +414,9 @@ export class MemStorage implements IStorage {
       const league = this.leagues.get(membership.leagueId);
       if (!league) continue;
 
+      // Count all members in this league by flattening all member arrays and filtering by leagueId
       const memberCount = Array.from(this.leagueMembers.values())
+        .flat()
         .filter(m => m.leagueId === membership.leagueId).length;
 
       // Force fresh calculation of leaderboard to ensure latest points are included
