@@ -36,7 +36,9 @@ export default function Auth() {
     mutationFn: async (data: LoginData) => {
       const response = await fetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         credentials: "include",
         body: JSON.stringify(data),
       });
@@ -48,13 +50,23 @@ export default function Auth() {
 
       return response.json();
     },
-    onSuccess: () => {
-      // Clear all queries to ensure fresh data
+    onSuccess: async (data) => {
+      // Clear all stale data first
       queryClient.clear();
-      // Invalidate and refetch auth and leagues data
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
-      window.location.href = "/";
+
+      // Preload the auth data and leagues
+      await queryClient.prefetchQuery({
+        queryKey: ["/api/auth/me"],
+        queryFn: () => fetch("/api/auth/me", { credentials: "include" }).then(r => r.json())
+      });
+
+      await queryClient.prefetchQuery({
+        queryKey: ["/api/leagues"],
+        queryFn: () => fetch("/api/leagues", { credentials: "include" }).then(r => r.json())
+      });
+
+      // Redirect to home
+      window.location.replace("/");
     },
     onError: (error: any) => {
       toast({
@@ -69,7 +81,9 @@ export default function Auth() {
     mutationFn: async (data: RegisterData) => {
       const response = await fetch("/api/auth/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         credentials: "include",
         body: JSON.stringify(data),
       });
@@ -81,13 +95,23 @@ export default function Auth() {
 
       return response.json();
     },
-    onSuccess: () => {
-      // Clear all queries to ensure fresh data
+    onSuccess: async (data) => {
+      // Clear all stale data first
       queryClient.clear();
-      // Invalidate and refetch auth and leagues data
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
-      window.location.href = "/";
+
+      // Preload the auth data and leagues
+      await queryClient.prefetchQuery({
+        queryKey: ["/api/auth/me"],
+        queryFn: () => fetch("/api/auth/me", { credentials: "include" }).then(r => r.json())
+      });
+
+      await queryClient.prefetchQuery({
+        queryKey: ["/api/leagues"],
+        queryFn: () => fetch("/api/leagues", { credentials: "include" }).then(r => r.json())
+      });
+
+      // Redirect to home
+      window.location.replace("/");
     },
     onError: (error: any) => {
       toast({

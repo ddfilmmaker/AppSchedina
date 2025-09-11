@@ -43,12 +43,12 @@ export default function Header({ user }: HeaderProps) {
       return response.json();
     },
     onSuccess: () => {
-      // Clear all cached queries
+      // Clear all cached queries immediately
       queryClient.clear();
-      // Ensure auth and leagues queries are invalidated
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
-      window.location.href = "/auth";
+      // Remove any cached data
+      queryClient.removeQueries();
+      // Force redirect to auth page
+      window.location.replace("/auth");
     },
   });
 

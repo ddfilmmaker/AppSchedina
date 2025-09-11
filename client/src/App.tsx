@@ -58,6 +58,7 @@ function AppContent() {
   useEffect(() => {
     if (authData?.user) {
       queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
+      queryClient.refetchQueries({ queryKey: ["/api/leagues"] });
     }
   }, [authData?.user]);
 
