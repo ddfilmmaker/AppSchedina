@@ -184,6 +184,10 @@ export interface IStorage {
 
   // Manual Points
   updateManualPoints(leagueId: string, userId: string, points: number): Promise<void>;
+
+  // Winner Declaration
+  declareLeagueWinner(leagueId: string, winnerUserId: string, decisionDetail: string): Promise<void>;
+  getLeagueWinner(leagueId: string): Promise<{ winnerUserId: string; declaredAt: Date; decisionDetail: string } | null>;
 }
 
 export class MemStorage implements IStorage {
@@ -205,6 +209,9 @@ export class MemStorage implements IStorage {
   private coppaBets = new Map<string, any>();
   private coppaSettings = new Map<string, any>();
   private manualPoints = new Map<string, Map<string, number>>();
+
+  // Add storage for league winners
+  private leagueWinners = new Map<string, { winnerUserId: string; declaredAt: Date; decisionDetail: string }>();
 
   // Add storage for email verification tokens
   private emailVerificationTokens = new Map<string, {
@@ -1421,6 +1428,18 @@ export class MemStorage implements IStorage {
       points: 10,
       description: "Pronostica la vincitrice della Coppa Italia"
     }, leagueId);
+  }
+
+  async declareLeagueWinner(leagueId: string, winnerUserId: string, decisionDetail: string): Promise<void> {
+    this.leagueWinners.set(leagueId, {
+      winnerUserId,
+      declaredAt: new Date(),
+      decisionDetail
+    });
+  }
+
+  async getLeagueWinner(leagueId: string): Promise<{ winnerUserId: string; declaredAt: Date; decisionDetail: string } | null> {
+    return this.leagueWinners.get(leagueId) || null;
   }
 }
 

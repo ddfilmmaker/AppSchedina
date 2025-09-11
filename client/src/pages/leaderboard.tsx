@@ -1,10 +1,12 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
-import { ArrowLeft, Trophy, Medal, Award, Plus, Minus } from "lucide-react";
+import { ArrowLeft, Trophy, Medal, Award, Plus, Minus, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import React from "react";
 
@@ -12,7 +14,11 @@ export default function Leaderboard() {
   const [, params] = useRoute("/leaderboard/:leagueId");
   const leagueId = params?.leagueId;
   const [manualPointsInputs, setManualPointsInputs] = useState<Record<string, number>>({});
+  const [showManualTiebreak, setShowManualTiebreak] = useState(false);
+  const [selectedWinner, setSelectedWinner] = useState<string>("");
+  const [tiedUsers, setTiedUsers] = useState<any[]>([]);
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: leaderboardData, isLoading } = useQuery({
     queryKey: ["/api/leagues", leagueId, "leaderboard"],
@@ -25,6 +31,13 @@ export default function Leaderboard() {
   });
 
   const { data: authData } = useQuery({ queryKey: ["/api/auth/me"] });
+
+  // Query for winner data
+  const { data: winnerData } = useQuery({
+    queryKey: ["/api/leagues", leagueId, "winner"],
+    enabled: !!leagueId,
+    retry: false,
+  });
 
   const updateManualPointsMutation = useMutation({
     mutationFn: async ({ userId, points }: { userId: string; points: number }) => {
@@ -47,6 +60,55 @@ export default function Leaderboard() {
       queryClient.invalidateQueries({ queryKey: ["/api/leagues", leagueId, "leaderboard"] });
       // Also refetch user leagues to update home page totals
       queryClient.invalidateQueries({ queryKey: ["/api/leagues"] });
+    },
+  });
+
+  const declareWinnerMutation = useMutation({
+    mutationFn: async ({ winnerUserId }: { winnerUserId?: string }) => {
+      const response = await fetch(`/api/leagues/${leagueId}/declare-winner`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ winnerUserId }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw error;
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.method === 'clear_leader' || data.method === 'tiebreak' || data.method === 'manual') {
+        toast({
+          title: "Vincitore dichiarato!",
+          description: data.detail,
+        });
+        setShowManualTiebreak(false);
+        setSelectedWinner("");
+        setTiedUsers([]);
+      }
+      // Refetch winner data
+      queryClient.invalidateQueries({ queryKey: ["/api/leagues", leagueId, "winner"] });
+    },
+    onError: (error: any) => {
+      if (error.requiresManualSelection) {
+        setTiedUsers(error.tiedUsers);
+        setShowManualTiebreak(true);
+        toast({
+          title: "Parità rilevata",
+          description: error.error,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Errore",
+          description: error.error || "Errore nella dichiarazione del vincitore",
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -132,6 +194,11 @@ export default function Leaderboard() {
   const user = (authData as any)?.user;
   const isAdmin = user && league && league.adminId === user.id;
 
+  // Find winner user from leaderboard if winner is declared
+  const winnerInfo = winnerData as { winnerUserId: string; declaredAt: string; description: string } | null | undefined;
+  const winnerUser = winnerInfo?.winnerUserId ? 
+    leaderboardArray.find((player: any) => player.user.id === winnerInfo.winnerUserId)?.user : null;
+
   return (
     <div className="min-h-screen paper-texture">
       {/* Background decorative elements */}
@@ -208,6 +275,99 @@ export default function Leaderboard() {
           </Card>
         )}
 
+        {/* Winner Banner */}
+        {winnerUser && (
+          <Card className="retro-card border-0 rounded-3xl overflow-hidden">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-center space-x-3">
+                <Crown className="w-8 h-8 text-yellow-500" />
+                <div className="text-center">
+                  <div className="font-bold text-lg text-primary">
+                    🏆 Vincitore: {winnerUser.nickname}
+                  </div>
+                  <div className="text-sm text-primary/70">
+                    {winnerInfo?.description}
+                  </div>
+                  {winnerInfo?.declaredAt && (
+                    <div className="text-xs text-primary/50 mt-1">
+                      Dichiarato il {new Date(winnerInfo.declaredAt).toLocaleDateString()}
+                    </div>
+                  )}
+                </div>
+                <Crown className="w-8 h-8 text-yellow-500" />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Admin Winner Declaration */}
+        {isAdmin && !winnerUser && (
+          <Card className="retro-card border-0 rounded-3xl overflow-hidden">
+            <CardContent className="p-6">
+              <div className="text-center space-y-4">
+                <div>
+                  <h3 className="font-bold text-primary mb-2">Amministratore</h3>
+                  <p className="text-sm text-primary/70 mb-4">
+                    Dichiara il vincitore della lega
+                  </p>
+                </div>
+                
+                {showManualTiebreak ? (
+                  <div className="space-y-4">
+                    <p className="text-sm text-primary/70">
+                      Parità rilevata. Seleziona manualmente il vincitore:
+                    </p>
+                    <Select value={selectedWinner} onValueChange={setSelectedWinner}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Seleziona il vincitore" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {tiedUsers.map((user: any) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.nickname} ({user.points} punti)
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="flex space-x-3">
+                      <Button
+                        className="flex-1 retro-green-gradient retro-button rounded-xl text-white border-0 font-bold"
+                        onClick={() => declareWinnerMutation.mutate({ winnerUserId: selectedWinner })}
+                        disabled={!selectedWinner || declareWinnerMutation.isPending}
+                        data-testid="button-confirm-winner"
+                      >
+                        {declareWinnerMutation.isPending ? "Dichiarazione..." : "Conferma"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => {
+                          setShowManualTiebreak(false);
+                          setTiedUsers([]);
+                          setSelectedWinner("");
+                        }}
+                        data-testid="button-cancel-tiebreak"
+                      >
+                        Annulla
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Button
+                    className="retro-green-gradient retro-button rounded-xl text-white border-0 font-bold px-8"
+                    onClick={() => declareWinnerMutation.mutate({})}
+                    disabled={declareWinnerMutation.isPending || leaderboardArray.length === 0}
+                    data-testid="button-declare-winner"
+                  >
+                    <Crown className="w-5 h-5 mr-2" />
+                    {declareWinnerMutation.isPending ? "Dichiarazione..." : "Dichiara vincitore"}
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Full leaderboard */}
         <Card className="retro-card border-0 rounded-3xl overflow-hidden">
           <CardHeader className="pb-4">
@@ -230,11 +390,16 @@ export default function Leaderboard() {
                       }`}>
                         {index + 1}°
                       </span>
-                      <span className={`font-bold ${
-                        player.points === 0 ? "text-primary/60" : "text-primary"
-                      }`}>
-                        {player.user.nickname}
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <span className={`font-bold ${
+                          player.points === 0 ? "text-primary/60" : "text-primary"
+                        }`}>
+                          {player.user.nickname}
+                        </span>
+                        {winnerUser && player.user.id === winnerUser.id && (
+                          <Crown className="w-5 h-5 text-yellow-500" data-testid="winner-crown" />
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center space-x-3">
                       <div className="text-right">

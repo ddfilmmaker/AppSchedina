@@ -1,0 +1,53 @@
+Add a “Dichiara vincitore” feature per league with an automatic tiebreak. Do NOT modify any other features (giornate, extras, scoring rules, routes, auth, UI styles) beyond what’s listed here.
+
+Goal
+- Admin can declare the league winner with one button. If there’s a tie for 1st, resolve it automatically by using the last matchday points as tiebreak.
+
+Behavior
+- On the classifica/league page, show an admin-only button: “Dichiara vincitore”.
+- When clicked:
+  1) Determine current 1st place in the league leaderboard.
+  2) If a single leader exists → declare that user.
+  3) If multiple users are tied for 1st → apply tiebreak:
+     • Compare only the points from the most recent COMPLETED/officially closed matchday in this league (the last giornata whose results were confirmed and points posted to the leaderboard).
+     • Winner = tied user with the higher points on that last completed matchday.
+     • If still tied, step back to the previous completed matchday and compare again, repeating until the tie breaks.
+     • If all completed matchdays are exhausted and it’s still tied → prompt admin to pick manually among the tied users (small dropdown) and proceed.
+
+- After winner is determined (auto or manual), POST to a new endpoint and persist.
+- Show a small banner “Vincitore: {nickname}” and a trophy/badge next to the winner in the classifica.
+- Once declared, hide/disable the admin button and show “Dichiarato il {date}”.
+- Do NOT change any points or recompute standings; this only marks the winner.
+
+API (add only this)
+- POST /api/leagues/:leagueId/declare-winner
+  Input: { winnerUserId?, tiebreak=true }
+  Logic:
+    • If winnerUserId provided → use it (admin manual override).
+    • Else:
+      - Compute current leaderboard; get top users.
+      - If tie:
+         iterate completed matchdays in reverse chronological order, comparing per-user points for each giornata until a single winner emerges.
+      - Persist chosen winner.
+  Response includes a short explanation string, e.g.:
+    { winnerUserId, method: "tiebreak", detail: "Deciso su Giornata 34: 5 vs 3 punti" }
+  Idempotent: if winner already set, return 200 and do nothing.
+
+DB (minimal additive fields)
+- leagues: winner_user_id (nullable), declared_winner_at (timestamptz nullable), winner_decision_detail (text nullable)
+  Do NOT change other tables.
+
+UI
+- Add a trophy icon or “Vincitore” badge beside the winner in the classifica.
+- If method = tiebreak, optionally show a tiny info tooltip with the decision detail.
+
+Constraints
+- Do NOT modify existing scoring logic for giornate or extras.
+- Do NOT alter classifica aggregation except to display the winner badge.
+- Keep changes small and localized.
+
+Acceptance
+- Single clear leader → button declares winner, persists, and shows badge.
+- Tie for 1st → tiebreak uses last completed matchday, falls back to previous ones if needed, else admin chooses manually; winner persists and badge shows.
+- Refresh shows winner state; re-clicking does nothing (idempotent).
+- No regressions elsewhere.

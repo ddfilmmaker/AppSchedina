@@ -541,6 +541,174 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(leaderboard);
   });
 
+  // Winner declaration endpoint
+  app.post("/api/leagues/:leagueId/declare-winner", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "Non autenticato" });
+    }
+
+    const leagueId = req.params.leagueId;
+    const league = await storage.getLeague(leagueId);
+    if (!league) {
+      return res.status(404).json({ error: "Lega non trovata" });
+    }
+
+    // Only league admin can declare winner
+    if (league.adminId !== req.session.userId) {
+      return res.status(403).json({ error: "Solo l'admin può dichiarare il vincitore" });
+    }
+
+    try {
+      const { winnerUserId, tiebreak = true } = req.body;
+
+      // Check if winner already declared
+      const existingWinner = await storage.getLeagueWinner(leagueId);
+      if (existingWinner) {
+        return res.status(200).json({
+          winnerUserId: existingWinner.winnerUserId,
+          method: "already_declared",
+          detail: `Vincitore già dichiarato il ${existingWinner.declaredAt.toLocaleDateString()}`,
+          declaredAt: existingWinner.declaredAt
+        });
+      }
+
+      // If manual winner provided, use it
+      if (winnerUserId) {
+        await storage.declareLeagueWinner(leagueId, winnerUserId, "Selezione manuale dell'admin");
+        return res.status(200).json({
+          winnerUserId,
+          method: "manual",
+          detail: "Vincitore selezionato manualmente dall'admin"
+        });
+      }
+
+      // Get current leaderboard
+      const leaderboard = await storage.getLeagueLeaderboard(leagueId);
+      if (leaderboard.length === 0) {
+        return res.status(400).json({ error: "Nessun utente nella classifica" });
+      }
+
+      const topPoints = leaderboard[0].points;
+      const tiedUsers = leaderboard.filter(entry => entry.points === topPoints);
+
+      // Single leader case
+      if (tiedUsers.length === 1) {
+        const winner = tiedUsers[0];
+        await storage.declareLeagueWinner(leagueId, winner.user.id, "Leader unico della classifica");
+        return res.status(200).json({
+          winnerUserId: winner.user.id,
+          method: "clear_leader",
+          detail: `Leader unico con ${topPoints} punti`
+        });
+      }
+
+      // Multiple tied users - apply tiebreak if enabled
+      if (!tiebreak) {
+        return res.status(400).json({
+          error: "Parità al primo posto",
+          tiedUsers: tiedUsers.map(u => ({ id: u.user.id, nickname: u.user.nickname, points: u.points })),
+          requiresManualSelection: true
+        });
+      }
+
+      // Apply tiebreak logic using completed matchdays
+      const matchdays = await storage.getLeagueMatchdays(leagueId);
+      const completedMatchdays = matchdays
+        .filter(md => md.isCompleted)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+      if (completedMatchdays.length === 0) {
+        return res.status(400).json({
+          error: "Parità al primo posto senza giornate completate per il tiebreak",
+          tiedUsers: tiedUsers.map(u => ({ id: u.user.id, nickname: u.user.nickname, points: u.points })),
+          requiresManualSelection: true
+        });
+      }
+
+      // Try tiebreak with each completed matchday in reverse chronological order
+      for (const matchday of completedMatchdays) {
+        // Get first match from this matchday to use as reference for getMatchDetails
+        const matchdayMatches = await storage.getMatchdayMatches(matchday.id);
+        if (matchdayMatches.length === 0) continue; // Skip if no matches in this matchday
+        
+        const matchdayDetails = await storage.getMatchDetails(matchdayMatches[0].id, matchday.id);
+        const userTotals = matchdayDetails.matchdayTotals;
+        
+        // Calculate points for tied users in this matchday
+        const matchdayResults = tiedUsers.map(entry => {
+          const userTotal = userTotals.find(total => total.userId === entry.user.id);
+          return {
+            user: entry.user,
+            matchdayPoints: userTotal ? userTotal.points : 0
+          };
+        }).sort((a, b) => b.matchdayPoints - a.matchdayPoints);
+
+        // Check if tiebreak is resolved
+        const highestMatchdayPoints = matchdayResults[0].matchdayPoints;
+        const winnersAfterTiebreak = matchdayResults.filter(r => r.matchdayPoints === highestMatchdayPoints);
+
+        if (winnersAfterTiebreak.length === 1) {
+          const winner = winnersAfterTiebreak[0];
+          const detail = `Deciso su ${matchday.name}: ${highestMatchdayPoints} vs ${matchdayResults[1].matchdayPoints} punti`;
+          await storage.declareLeagueWinner(leagueId, winner.user.id, detail);
+          return res.status(200).json({
+            winnerUserId: winner.user.id,
+            method: "tiebreak",
+            detail
+          });
+        }
+
+        // If still tied, continue to next matchday
+        tiedUsers.splice(0, tiedUsers.length, ...winnersAfterTiebreak.map(r => 
+          tiedUsers.find(tu => tu.user.id === r.user.id)!
+        ));
+      }
+
+      // All matchdays exhausted, still tied - require manual selection
+      return res.status(400).json({
+        error: "Parità irrisolvibile dopo controllo di tutte le giornate",
+        tiedUsers: tiedUsers.map(u => ({ id: u.user.id, nickname: u.user.nickname, points: u.points })),
+        requiresManualSelection: true
+      });
+
+    } catch (error) {
+      console.error("Winner declaration error:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
+  // Get current winner for a league
+  app.get("/api/leagues/:leagueId/winner", async (req, res) => {
+    try {
+      const leagueId = req.params.leagueId;
+      
+      if (!req.session.userId) {
+        return res.status(401).json({ error: "Non autenticato" });
+      }
+
+      // Check if user is member of the league
+      const isMember = await storage.isUserInLeague(leagueId, req.session.userId);
+      if (!isMember) {
+        return res.status(403).json({ error: "Non sei membro di questa lega" });
+      }
+
+      const winnerData = await storage.getLeagueWinner(leagueId);
+      
+      if (!winnerData) {
+        return res.status(404).json({ error: "Vincitore non ancora dichiarato" });
+      }
+
+      res.json({
+        winnerUserId: winnerData.winnerUserId,
+        declaredAt: winnerData.declaredAt,
+        description: winnerData.decisionDetail
+      });
+    } catch (error) {
+      console.error("Get winner error:", error);
+      res.status(500).json({ error: "Errore interno del server" });
+    }
+  });
+
   // Matchday routes
   app.post("/api/leagues/:leagueId/matchdays", async (req, res) => {
     if (!req.session.userId) {

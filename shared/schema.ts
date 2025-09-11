@@ -40,6 +40,9 @@ export const leagues = pgTable("leagues", {
   name: text("name").notNull(),
   code: text("code").notNull().unique(),
   adminId: varchar("admin_id").references(() => users.id).notNull(),
+  winnerUserId: varchar("winner_user_id").references(() => users.id),
+  declaredWinnerAt: timestamp("declared_winner_at"),
+  winnerDecisionDetail: text("winner_decision_detail"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -215,8 +218,8 @@ export const insertPickSchema = createInsertSchema(picks).omit({
 
 export const insertSpecialBetSchema = createInsertSchema(specialBets).omit({
   id: true,
-  submittedAt: true,
-  lastModified: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export const insertSpecialTournamentSchema = createInsertSchema(specialTournaments).omit({
@@ -299,4 +302,9 @@ export const coppaResultsSchema = z.object({
 
 export const coppaBetSchema = z.object({
   winner: z.string().min(1),
+});
+
+export const declareWinnerSchema = z.object({
+  winnerUserId: z.string().optional(),
+  tiebreak: z.boolean().default(true),
 });
