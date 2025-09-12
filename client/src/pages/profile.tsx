@@ -115,12 +115,6 @@ export default function Profile() {
               <span className="text-primary/70 font-medium">Punti totali:</span>
               <span className="font-bold text-primary">{totalPoints}</span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-primary/70 font-medium">Media punti per lega:</span>
-              <span className="font-bold text-primary">
-                {leagueCount > 0 ? (totalPoints / leagueCount).toFixed(1) : "0"}
-              </span>
-            </div>
           </CardContent>
         </Card>
 
