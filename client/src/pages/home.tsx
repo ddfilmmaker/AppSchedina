@@ -26,7 +26,7 @@ export default function Home() {
     return () => window.removeEventListener('show-toast', handleShowToast);
   }, [toast]);
 
-  // Check for verification success on mount and auto-hide after 3 seconds
+  // Check for verification success on mount and auto-hide after 4 seconds with smooth transition
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('verified') === '1') {
@@ -36,10 +36,10 @@ export default function Home() {
       const newUrl = window.location.pathname + window.location.search.replace(/[?&]verified=1/, '').replace(/^\?$/, '');
       window.history.replaceState(null, '', newUrl);
 
-      // Hide the message after 3 seconds
+      // Hide the message after 4 seconds with fade out
       const timer = setTimeout(() => {
         setShowVerificationSuccess(false);
-      }, 3000);
+      }, 4000);
 
       return () => clearTimeout(timer);
     }
@@ -148,27 +148,7 @@ export default function Home() {
       )}
 
       {showVerificationSuccess && (
-        <Card className="retro-card border-0 rounded-2xl overflow-hidden bg-green-50 border-green-200 transition-opacity duration-500 ease-out opacity-100">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-bold">✓</span>
-              </div>
-              <div>
-                <p className="text-sm font-bold text-green-800">
-                  Email verificata
-                </p>
-                <p className="text-xs text-green-700">
-                  Il tuo account è stato verificato con successo
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {user && !user.unverified && !showVerificationSuccess && user.email && (
-        <Card className="retro-card border-0 rounded-2xl overflow-hidden bg-green-50 border-green-200">
+        <Card className={`retro-card border-0 rounded-2xl overflow-hidden bg-green-50 border-green-200 transition-all duration-500 ease-out transform ${showVerificationSuccess ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
