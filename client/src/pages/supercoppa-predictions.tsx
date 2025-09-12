@@ -485,6 +485,37 @@ export default function SupercoppaPredictions() {
           </Card>
         )}
 
+        {/* Official Results (visible to all users after confirmation) */}
+        {settings?.resultsConfirmedAt && settings?.officialFinalist1 && settings?.officialFinalist2 && settings?.officialWinner && (
+          <Card className="retro-card border-0 rounded-3xl overflow-hidden">
+            <CardHeader className="pb-4 pt-8 px-8">
+              <CardTitle className="text-lg font-bold text-primary retro-title flex items-center space-x-2">
+                <Trophy className="w-5 h-5 text-yellow-500" />
+                <span>Risultati Ufficiali</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-8 pt-0">
+              <div className="space-y-4">
+                <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
+                  <div className="text-sm text-primary/70 font-medium mb-1">Finalista 1</div>
+                  <div className="text-primary font-bold text-lg">{settings.officialFinalist1}</div>
+                </div>
+                <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200">
+                  <div className="text-sm text-primary/70 font-medium mb-1">Finalista 2</div>
+                  <div className="text-primary font-bold text-lg">{settings.officialFinalist2}</div>
+                </div>
+                <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 p-4 rounded-xl border border-yellow-200">
+                  <div className="text-sm text-primary/70 font-medium mb-1">Vincitore</div>
+                  <div className="text-primary font-bold text-lg">{settings.officialWinner}</div>
+                </div>
+                <div className="text-center text-xs text-primary/60 font-medium">
+                  Confermato il {formatDateTime(settings.resultsConfirmedAt)}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* All Predictions (visible after lock or deadline passed) */}
         {shouldShowAllBets && allBets && allBets.length > 0 && (
           <Card className="retro-card border-0 rounded-3xl overflow-hidden">
