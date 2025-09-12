@@ -15,44 +15,24 @@ export default function VerifyEmail() {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
+    const verified = urlParams.get('verified');
 
-    console.log('Verification page loaded with token:', token);
+    console.log('Verification page loaded with verified parameter:', verified);
 
-    if (!token) {
+    if (verified === '1') {
+      // Email was successfully verified by the server
+      setStatus('success');
+      setMessage('Email verificata con successo!');
+      
+      // Clear user cache so the verification banner disappears when user returns to app
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      console.log('Cache invalidated after successful verification');
+    } else {
+      // No verification parameter or verification failed
       setStatus('error');
-      setMessage('Token di verifica mancante');
-      return;
+      setMessage('Link di verifica non valido o già utilizzato');
     }
-
-    // Verify the email
-    const verifyEmail = async () => {
-      try {
-        console.log('Sending verification request for token:', token);
-        const response = await fetch(`/auth/verify?token=${encodeURIComponent(token)}`);
-        const data = await response.json();
-
-        console.log('Verification response:', { status: response.status, data });
-
-        if (response.ok) {
-          setStatus('success');
-          setMessage(data.message || 'Email verificata con successo!');
-          
-          // Clear user cache so the verification banner disappears when user returns to app
-          queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-        } else {
-          setStatus('error');
-          setMessage(data.error || 'Errore nella verifica');
-        }
-      } catch (error) {
-        console.error('Verification error:', error);
-        setStatus('error');
-        setMessage('Errore di connessione');
-      }
-    };
-
-    verifyEmail();
-  }, []);
+  }, [queryClient]);
 
   return (
     <div className="min-h-screen paper-texture flex items-center justify-center px-4 py-8">
