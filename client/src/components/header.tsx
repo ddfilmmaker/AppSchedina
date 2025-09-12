@@ -1,4 +1,4 @@
-import { Bell, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { logout } from "@/lib/auth";
 import { queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -23,11 +23,7 @@ interface HeaderProps {
 export default function Header({ user }: HeaderProps) {
   const [, setLocation] = useLocation();
 
-  const handleNotifications = () => {
-    // For now, we'll just log to console - you can extend this later
-    console.log("Notifications clicked");
-    // Future: could open a notifications dropdown or navigate to notifications page
-  };
+  
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
@@ -80,16 +76,6 @@ export default function Header({ user }: HeaderProps) {
         </div>
 
         <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:bg-white/10 transition-all duration-300"
-            onClick={handleNotifications}
-            data-testid="button-notifications"
-          >
-            <Bell className="w-5 h-5" />
-          </Button>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
