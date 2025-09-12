@@ -38,21 +38,14 @@ function AppContent() {
     retry: false,
   });
 
+  // Refetch auth data when verification is successful
   useEffect(() => {
-    // Check for verification success flag
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('verified') === '1') {
-      toast({
-        title: "Email verificata!",
-        description: "La tua email è stata verificata con successo.",
-      });
-      // Remove the query param without reload
-      const newUrl = window.location.pathname + window.location.search.replace(/[?&]verified=1/, '').replace(/^\?$/, '');
-      window.history.replaceState(null, '', newUrl);
       // Refetch auth data to update verification status
       refetch();
     }
-  }, [toast, refetch]);
+  }, [refetch]);
 
   // Ensure leagues are refetched when auth data changes
   useEffect(() => {

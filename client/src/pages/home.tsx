@@ -4,7 +4,7 @@ import { Plus, Users, TrendingUp, Trophy, Award, Medal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const { toast } = useToast();
@@ -15,6 +15,7 @@ export default function Home() {
   });
 
   const user = (authData as any)?.user;
+  const [showVerificationSuccess, setShowVerificationSuccess] = useState(false);
 
   useEffect(() => {
     const handleShowToast = (event: any) => {
@@ -24,6 +25,26 @@ export default function Home() {
     window.addEventListener('show-toast', handleShowToast);
     return () => window.removeEventListener('show-toast', handleShowToast);
   }, [toast]);
+
+  // Check for verification success on mount and auto-hide after 3 seconds
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('verified') === '1') {
+      setShowVerificationSuccess(true);
+
+      // Remove the query param immediately
+      const newUrl = window.location.pathname + window.location.search.replace(/[?&]verified=1/, '').replace(/^\?$/, '');
+      window.history.replaceState(null, '', newUrl);
+
+      // Hide the message after 3 seconds
+      const timer = setTimeout(() => {
+        setShowVerificationSuccess(false);
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
 
   // Ensure leagues is always an array
   const leaguesArray = Array.isArray(leagues) ? leagues : [];
@@ -37,7 +58,7 @@ export default function Home() {
           <div className="absolute bottom-20 right-10 w-40 h-40 retro-red-gradient rounded-full opacity-10 blur-3xl"></div>
           <div className="absolute top-1/2 left-1/4 w-24 h-24 retro-green-gradient rounded-full opacity-10 blur-2xl"></div>
         </div>
-        
+
         <div className="w-full max-w-sm relative z-10">
           <div className="animate-pulse space-y-6">
             <div className="h-32 bg-gray-200 rounded-3xl"></div>
@@ -66,7 +87,7 @@ export default function Home() {
         <div className="absolute bottom-20 right-10 w-40 h-40 retro-red-gradient rounded-full opacity-10 blur-3xl"></div>
         <div className="absolute top-1/2 left-1/4 w-24 h-24 retro-green-gradient rounded-full opacity-10 blur-2xl"></div>
       </div>
-      
+
       <div className="max-w-sm mx-auto px-4 py-8 pb-8 space-y-6 relative z-10">
       {/* Email Verification Status */}
       {user?.unverified && (
@@ -86,14 +107,14 @@ export default function Home() {
                   </p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={async () => {
                   try {
                     const response = await fetch("/api/auth/resend-verification", {
                       method: "POST",
                     });
                     const data = await response.json();
-                    
+
                     if (response.ok) {
                       // Show success toast
                       const event = new CustomEvent('show-toast', {
@@ -125,8 +146,28 @@ export default function Home() {
           </CardContent>
         </Card>
       )}
-      
-      {user && !user.unverified && user.email && (
+
+      {showVerificationSuccess && (
+        <Card className="retro-card border-0 rounded-2xl overflow-hidden bg-green-50 border-green-200 transition-opacity duration-500 ease-out opacity-100">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-bold">✓</span>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-green-800">
+                  Email verificata
+                </p>
+                <p className="text-xs text-green-700">
+                  Il tuo account è stato verificato con successo
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {user && !user.unverified && !showVerificationSuccess && user.email && (
         <Card className="retro-card border-0 rounded-2xl overflow-hidden bg-green-50 border-green-200">
           <CardContent className="p-4">
             <div className="flex items-center space-x-3">
@@ -171,7 +212,7 @@ export default function Home() {
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-4">
         <Link href="/create-league">
-          <Button 
+          <Button
             className="w-full retro-red-gradient retro-button rounded-2xl p-4 flex flex-col items-center space-y-2 text-white border-0 shadow-lg h-auto font-bold"
             data-testid="button-create-league"
           >
@@ -181,7 +222,7 @@ export default function Home() {
         </Link>
 
         <Link href="/join-league">
-          <Button 
+          <Button
             className="w-full retro-green-gradient retro-button rounded-2xl p-4 flex flex-col items-center space-y-2 text-white border-0 shadow-lg h-auto font-bold"
             data-testid="button-join-league"
           >
