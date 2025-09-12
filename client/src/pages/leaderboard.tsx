@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
 import { ArrowLeft, Trophy, Medal, Award, Plus, Minus, Crown } from "lucide-react";
@@ -9,6 +8,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import React from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function Leaderboard() {
   const [, params] = useRoute("/leaderboard/:leagueId");
@@ -19,6 +29,7 @@ export default function Leaderboard() {
   const [tiedUsers, setTiedUsers] = useState<any[]>([]);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const { data: leaderboardData, isLoading } = useQuery({
     queryKey: ["/api/leagues", leagueId, "leaderboard"],
@@ -70,7 +81,7 @@ export default function Leaderboard() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ winnerUserId }),
+        body: JSON.JSONstringify({ winnerUserId }),
       });
 
       if (!response.ok) {
@@ -135,7 +146,7 @@ export default function Leaderboard() {
           <div className="absolute bottom-20 right-10 w-40 h-40 retro-red-gradient rounded-full opacity-10 blur-3xl"></div>
           <div className="absolute top-1/2 left-1/4 w-24 h-24 retro-green-gradient rounded-full opacity-10 blur-2xl"></div>
         </div>
-        
+
         <div className="w-full max-w-sm relative z-10">
           <div className="animate-pulse space-y-6">
             <div className="h-12 bg-gray-200 rounded-3xl"></div>
@@ -177,7 +188,7 @@ export default function Leaderboard() {
           <div className="absolute bottom-20 right-10 w-40 h-40 retro-red-gradient rounded-full opacity-10 blur-3xl"></div>
           <div className="absolute top-1/2 left-1/4 w-24 h-24 retro-green-gradient rounded-full opacity-10 blur-2xl"></div>
         </div>
-        
+
         <div className="w-full max-w-sm relative z-10 text-center">
           <p className="text-secondary font-medium">Dati non disponibili</p>
           <Link href="/">
@@ -196,7 +207,7 @@ export default function Leaderboard() {
 
   // Find winner user from leaderboard if winner is declared
   const winnerInfo = winnerData as { winnerUserId: string; declaredAt: string; description: string } | null | undefined;
-  const winnerUser = winnerInfo?.winnerUserId ? 
+  const winnerUser = winnerInfo?.winnerUserId ?
     leaderboardArray.find((player: any) => player.user.id === winnerInfo.winnerUserId)?.user : null;
 
   return (
@@ -215,10 +226,10 @@ export default function Leaderboard() {
             <div className="retro-green-gradient p-6 text-white">
               <div className="flex items-center">
                 <Link href={`/league/${leagueId}`}>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="mr-3 text-white hover:bg-white/20 rounded-xl" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="mr-3 text-white hover:bg-white/20 rounded-xl"
                     data-testid="button-back"
                   >
                     <ArrowLeft className="w-6 h-6" />
@@ -311,7 +322,7 @@ export default function Leaderboard() {
                     Dichiara il vincitore della lega
                   </p>
                 </div>
-                
+
                 {showManualTiebreak ? (
                   <div className="space-y-4">
                     <p className="text-sm text-primary/70">
@@ -353,15 +364,41 @@ export default function Leaderboard() {
                     </div>
                   </div>
                 ) : (
-                  <Button
-                    className="retro-green-gradient retro-button rounded-xl text-white border-0 font-bold px-8"
-                    onClick={() => declareWinnerMutation.mutate({})}
-                    disabled={declareWinnerMutation.isPending || leaderboardArray.length === 0}
-                    data-testid="button-declare-winner"
-                  >
-                    <Crown className="w-5 h-5 mr-2" />
-                    {declareWinnerMutation.isPending ? "Dichiarazione..." : "Dichiara vincitore"}
-                  </Button>
+                  <div>
+                    <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          className="retro-green-gradient retro-button rounded-xl text-white border-0 font-bold px-8"
+                          onClick={() => setShowConfirmDialog(true)}
+                          disabled={declareWinnerMutation.isPending || leaderboardArray.length === 0}
+                          data-testid="button-declare-winner"
+                        >
+                          <Crown className="w-5 h-5 mr-2" />
+                          {declareWinnerMutation.isPending ? "Dichiarazione..." : "Dichiara vincitore"}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Sei Sicuro?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Sei sicuro di voler dichiarare il vincitore? Questa azione non può essere annullata.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annulla</AlertDialogCancel>
+                          <AlertDialogAction
+                            className="retro-green-gradient retro-button rounded-xl text-white border-0 font-bold"
+                            onClick={() => {
+                              declareWinnerMutation.mutate({});
+                              setShowConfirmDialog(false);
+                            }}
+                          >
+                            Conferma
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 )}
               </div>
             </CardContent>
@@ -376,8 +413,8 @@ export default function Leaderboard() {
           <CardContent className="p-0">
             <div className="divide-y divide-primary/10">
               {leaderboardArray?.map((player: any, index: number) => (
-                <div 
-                  key={player.user.id} 
+                <div
+                  key={player.user.id}
                   className={`px-6 py-4 ${
                     player.points === 0 ? "bg-gray-50/50" : ""
                   }`}
