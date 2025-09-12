@@ -157,28 +157,30 @@ export default function League() {
         </Card>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 gap-4">
-          <Link href={`/leaderboard/${leagueId}`}>
-            <Button className="w-full bg-gradient-to-r from-yellow-400 to-yellow-600 retro-button rounded-2xl p-4 flex flex-col items-center space-y-2 text-white border-0 shadow-lg h-auto font-bold" data-testid="button-view-leaderboard">
-              <Trophy className="w-6 h-6" />
-              <span className="text-sm font-medium">Classifica</span>
-            </Button>
-          </Link>
+        {isAdmin ? (
+          <div className="grid grid-cols-2 gap-4">
+            <Link href={`/leaderboard/${leagueId}`}>
+              <Button className="w-full bg-gradient-to-r from-yellow-400 to-yellow-600 retro-button rounded-2xl p-4 flex flex-col items-center space-y-2 text-white border-0 shadow-lg h-auto font-bold" data-testid="button-view-leaderboard">
+                <Trophy className="w-6 h-6" />
+                <span className="text-sm font-medium">Classifica</span>
+              </Button>
+            </Link>
 
-          {isAdmin ? (
             <Link href={`/league/${leagueId}/create-matchday`}>
               <Button className="w-full retro-green-gradient retro-button rounded-2xl p-4 flex flex-col items-center space-y-2 text-white border-0 shadow-lg h-auto font-bold" data-testid="button-create-matchday">
                 <Plus className="w-6 h-6" />
                 <span className="text-sm font-medium">Nuova Giornata</span>
               </Button>
             </Link>
-          ) : (
-            <div className="w-full bg-gray-100 rounded-2xl p-4 flex flex-col items-center space-y-2 opacity-50">
-              <Plus className="w-6 h-6 text-gray-400" />
-              <span className="text-sm font-medium text-gray-400">Solo Admin</span>
-            </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <Link href={`/leaderboard/${leagueId}`}>
+            <Button className="w-full bg-gradient-to-r from-yellow-400 to-yellow-600 retro-button rounded-2xl p-4 flex flex-col items-center space-y-2 text-white border-0 shadow-lg h-auto font-bold" data-testid="button-view-leaderboard">
+              <Trophy className="w-6 h-6" />
+              <span className="text-sm font-medium">Classifica</span>
+            </Button>
+          </Link>
+        )}
 
         {/* Special Predictions Section */}
         <div className="space-y-3">
