@@ -81,7 +81,7 @@ export default function Leaderboard() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.JSONstringify({ winnerUserId }),
+        body: JSON.stringify({ winnerUserId }),
       });
 
       if (!response.ok) {
