@@ -136,16 +136,21 @@ export default function Auth() {
         <div className="text-center mb-10">
           <div className="relative mx-auto mb-6">
             <div className="w-28 h-28 mx-auto relative">
-              {/* Custom soccer ball logo */}
-              <img
-                src={logoImage}
-                alt="Soccer Ball Logo"
-                className="w-20 h-20 object-contain"
-                onError={(e) => {
-                  console.error('Logo failed to load');
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
+              <div className="absolute inset-0 totocalcio-gradient rounded-full p-1">
+                <div className="w-full h-full bg-white rounded-full flex items-center justify-center shadow-inner">
+                  {/* Custom soccer ball logo */}
+                  <img
+                    src={logoImage}
+                    alt="Soccer Ball Logo"
+                    className="w-20 h-20 object-contain"
+                    onError={(e) => {
+                      console.error('Logo failed to load');
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
+              </div>
+
             </div>
           </div>
 
