@@ -367,38 +367,37 @@ export default function CoppaItaliaPredictions() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-5 px-6 pb-6">
-              {!isLocked && (
-                <>
-                  <div>
-                    <label className="block text-primary font-medium mb-3">
-                      Scadenza pronostici
-                    </label>
-                    <Input
-                      type="datetime-local"
-                      value={lockAt}
-                      onChange={(e) => setLockAt(e.target.value)}
-                      className="rounded-xl border-2 border-gray-200 focus:border-primary h-12 bg-white"
-                    />
-                  </div>
+              {/* Deadline setting - always available for admin */}
+              <div>
+                <label className="block text-primary font-medium mb-3">
+                  Scadenza pronostici
+                </label>
+                <Input
+                  type="datetime-local"
+                  value={lockAt}
+                  onChange={(e) => setLockAt(e.target.value)}
+                  className="rounded-xl border-2 border-gray-200 focus:border-primary h-12 bg-white"
+                />
+              </div>
 
-                  <div className="flex gap-3">
-                    <Button 
-                      onClick={() => saveDeadlineMutation.mutate()} 
-                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white rounded-xl h-12 font-bold border-0 shadow-lg"
-                      disabled={saveDeadlineMutation.isPending}
-                    >
-                      {saveDeadlineMutation.isPending ? "Salvando..." : "Aggiorna scadenza"}
-                    </Button>
-                    <Button 
-                      onClick={() => forceLockMutation.mutate()}
-                      className="flex-1 retro-red-gradient retro-button rounded-xl h-12 text-white border-0 font-bold shadow-lg"
-                      disabled={forceLockMutation.isPending}
-                    >
-                      {forceLockMutation.isPending ? "Bloccando..." : "Blocca ora"}
-                    </Button>
-                  </div>
-                </>
-              )}
+              <div className="flex gap-3">
+                <Button 
+                  onClick={() => saveDeadlineMutation.mutate()} 
+                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white rounded-xl h-12 font-bold border-0 shadow-lg"
+                  disabled={saveDeadlineMutation.isPending}
+                >
+                  {saveDeadlineMutation.isPending ? "Salvando..." : "Aggiorna scadenza"}
+                </Button>
+                {!isLocked && (
+                  <Button 
+                    onClick={() => forceLockMutation.mutate()}
+                    className="flex-1 retro-red-gradient retro-button rounded-xl h-12 text-white border-0 font-bold shadow-lg"
+                    disabled={forceLockMutation.isPending}
+                  >
+                    {forceLockMutation.isPending ? "Bloccando..." : "Blocca ora"}
+                  </Button>
+                )}
+              </div>
 
               {isLocked && (
                 <>
