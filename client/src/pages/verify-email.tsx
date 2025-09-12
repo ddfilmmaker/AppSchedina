@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
@@ -10,6 +11,7 @@ export default function VerifyEmail() {
   const [location] = useLocation();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -35,6 +37,9 @@ export default function VerifyEmail() {
         if (response.ok) {
           setStatus('success');
           setMessage(data.message || 'Email verificata con successo!');
+          
+          // Clear user cache so the verification banner disappears when user returns to app
+          queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
         } else {
           setStatus('error');
           setMessage(data.error || 'Errore nella verifica');
