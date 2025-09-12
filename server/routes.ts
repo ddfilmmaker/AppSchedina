@@ -172,6 +172,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     const unverified = !user.emailVerifiedAt;
+    console.log(`/api/auth/me for user ${user.id}: emailVerifiedAt=${user.emailVerifiedAt}, unverified=${unverified}`);
+    
     res.json({ 
       user: { 
         id: user.id, 
@@ -268,11 +270,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.useEmailVerificationToken(token);
       await storage.verifyUserEmail(record.userId);
 
+      // Ensure session is aligned with verified user
+      req.session.userId = record.userId;
+
       console.log("Email verified for user:", record.userId);
 
-      // Redirect to main app with success flag
-      const appUrl = process.env.APP_URL || '/';
-      const redirectUrl = `${appUrl}${appUrl.includes('?') ? '&' : '?'}verified=1`;
+      // Redirect to verify-email page (not home) to ensure cache invalidation runs
+      const appUrl = process.env.APP_URL || '';
+      const baseUrl = appUrl ? appUrl.replace(/\/$/, '') : '';
+      const redirectUrl = `${baseUrl}/verify-email?verified=1`;
       res.redirect(302, redirectUrl);
     } catch (error) {
       console.error("Email verification error:", error);

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Plus, Users, TrendingUp, Trophy, Award, Medal } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { useEffect } from "react";
 
 export default function Home() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: authData, isLoading: authLoading } = useQuery({ queryKey: ["/api/auth/me"] });
   const { data: leagues, isLoading: leaguesLoading } = useQuery({
     queryKey: ["/api/leagues"],
@@ -24,6 +25,23 @@ export default function Home() {
     window.addEventListener('show-toast', handleShowToast);
     return () => window.removeEventListener('show-toast', handleShowToast);
   }, [toast]);
+
+  // Defensive cache invalidation when email verification is successful
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const verified = urlParams.get('verified');
+    
+    if (verified === '1') {
+      console.log('Detected verification success on home page, invalidating auth cache');
+      // Invalidate auth cache so banner disappears
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      
+      // Clean up URL by removing the verified parameter
+      urlParams.delete('verified');
+      const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [queryClient]);
 
   // Ensure leagues is always an array
   const leaguesArray = Array.isArray(leagues) ? leagues : [];
