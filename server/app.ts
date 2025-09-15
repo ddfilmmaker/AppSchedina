@@ -1,3 +1,4 @@
+
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import MemoryStore from "memorystore";
@@ -56,7 +57,7 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  await registerRoutes(app);
+  const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -70,26 +71,10 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
-    await setupVite(app);
+    await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 })();
 
-// Only start the server for local development
-if (process.env.VERCEL !== '1') {
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
-  app.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
-}
-
-export default app;
+export { app };
