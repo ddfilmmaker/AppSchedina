@@ -1123,7 +1123,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     try {
       const data = insertSpecialTournamentSchema.parse(req.body);
-      const tournament = await storage.createSpecialTournament(data, req.params.leagueId);
+      const tournament = await storage.createSpecialTournament({
+        ...data,
+        leagueId: req.params.leagueId
+      }, req.params.leagueId);
       res.json(tournament);
     } catch (error) {
       res.status(400).json({ error: "Dati non validi" });
@@ -1164,7 +1167,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Previsione non valida" });
       }
 
-      const bet = await storage.updateSpecialBet({
+      const bet = await storage.submitSpecialBet({
         tournamentId: req.params.tournamentId,
         prediction,
         userId: req.session.userId

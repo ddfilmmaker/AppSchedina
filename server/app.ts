@@ -19,7 +19,7 @@ app.use(session({
     checkPeriod: 86400000 // prune expired entries every 24h
   }),
   cookie: {
-    secure: false, // Set to true in production with HTTPS
+    secure: process.env.NODE_ENV === 'production', // Enable in production with HTTPS
     httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days for better persistence
     sameSite: 'lax' // Ensure cookies work in same-site requests
