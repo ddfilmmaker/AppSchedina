@@ -1,0 +1,36 @@
+[15:47:33.184] Running build in Washington, D.C., USA (East) – iad1
+[15:47:33.190] Build machine configuration: 2 cores, 8 GB
+[15:47:33.253] Cloning github.com/ddfilmmaker/AppSchedina (Branch: main, Commit: 87d423b)
+[15:47:33.623] Previous build caches not available
+[15:47:34.713] Cloning completed: 1.458s
+[15:47:35.888] Running "vercel build"
+[15:47:36.312] Vercel CLI 48.0.2
+[15:47:36.499] WARN! Due to `builds` existing in your configuration file, the Build and Development Settings defined in your Project Settings will not apply. Learn More: https://vercel.link/unused-build-settings
+[15:47:37.108] Installing dependencies...
+[15:47:55.743] 
+[15:47:55.744] added 184 packages in 18s
+[15:47:55.744] 
+[15:47:55.745] 36 packages are looking for funding
+[15:47:55.745]   run `npm fund` for details
+[15:47:55.790] Running "npm run build"
+[15:47:57.874] 
+[15:47:57.874] > schedina-frontend@0.0.1 build
+[15:47:57.875] > vite build
+[15:47:57.875] 
+[15:47:58.135] [36mvite v5.4.20 [32mbuilding for production...[36m[39m
+[15:47:58.190] transforming...
+[15:47:58.966] [32m✓[39m 4 modules transformed.
+[15:47:58.972] [31mx[39m Build failed in 811ms
+[15:47:58.972] [31merror during build:
+[15:47:58.972] [31m[vite]: Rollup failed to resolve import "@tanstack/react-query" from "/vercel/path0/client/src/App.tsx".
+[15:47:58.972] This is most likely unintended because it can break your application at runtime.
+[15:47:58.972] If you do want to externalize this module explicitly add it to
+[15:47:58.972] `build.rollupOptions.external`[31m
+[15:47:58.972]     at viteWarn (file:///vercel/path0/client/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:65854:17)
+[15:47:58.973]     at onRollupWarning (file:///vercel/path0/client/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:65886:5)
+[15:47:58.973]     at onwarn (file:///vercel/path0/client/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:65549:7)
+[15:47:58.973]     at file:///vercel/path0/client/node_modules/rollup/dist/es/shared/node-entry.js:20953:13
+[15:47:58.973]     at Object.logger [as onLog] (file:///vercel/path0/client/node_modules/rollup/dist/es/shared/node-entry.js:22825:9)
+[15:47:58.973]     at ModuleLoader.handleInvalidResolvedId (file:///vercel/path0/client/node_modules/rollup/dist/es/shared/node-entry.js:21569:26)
+[15:47:58.973]     at file:///vercel/path0/client/node_modules/rollup/dist/es/shared/node-entry.js:21527:26[39m
+[15:47:58.990] Error: Command "npm run build" exited with 1
