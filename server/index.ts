@@ -2,13 +2,17 @@ import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import MemoryStore from "memorystore";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import { createServer } from "http";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Session configuration
+if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET must be set in production environment');
+}
+
 const MemoryStoreSession = MemoryStore(session);
 app.use(session({
   secret: process.env.SESSION_SECRET || "fallback-secret-for-development",
@@ -24,6 +28,17 @@ app.use(session({
     sameSite: 'lax' // Ensure cookies work in same-site requests
   }
 }));
+
+// Simple logging utility for development
+function log(message: string, source = "express") {
+  const formattedTime = new Date().toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+  console.log(`${formattedTime} [${source}] ${message}`);
+}
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -66,13 +81,18 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app);
-  } else {
-    serveStatic(app);
+  // Only setup Vite/static serving for local development, not in Vercel
+  if (!process.env.VERCEL) {
+    if (app.get("env") === "development") {
+      // Dynamic import to avoid loading Vite in serverless environment
+      const { setupVite } = await import("./vite");
+      const server = createServer(app);
+      await setupVite(app, server);
+    } else {
+      // Dynamic import to avoid loading Vite in serverless environment
+      const { serveStatic } = await import("./vite");
+      serveStatic(app);
+    }
   }
 })();
 
@@ -92,4 +112,5 @@ if (process.env.VERCEL !== '1') {
   });
 }
 
+// Export for Vercel serverless deployment
 export default app;

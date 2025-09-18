@@ -1,8 +1,18 @@
 
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
 import { getSession } from "./session";
+
+// Simple logging utility for development
+function log(message: string, source = "express") {
+  const formattedTime = new Date().toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+  console.log(`${formattedTime} [${source}] ${message}`);
+}
 
 const app = express();
 app.use(express.json());
@@ -44,7 +54,8 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
+// Initialize app asynchronously to ensure routes are ready
+const init = (async () => {
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -55,14 +66,18 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
+  // Only setup vite/static serving for local development, not in Vercel
+  if (!process.env.VERCEL) {
+    if (app.get("env") === "development") {
+      const { setupVite } = await import("./vite");
+      await setupVite(app, server);
+    } else {
+      const { serveStatic } = await import("./vite");
+      serveStatic(app);
+    }
   }
+  
+  return app;
 })();
 
-export { app };
+export { app, init };
