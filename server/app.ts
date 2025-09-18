@@ -1,30 +1,18 @@
 
 import express, { type Request, Response, NextFunction } from "express";
-import session from "express-session";
-import MemoryStore from "memorystore";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { getSession } from "./session";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Session configuration
-const MemoryStoreSession = MemoryStore(session);
-app.use(session({
-  secret: process.env.SESSION_SECRET || "fallback-secret-for-development",
-  resave: false,
-  saveUninitialized: false,
-  store: new MemoryStoreSession({
-    checkPeriod: 86400000 // prune expired entries every 24h
-  }),
-  cookie: {
-    secure: process.env.NODE_ENV === 'production', // Enable in production with HTTPS
-    httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days for better persistence
-    sameSite: 'lax' // Ensure cookies work in same-site requests
-  }
-}));
+// Iron session middleware for serverless compatibility
+app.use(async (req: any, res: any, next) => {
+  req.session = await getSession(req, res);
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();

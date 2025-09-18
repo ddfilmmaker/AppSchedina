@@ -29,9 +29,16 @@ import { eq, and } from "drizzle-orm";
 import crypto from "crypto";
 import { sendEmail } from "./lib/email";
 
-declare module "express-session" {
-  interface SessionData {
-    userId: string;
+// Session types handled by iron-session
+declare global {
+  namespace Express {
+    interface Request {
+      session: {
+        userId?: string;
+        save: () => Promise<void>;
+        destroy: () => Promise<void>;
+      }
+    }
   }
 }
 
@@ -108,6 +115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       req.session.userId = user.id;
+      await req.session.save();
       res.json({ 
         user: { id: user.id, nickname: user.nickname, isAdmin: user.isAdmin },
         emailVerificationSent: true
@@ -138,6 +146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       req.session.userId = user.id;
+      await req.session.save();
       console.log("Session created for user:", user.id);
       res.json({ user: { id: user.id, nickname: user.nickname, isAdmin: user.isAdmin } });
     } catch (error) {
@@ -146,14 +155,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auth/logout", (req, res) => {
-    req.session.destroy((err) => {
-      if (err) {
-        return res.status(500).json({ error: "Errore durante il logout" });
-      }
-      res.clearCookie('connect.sid', { path: '/' });
+  app.post("/api/auth/logout", async (req, res) => {
+    try {
+      await req.session.destroy();
       res.json({ success: true });
-    });
+    } catch (error) {
+      res.status(500).json({ error: "Errore durante il logout" });
+    }
   });
 
   app.get("/api/auth/me", async (req, res) => {
