@@ -1,4 +1,4 @@
-import { app, init } from './app';
+import { app, init } from '../server/app';
 
 export default async (req: any, res: any) => {
   // Wait for app initialization to complete before handling requests
