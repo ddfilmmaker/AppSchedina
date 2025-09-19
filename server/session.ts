@@ -21,7 +21,7 @@ const sessionOptions = {
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-    sameSite: process.env.NODE_ENV === "production" ? "none" as const : "lax" as const,
+    sameSite: process.env.NODE_ENV === "production" ? "lax" as const : "lax" as const,
   },
 };
 
